@@ -21,7 +21,7 @@ type Retriever interface {
 type collectorImpl struct {
 	current string
 	nests   []string
-	picks   map[string][]string
+	wants   map[string][]string
 	sep     string
 }
 
@@ -30,20 +30,20 @@ func NewRetriever() Retriever {
 }
 
 func NewRetrieverWithSep(sep string) Retriever {
-	return &collectorImpl{picks: map[string][]string{}, sep: sep}
+	return &collectorImpl{wants: map[string][]string{}, sep: sep}
 }
 
 func (sf *collectorImpl) Nest(name string) Retriever {
 	sf.nests = append(sf.nests, name)
 
 	sf.current = strconv.Itoa(len(sf.nests)-1) + name
-	sf.picks[sf.current] = []string{}
+	sf.wants[sf.current] = []string{}
 	return sf
 }
 
 func (sf *collectorImpl) Want(name string) Retriever {
-	if _, ok := sf.picks[sf.current]; ok {
-		sf.picks[sf.current] = append(sf.picks[sf.current], name)
+	if _, ok := sf.wants[sf.current]; ok {
+		sf.wants[sf.current] = append(sf.wants[sf.current], name)
 	}
 
 	return sf
@@ -96,7 +96,7 @@ func (sf *collectorImpl) FromAccessor(ac Accessor) (map[string]interface{}, erro
 
 		// retrieve items from nested struct
 		pk = strconv.Itoa(idx) + n
-		pvs, ok = sf.picks[pk]
+		pvs, ok = sf.wants[pk]
 		if !ok {
 			continue
 		}
