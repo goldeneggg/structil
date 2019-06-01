@@ -23,7 +23,7 @@ type Accessor interface {
 	MapStructs(name string, f func(int, Accessor) interface{}) ([]interface{}, error)
 }
 
-type accessorImpl struct {
+type aImpl struct {
 	rv       reflect.Value
 	cachedRV map[string]reflect.Value
 	cachedI  map[string]interface{}
@@ -48,18 +48,18 @@ func NewAccessor(st interface{}) (Accessor, error) {
 		rv = reflect.Indirect(rv)
 	}
 
-	return &accessorImpl{
+	return &aImpl{
 		rv:       rv,
 		cachedRV: map[string]reflect.Value{},
 		cachedI:  map[string]interface{}{},
 	}, nil
 }
 
-func (a *accessorImpl) GetRV(name string) (reflect.Value, error) {
+func (a *aImpl) GetRV(name string) (reflect.Value, error) {
 	return a.getRV(name, true)
 }
 
-func (a *accessorImpl) getRV(name string, isIndirect bool) (reflect.Value, error) {
+func (a *aImpl) getRV(name string, isIndirect bool) (reflect.Value, error) {
 	frv, ok := a.cachedRV[name]
 	if !ok {
 		var err error
@@ -68,12 +68,11 @@ func (a *accessorImpl) getRV(name string, isIndirect bool) (reflect.Value, error
 			return reflect.ValueOf(nil), err
 		}
 	}
-	fmt.Printf("  @@@ name: %s, CanSet(): %v\n", name, frv.CanSet())
 
 	return frv, nil
 }
 
-func (a *accessorImpl) recacheRV(name string, isIndirect bool) (reflect.Value, error) {
+func (a *aImpl) recacheRV(name string, isIndirect bool) (reflect.Value, error) {
 	frv := a.rv.FieldByName(name)
 	kind := frv.Kind()
 	if kind == reflect.Invalid {
@@ -88,7 +87,7 @@ func (a *accessorImpl) recacheRV(name string, isIndirect bool) (reflect.Value, e
 	return frv, nil
 }
 
-func (a *accessorImpl) Get(name string) (interface{}, error) {
+func (a *aImpl) Get(name string) (interface{}, error) {
 	intf, ok := a.cachedI[name]
 	if !ok {
 		var err error
@@ -101,7 +100,7 @@ func (a *accessorImpl) Get(name string) (interface{}, error) {
 	return intf, nil
 }
 
-func (a *accessorImpl) recacheI(name string) (interface{}, error) {
+func (a *aImpl) recacheI(name string) (interface{}, error) {
 	frv, err := a.GetRV(name)
 	if err != nil {
 		return nil, err
@@ -116,7 +115,7 @@ func (a *accessorImpl) recacheI(name string) (interface{}, error) {
 	return intf, nil
 }
 
-func (a *accessorImpl) GetString(name string) (string, error) {
+func (a *aImpl) GetString(name string) (string, error) {
 	intf, err := a.Get(name)
 	if err != nil {
 		return errStr, err
@@ -130,7 +129,7 @@ func (a *accessorImpl) GetString(name string) (string, error) {
 	return res, nil
 }
 
-func (a *accessorImpl) GetInt(name string) (int, error) {
+func (a *aImpl) GetInt(name string) (int, error) {
 	intf, err := a.Get(name)
 	if err != nil {
 		return errInt, err
@@ -144,7 +143,7 @@ func (a *accessorImpl) GetInt(name string) (int, error) {
 	return res, nil
 }
 
-func (a *accessorImpl) GetBool(name string) (bool, error) {
+func (a *aImpl) GetBool(name string) (bool, error) {
 	intf, err := a.Get(name)
 	if err != nil {
 		return errBool, err
@@ -158,29 +157,28 @@ func (a *accessorImpl) GetBool(name string) (bool, error) {
 	return res, nil
 }
 
-func (a *accessorImpl) IsStruct(name string) bool {
+func (a *aImpl) IsStruct(name string) bool {
 	return a.is(name, reflect.Struct)
 }
 
-func (a *accessorImpl) IsSlice(name string) bool {
+func (a *aImpl) IsSlice(name string) bool {
 	return a.is(name, reflect.Slice)
 }
 
-func (a *accessorImpl) IsInterface(name string) bool {
+func (a *aImpl) IsInterface(name string) bool {
 	return a.is(name, reflect.Interface)
 }
 
-func (a *accessorImpl) is(name string, exp reflect.Kind) bool {
+func (a *aImpl) is(name string, exp reflect.Kind) bool {
 	frv, err := a.GetRV(name)
 	if err != nil {
 		return false
 	}
 
-	kind := frv.Kind()
-	return kind == exp
+	return frv.Kind() == exp
 }
 
-func (a *accessorImpl) MapStructs(name string, f func(int, Accessor) interface{}) ([]interface{}, error) {
+func (a *aImpl) MapStructs(name string, f func(int, Accessor) interface{}) ([]interface{}, error) {
 	if !a.IsSlice(name) {
 		return nil, fmt.Errorf("field %s is not slice", name)
 	}
