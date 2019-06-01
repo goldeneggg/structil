@@ -9,6 +9,10 @@ pkgs:
 run:
 	@go run examples/misc/main.go
 
+.PHONY: test
+test:
+	@go test -race -cover -v $(PKGS)
+
 .PHONY: bench
 bench:
 	@go test -bench . $(PKGS)
