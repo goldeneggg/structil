@@ -1,8 +1,14 @@
 # structil
 
+Struct utilities in Go.
+
 ___WIP___
 
-Struct utilities in Go.
+- [ ] implement struct accessor by field name string.
+- [ ] implement nested struct retriever by field name string and nest process.
+- [ ] add tests.
+- [ ] add CI settings.
+- [ ] fix README.
 
 ## Usage
 
