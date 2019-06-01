@@ -3,6 +3,8 @@ package main
 import (
 	"io"
 	"log"
+	"os"
+	"reflect"
 
 	"github.com/goldeneggg/structil"
 )
@@ -13,15 +15,17 @@ type A struct {
 	NamePtr *string
 	IsMan   bool
 	AaPtr   *AA
+	Nil     *AA
 	XArr    []X
 	XPtrArr []*X
 	StrArr  []string
 }
 
 type AA struct {
-	Name   string
-	Intf   interface{}
-	AaaPtr *AAA
+	Name      string
+	Writer    interface{}
+	WriterNil interface{}
+	AaaPtr    *AAA
 }
 
 type AAA struct {
@@ -43,13 +47,15 @@ var (
 		NamePtr: &name,
 		IsMan:   true,
 		AaPtr: &AA{
-			Name: "あいう　えおあ",
-			Intf: (*io.Writer)(nil),
+			Name:      "あいう　えおあ",
+			Writer:    os.Stdout,
+			WriterNil: (*io.Writer)(nil),
 			AaaPtr: &AAA{
 				Name: "かきく　けこか",
 				Val:  8,
 			},
 		},
+		Nil: nil,
 		XArr: []X{
 			{
 				Key:   "key1",
@@ -95,11 +101,18 @@ func exampleAccessor() {
 	}
 	log.Printf("Accessor.Get(Name): %s", name)
 
+	hoge.Name = "あほ　ぼけお"
+	name, err = ac.Get("Name")
+	if err != nil {
+		log.Printf("!!! ERROR: %v", err)
+	}
+	log.Printf("Accessor.Get(Name) AFTER: %s", name)
+
 	name, err = ac.GetString("NamePtr")
 	if err != nil {
 		log.Printf("!!! ERROR: %v", err)
 	}
-	log.Printf("Accessor.GetString(Name): %s", name)
+	log.Printf("Accessor.GetString(NamePtr): %s", name)
 
 	IsMan, err := ac.GetBool("IsMan")
 	if err != nil {
@@ -107,26 +120,82 @@ func exampleAccessor() {
 	}
 	log.Printf("Accessor.GetBool(IsMan): %v", IsMan)
 
-	hogePtr, err := ac.Get("AaPtr")
+	// AaPtr
+	aaPtr, err := ac.Get("AaPtr")
 	if err != nil {
 		log.Printf("!!! ERROR: %+v", err)
 	}
-	log.Printf("Accessor.Get(AaPtr): %v", hogePtr)
-
+	log.Printf("Accessor.Get(AaPtr): %v", aaPtr)
 	log.Printf("Accessor.IsStruct(AaPtr): %v", ac.IsStruct("AaPtr"))
-	log.Printf("Accessor.IsSlice(AaPtr): %v", ac.IsSlice("XPtrArr"))
+	log.Printf("Accessor.IsInterface(AaPtr): %v", ac.IsInterface("AaPtr"))
 
-	fIntf := func(i int, a structil.Accessor) interface{} {
+	aaAc, err := structil.NewAccessor(aaPtr)
+	if err != nil {
+		log.Printf("!!! ERROR: %v", err)
+	}
+
+	it, err := aaAc.Get("Writer")
+	if err != nil {
+		log.Printf("!!! ERROR: %v", err)
+	}
+	log.Printf("AaPtr.Get(Writer): %+v", it)
+	log.Printf("AaPtr.Get(Writer).ValueOf().Elem(): %+v", reflect.ValueOf(it).Elem())
+	log.Printf("AaPtr.IsStruct(Writer): %v", aaAc.IsStruct("Writer"))
+	log.Printf("AaPtr.IsInterface(Writer): %v", aaAc.IsInterface("Writer"))
+
+	itnil, err := aaAc.Get("WriterNil")
+	if err != nil {
+		log.Printf("!!! ERROR: %v", err)
+	}
+	log.Printf("AaPtr.Get(WriterNil): %+v", itnil)
+	log.Printf("AaPtr.Get(WriterNil).ValueOf().Elem(): %+v", reflect.ValueOf(itnil).Elem())
+	log.Printf("AaPtr.IsStruct(WriterNil): %v", aaAc.IsStruct("WriterNil"))
+	log.Printf("AaPtr.IsInterface(WriterNil): %v", aaAc.IsInterface("WriterNil"))
+
+	// Nil
+	rvNil, err := ac.GetRV("Nil")
+	if err != nil {
+		log.Printf("!!! ERROR: %+v", err)
+	}
+	log.Printf("Accessor.GetRV(Nil): %v", rvNil)
+	aNil, err := ac.Get("Nil")
+	if err != nil {
+		log.Printf("!!! ERROR: %+v", err)
+	}
+	log.Printf("Accessor.Get(Nil): %v", aNil)
+	log.Printf("Accessor.IsStruct(Nil): %v", ac.IsStruct("Nil"))
+	log.Printf("Accessor.IsInterface(Nil): %v", ac.IsInterface("Nil"))
+
+	aNilAc, err := structil.NewAccessor(aNil)
+	if err != nil {
+		log.Printf("!!! ERROR: %v", err)
+	}
+	log.Printf("Accessor.Get(Nil).NewAccessor: %+v", aNilAc)
+
+	// XArr
+	xArr, err := ac.Get("XArr")
+	if err != nil {
+		log.Printf("!!! ERROR: %+v", err)
+	}
+	log.Printf("Accessor.Get(XArr): %v", xArr)
+	log.Printf("Accessor.IsStruct(XArr): %v", ac.IsStruct("XArr"))
+	log.Printf("Accessor.IsSlice(XArr): %v", ac.IsSlice("XArr"))
+	log.Printf("Accessor.IsInterface(XArr): %v", ac.IsInterface("XArr"))
+
+	// Map
+	fa := func(i int, a structil.Accessor) interface{} {
 		s1, _ := a.GetString("Key")
 		s2, _ := a.GetString("Value")
 		return s1 + "=" + s2
 	}
-	results, err := ac.MapStructs("XArr", fIntf)
+
+	results, err := ac.MapStructs("XArr", fa)
 	if err != nil {
 		log.Printf("!!! ERROR: %+v", err)
 	}
 	log.Printf("results XArr: %v, err: %v", results, err)
-	results, err = ac.MapStructs("XPtrArr", fIntf)
+
+	results, err = ac.MapStructs("XPtrArr", fa)
 	if err != nil {
 		log.Printf("!!! ERROR: %+v", err)
 	}

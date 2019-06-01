@@ -19,16 +19,19 @@ type Accessor interface {
 	GetBool(name string) (bool, error)
 	IsStruct(name string) bool
 	IsSlice(name string) bool
+	IsInterface(name string) bool
 	MapStructs(name string, f func(int, Accessor) interface{}) ([]interface{}, error)
 }
 
 type accessorImpl struct {
-	rv      reflect.Value
-	cachedV map[string]reflect.Value
-	cachedI map[string]interface{}
+	rv       reflect.Value
+	cachedRV map[string]reflect.Value
+	cachedI  map[string]interface{}
 }
 
 func NewAccessor(st interface{}) (Accessor, error) {
+	// TODO st == nilならすぐエラーでいい
+
 	rv := reflect.ValueOf(st)
 	kind := rv.Kind()
 
@@ -46,9 +49,9 @@ func NewAccessor(st interface{}) (Accessor, error) {
 	}
 
 	return &accessorImpl{
-		rv:      rv,
-		cachedV: map[string]reflect.Value{},
-		cachedI: map[string]interface{}{},
+		rv:       rv,
+		cachedRV: map[string]reflect.Value{},
+		cachedI:  map[string]interface{}{},
 	}, nil
 }
 
@@ -57,19 +60,30 @@ func (a *accessorImpl) GetRV(name string) (reflect.Value, error) {
 }
 
 func (a *accessorImpl) getRV(name string, isIndirect bool) (reflect.Value, error) {
-	frv, ok := a.cachedV[name]
+	frv, ok := a.cachedRV[name]
 	if !ok {
-		frv = a.rv.FieldByName(name)
-		kind := frv.Kind()
-		if kind == reflect.Invalid {
-			return reflect.ValueOf(nil), fmt.Errorf("name %s is invalid. frv: %+v", name, frv)
+		var err error
+		frv, err = a.recacheRV(name, isIndirect)
+		if err != nil {
+			return reflect.ValueOf(nil), err
 		}
-
-		if isIndirect {
-			frv = reflect.Indirect(frv)
-		}
-		a.cachedV[name] = frv
 	}
+	fmt.Printf("  @@@ name: %s, CanSet(): %v\n", name, frv.CanSet())
+
+	return frv, nil
+}
+
+func (a *accessorImpl) recacheRV(name string, isIndirect bool) (reflect.Value, error) {
+	frv := a.rv.FieldByName(name)
+	kind := frv.Kind()
+	if kind == reflect.Invalid {
+		return reflect.ValueOf(nil), fmt.Errorf("name %s is invalid. frv: %+v", name, frv)
+	}
+
+	if isIndirect {
+		frv = reflect.Indirect(frv)
+	}
+	a.cachedRV[name] = frv
 
 	return frv, nil
 }
@@ -77,14 +91,27 @@ func (a *accessorImpl) getRV(name string, isIndirect bool) (reflect.Value, error
 func (a *accessorImpl) Get(name string) (interface{}, error) {
 	intf, ok := a.cachedI[name]
 	if !ok {
-		frv, err := a.GetRV(name)
+		var err error
+		intf, err = a.recacheI(name)
 		if err != nil {
 			return nil, err
 		}
-
-		intf = frv.Interface()
-		a.cachedI[name] = intf
 	}
+
+	return intf, nil
+}
+
+func (a *accessorImpl) recacheI(name string) (interface{}, error) {
+	frv, err := a.GetRV(name)
+	if err != nil {
+		return nil, err
+	}
+
+	var intf interface{}
+	if frv.IsValid() && frv.CanInterface() {
+		intf = frv.Interface()
+	}
+	a.cachedI[name] = intf
 
 	return intf, nil
 }
@@ -137,6 +164,10 @@ func (a *accessorImpl) IsStruct(name string) bool {
 
 func (a *accessorImpl) IsSlice(name string) bool {
 	return a.is(name, reflect.Slice)
+}
+
+func (a *accessorImpl) IsInterface(name string) bool {
+	return a.is(name, reflect.Interface)
 }
 
 func (a *accessorImpl) is(name string, exp reflect.Kind) bool {
