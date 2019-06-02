@@ -32,7 +32,9 @@ type aImpl struct {
 }
 
 func NewAccessor(st interface{}) (Accessor, error) {
-	// TODO st == nilならすぐエラーでいい
+	if st == nil {
+		return nil, fmt.Errorf("value of passed argument %+v is nil", st)
+	}
 
 	rv := reflect.ValueOf(st)
 	kind := rv.Kind()
@@ -45,8 +47,7 @@ func NewAccessor(st interface{}) (Accessor, error) {
 		if rv.IsNil() {
 			return nil, fmt.Errorf("value of passed argument %+v is nil", rv)
 		}
-		// TODO: ポインタの場合、入力元内容変更の影響を受けるので対応検討
-		// （並行処理で使った場合の考慮etc）
+		// TODO: maybe require syncrhonization control when st is pointer?
 		rv = reflect.Indirect(rv)
 	}
 
