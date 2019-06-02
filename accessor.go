@@ -13,12 +13,12 @@ const (
 )
 
 type Accessor interface {
-	GetRV(name string) (reflect.Value, error)
-	Get(name string) (interface{}, error)
-	GetString(name string) (string, error)
-	GetInt(name string) (int, error)
-	GetFloat64(name string) (float64, error)
-	GetBool(name string) (bool, error)
+	GetRV(name string) reflect.Value
+	Get(name string) interface{}
+	GetString(name string) string
+	GetInt64(name string) int64
+	GetFloat64(name string) float64
+	GetBool(name string) bool
 	IsStruct(name string) bool
 	IsSlice(name string) bool
 	IsInterface(name string) bool
@@ -58,120 +58,63 @@ func NewAccessor(st interface{}) (Accessor, error) {
 	}, nil
 }
 
-func (a *aImpl) GetRV(name string) (reflect.Value, error) {
+func (a *aImpl) GetRV(name string) reflect.Value {
 	return a.getRV(name, true)
 }
 
-func (a *aImpl) getRV(name string, isIndirect bool) (reflect.Value, error) {
+func (a *aImpl) getRV(name string, isIndirect bool) reflect.Value {
 	frv, ok := a.cachedRV[name]
 	if !ok {
-		var err error
-		frv, err = a.recacheRV(name, isIndirect)
-		if err != nil {
-			return reflect.ValueOf(nil), err
-		}
+		frv = a.recacheRV(name, isIndirect)
 	}
 
-	return frv, nil
+	return frv
 }
 
-func (a *aImpl) recacheRV(name string, isIndirect bool) (reflect.Value, error) {
+func (a *aImpl) recacheRV(name string, isIndirect bool) reflect.Value {
 	frv := a.rv.FieldByName(name)
-	kind := frv.Kind()
-	if kind == reflect.Invalid {
-		return reflect.ValueOf(nil), fmt.Errorf("name %s is invalid. frv: %+v", name, frv)
-	}
-
 	if isIndirect {
 		frv = reflect.Indirect(frv)
 	}
 	a.cachedRV[name] = frv
 
-	return frv, nil
+	return a.cachedRV[name]
 }
 
-func (a *aImpl) Get(name string) (interface{}, error) {
+func (a *aImpl) Get(name string) interface{} {
 	intf, ok := a.cachedI[name]
 	if !ok {
-		var err error
-		intf, err = a.recacheI(name)
-		if err != nil {
-			return nil, err
-		}
+		intf = a.recacheI(name)
 	}
 
-	return intf, nil
+	return intf
 }
 
-func (a *aImpl) recacheI(name string) (interface{}, error) {
-	frv, err := a.GetRV(name)
-	if err != nil {
-		return nil, err
-	}
-
-	var intf interface{}
+func (a *aImpl) recacheI(name string) interface{} {
+	frv := a.GetRV(name)
 	if frv.IsValid() && frv.CanInterface() {
-		intf = frv.Interface()
+		a.cachedI[name] = frv.Interface()
+	} else {
+		a.cachedI[name] = nil
 	}
-	a.cachedI[name] = intf
 
-	return intf, nil
+	return a.cachedI[name]
 }
 
-func (a *aImpl) GetString(name string) (string, error) {
-	intf, err := a.Get(name)
-	if err != nil {
-		return initStr, err
-	}
-
-	res, ok := intf.(string)
-	if !ok {
-		return initStr, fmt.Errorf("field %s is not string %+v", name, intf)
-	}
-
-	return res, nil
+func (a *aImpl) GetString(name string) string {
+	return a.GetRV(name).String()
 }
 
-func (a *aImpl) GetInt(name string) (int, error) {
-	intf, err := a.Get(name)
-	if err != nil {
-		return initInt, err
-	}
-
-	res, ok := intf.(int)
-	if !ok {
-		return initInt, fmt.Errorf("field %s is not int %+v", name, intf)
-	}
-
-	return res, nil
+func (a *aImpl) GetInt64(name string) int64 {
+	return a.GetRV(name).Int()
 }
 
-func (a *aImpl) GetFloat64(name string) (float64, error) {
-	intf, err := a.Get(name)
-	if err != nil {
-		return initInt, err
-	}
-
-	res, ok := intf.(float64)
-	if !ok {
-		return initFloat64, fmt.Errorf("field %s is not float64 %+v", name, intf)
-	}
-
-	return res, nil
+func (a *aImpl) GetFloat64(name string) float64 {
+	return a.GetRV(name).Float()
 }
 
-func (a *aImpl) GetBool(name string) (bool, error) {
-	intf, err := a.Get(name)
-	if err != nil {
-		return initBool, err
-	}
-
-	res, ok := intf.(bool)
-	if !ok {
-		return initBool, fmt.Errorf("field %s is not bool %+v", name, intf)
-	}
-
-	return res, nil
+func (a *aImpl) GetBool(name string) bool {
+	return a.GetRV(name).Bool()
 }
 
 func (a *aImpl) IsStruct(name string) bool {
@@ -187,11 +130,7 @@ func (a *aImpl) IsInterface(name string) bool {
 }
 
 func (a *aImpl) is(name string, exp reflect.Kind) bool {
-	frv, err := a.GetRV(name)
-	if err != nil {
-		return false
-	}
-
+	frv := a.GetRV(name)
 	return frv.Kind() == exp
 }
 
@@ -200,14 +139,11 @@ func (a *aImpl) MapStructs(name string, f func(int, Accessor) interface{}) ([]in
 		return nil, fmt.Errorf("field %s is not slice", name)
 	}
 
-	srv, err := a.GetRV(name)
-	if err != nil {
-		return nil, err
-	}
-
 	var vi reflect.Value
 	var ac Accessor
+	var err error
 	var res []interface{}
+	srv := a.GetRV(name)
 
 	for i := 0; i < srv.Len(); i++ {
 		vi = srv.Index(i)

@@ -92,42 +92,20 @@ func exampleAccessor() {
 		log.Printf("!!! ERROR: %v", err)
 	}
 
-	name, err := ac.Get("Name")
-	if err != nil {
-		log.Printf("!!! ERROR: %v", err)
-	}
+	name := ac.Get("Name")
 	log.Printf("Accessor.Get(Name): %s", name)
 
-	hoge.Name = "あほ　ぼけお"
-	name, err = ac.Get("Name")
-	if err != nil {
-		log.Printf("!!! ERROR: %v", err)
-	}
-	log.Printf("Accessor.Get(Name) AFTER: %s", name)
-
-	name, err = ac.GetString("NamePtr")
-	if err != nil {
-		log.Printf("!!! ERROR: %v", err)
-	}
+	name = ac.GetString("NamePtr")
 	log.Printf("Accessor.GetString(NamePtr): %s", name)
 
-	IsMan, err := ac.GetBool("IsMan")
-	if err != nil {
-		log.Printf("!!! ERROR: %v", err)
-	}
+	IsMan := ac.GetBool("IsMan")
 	log.Printf("Accessor.GetBool(IsMan): %v", IsMan)
 
-	floatVal, err := ac.GetFloat64("FloatVal")
-	if err != nil {
-		log.Printf("!!! ERROR: %v", err)
-	}
+	floatVal := ac.GetFloat64("FloatVal")
 	log.Printf("Accessor.GetFloat64(FloatVal): %v", floatVal)
 
 	// AaPtr
-	aaPtr, err := ac.Get("AaPtr")
-	if err != nil {
-		log.Printf("!!! ERROR: %+v", err)
-	}
+	aaPtr := ac.Get("AaPtr")
 	log.Printf("Accessor.Get(AaPtr): %v", aaPtr)
 	log.Printf("Accessor.IsStruct(AaPtr): %v", ac.IsStruct("AaPtr"))
 	log.Printf("Accessor.IsInterface(AaPtr): %v", ac.IsInterface("AaPtr"))
@@ -137,25 +115,16 @@ func exampleAccessor() {
 		log.Printf("!!! ERROR: %v", err)
 	}
 
-	it, err := aaAc.Get("Writer")
-	if err != nil {
-		log.Printf("!!! ERROR: %v", err)
-	}
+	it := aaAc.Get("Writer")
 	log.Printf("AaPtr.Get(Writer): %+v", it)
 	log.Printf("AaPtr.Get(Writer).ValueOf().Elem(): %+v", reflect.ValueOf(it).Elem())
 	log.Printf("AaPtr.IsStruct(Writer): %v", aaAc.IsStruct("Writer"))
 	log.Printf("AaPtr.IsInterface(Writer): %v", aaAc.IsInterface("Writer"))
 
 	// Nil
-	rvNil, err := ac.GetRV("Nil")
-	if err != nil {
-		log.Printf("!!! ERROR: %+v", err)
-	}
+	rvNil := ac.GetRV("Nil")
 	log.Printf("Accessor.GetRV(Nil): %v", rvNil)
-	aNil, err := ac.Get("Nil")
-	if err != nil {
-		log.Printf("!!! ERROR: %+v", err)
-	}
+	aNil := ac.Get("Nil")
 	log.Printf("Accessor.Get(Nil): %v", aNil)
 	log.Printf("Accessor.IsStruct(Nil): %v", ac.IsStruct("Nil"))
 	log.Printf("Accessor.IsInterface(Nil): %v", ac.IsInterface("Nil"))
@@ -167,10 +136,7 @@ func exampleAccessor() {
 	log.Printf("Accessor.Get(Nil).NewAccessor: %+v", aNilAc)
 
 	// XArr
-	xArr, err := ac.Get("XArr")
-	if err != nil {
-		log.Printf("!!! ERROR: %+v", err)
-	}
+	xArr := ac.Get("XArr")
 	log.Printf("Accessor.Get(XArr): %v", xArr)
 	log.Printf("Accessor.IsStruct(XArr): %v", ac.IsStruct("XArr"))
 	log.Printf("Accessor.IsSlice(XArr): %v", ac.IsSlice("XArr"))
@@ -178,8 +144,8 @@ func exampleAccessor() {
 
 	// Map
 	fa := func(i int, a structil.Accessor) interface{} {
-		s1, _ := a.GetString("Key")
-		s2, _ := a.GetString("Value")
+		s1 := a.GetString("Key")
+		s2 := a.GetString("Value")
 		return s1 + "=" + s2
 	}
 

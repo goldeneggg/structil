@@ -78,10 +78,7 @@ func (sf *collectorImpl) FromAccessor(ac Accessor) (map[string]interface{}, erro
 			return nil, fmt.Errorf("struct named %s does not exist in %+v", n, ac)
 		}
 
-		nested, err = ac.Get(n)
-		if err != nil {
-			return nil, err
-		}
+		nested = ac.Get(n)
 
 		typ = reflect.TypeOf(nested)
 		kind = typ.Kind()
@@ -107,11 +104,7 @@ func (sf *collectorImpl) FromAccessor(ac Accessor) (map[string]interface{}, erro
 			prefix = prefix + sf.sep + n
 		}
 		for _, pv := range pvs {
-			resIntf, err = ac.Get(pv)
-			if err != nil {
-				return nil, err
-			}
-
+			resIntf = ac.Get(pv)
 			res[prefix+sf.sep+pv] = resIntf
 		}
 	}

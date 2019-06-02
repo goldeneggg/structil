@@ -3,9 +3,11 @@ package structil_test
 import (
 	"io"
 	"os"
+	"reflect"
 	"testing"
 
 	. "github.com/goldeneggg/structil"
+	"github.com/google/go-cmp/cmp"
 )
 
 type tStr struct {
@@ -92,6 +94,19 @@ var (
 			},
 		},
 	}
+
+	assertPanic = func(t *testing.T, wantPanic bool) {
+		r := recover()
+		if r != nil {
+			if !wantPanic {
+				t.Errorf("unexpected panic occured: %+v", r)
+			}
+		} else {
+			if wantPanic {
+				t.Errorf("expect to occur panic but does not: %+v", r)
+			}
+		}
+	}
 )
 
 func TestNewAccessor(t *testing.T) {
@@ -136,6 +151,52 @@ func TestNewAccessor(t *testing.T) {
 				if !tt.wantErr {
 					t.Errorf("NewAccessor() unexpected error %v occured. wantErr %v", err, tt.wantErr)
 				}
+			}
+		})
+	}
+}
+
+func TestGetString(t *testing.T) {
+	a, err := NewAccessor(tStrPtr)
+	if err != nil {
+		t.Errorf("NewAccessor() occurs unexpected error: %v", err)
+	}
+
+	type args struct {
+		name string
+	}
+	tests := []struct {
+		name      string
+		args      args
+		want      reflect.Value
+		wantPanic bool
+	}{
+		{
+			name:      "name exists in accessor and it's value is string",
+			args:      args{name: "Name"},
+			want:      reflect.ValueOf(tStrPtr.Name),
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor but it's value is not string",
+			args:      args{name: "ID"},
+			want:      reflect.ValueOf(tStrPtr.ID),
+			wantPanic: false, // TODO: should be true?
+		},
+		{
+			name:      "name does not exist",
+			args:      args{name: "XXX"},
+			want:      reflect.ValueOf(nil),
+			wantPanic: false, // TODO: should be true?
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			defer assertPanic(t, tt.wantPanic)
+
+			got := a.GetString(tt.args.name)
+			if d := cmp.Diff(got, tt.want.String()); d != "" {
+				t.Errorf("unexpected mismatch: (-got +want)\n%s", d)
 			}
 		})
 	}
