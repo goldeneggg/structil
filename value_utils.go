@@ -17,3 +17,7 @@ func VCanInterface(v reflect.Value) bool {
 func VCompare(v1 reflect.Value, v2 reflect.Value) bool {
 	return VInterface(v1) == VInterface(v2)
 }
+
+func VNewElem(v reflect.Value) reflect.Value {
+	return reflect.New(v.Type().Elem())
+}

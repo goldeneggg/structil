@@ -22,10 +22,9 @@ type A struct {
 }
 
 type AA struct {
-	Name      string
-	Writer    interface{}
-	WriterNil interface{}
-	AaaPtr    *AAA
+	Name   string
+	Writer io.Writer
+	AaaPtr *AAA
 }
 
 type AAA struct {
@@ -47,9 +46,8 @@ var (
 		NamePtr: &name,
 		IsMan:   true,
 		AaPtr: &AA{
-			Name:      "あいう　えおあ",
-			Writer:    os.Stdout,
-			WriterNil: (*io.Writer)(nil),
+			Name:   "あいう　えおあ",
+			Writer: os.Stdout,
 			AaaPtr: &AAA{
 				Name: "かきく　けこか",
 				Val:  8,
@@ -86,6 +84,7 @@ func main() {
 
 	exampleAccessor()
 	exampleRetriever()
+	exampleUtil()
 }
 
 func exampleAccessor() {
@@ -142,15 +141,6 @@ func exampleAccessor() {
 	log.Printf("AaPtr.Get(Writer).ValueOf().Elem(): %+v", reflect.ValueOf(it).Elem())
 	log.Printf("AaPtr.IsStruct(Writer): %v", aaAc.IsStruct("Writer"))
 	log.Printf("AaPtr.IsInterface(Writer): %v", aaAc.IsInterface("Writer"))
-
-	itnil, err := aaAc.Get("WriterNil")
-	if err != nil {
-		log.Printf("!!! ERROR: %v", err)
-	}
-	log.Printf("AaPtr.Get(WriterNil): %+v", itnil)
-	log.Printf("AaPtr.Get(WriterNil).ValueOf().Elem(): %+v", reflect.ValueOf(itnil).Elem())
-	log.Printf("AaPtr.IsStruct(WriterNil): %v", aaAc.IsStruct("WriterNil"))
-	log.Printf("AaPtr.IsInterface(WriterNil): %v", aaAc.IsInterface("WriterNil"))
 
 	// Nil
 	rvNil, err := ac.GetRV("Nil")
@@ -229,4 +219,26 @@ func exampleRetriever() {
 		return
 	}
 	log.Printf("Retriever.FromAccessor res: %#v", swRes)
+}
+
+func exampleUtil() {
+	log.Println("---------- exampleUtil")
+	var v reflect.Value
+
+	v = structil.IElemOf(hoge.ID)
+	log.Printf("IElemOf int: %+v, Type: %+v, Kind: %+v", v, v.Type(), v.Kind())
+	v = structil.IElemOf(hoge.Name)
+	log.Printf("IElemOf string: %+v, Type: %+v, Kind: %+v", v, v.Type(), v.Kind())
+	v = structil.IElemOf(hoge.NamePtr)
+	log.Printf("IElemOf string ptr: %+v, Type: %+v, Kind: %+v", v, v.Type(), v.Kind())
+	v = structil.IElemOf(hoge.IsMan)
+	log.Printf("IElemOf bool: %+v, Type: %+v, Kind: %+v", v, v.Type(), v.Kind())
+	v = structil.IElemOf(hoge.AaPtr)
+	log.Printf("IElemOf struct ptr: %+v, Type: %+v, Kind: %+v", v, v.Type(), v.Kind())
+	v = structil.IElemOf(hoge.AaPtr.Writer)
+	log.Printf("IElemOf interface: %+v, Type: %+v, Kind: %+v", v, v.Type(), v.Kind())
+	v = structil.IElemOf(hoge.Nil)
+	log.Printf("IElemOf struct ptr nil: %+v", v)
+	v = structil.IElemOf(hoge.XPtrArr)
+	log.Printf("IElemOf struct slice ptr: %+v, Type: %+v, Kind: %+v", v, v.Type(), v.Kind())
 }
