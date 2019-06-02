@@ -79,12 +79,8 @@ var (
 )
 
 func main() {
-	// logger, _ := zap.NewDevelopment()
-	// logger.Info("Hello zap", zap.String("key", "value"), zap.Time("now", time.Now()))
-
 	exampleAccessor()
 	exampleRetriever()
-	exampleUtil()
 }
 
 func exampleAccessor() {
@@ -219,26 +215,4 @@ func exampleRetriever() {
 		return
 	}
 	log.Printf("Retriever.FromAccessor res: %#v", swRes)
-}
-
-func exampleUtil() {
-	log.Println("---------- exampleUtil")
-	var v reflect.Value
-
-	v = structil.IElemOf(hoge.ID)
-	log.Printf("IElemOf int: %+v, Type: %+v, Kind: %+v", v, v.Type(), v.Kind())
-	v = structil.IElemOf(hoge.Name)
-	log.Printf("IElemOf string: %+v, Type: %+v, Kind: %+v", v, v.Type(), v.Kind())
-	v = structil.IElemOf(hoge.NamePtr)
-	log.Printf("IElemOf string ptr: %+v, Type: %+v, Kind: %+v", v, v.Type(), v.Kind())
-	v = structil.IElemOf(hoge.IsMan)
-	log.Printf("IElemOf bool: %+v, Type: %+v, Kind: %+v", v, v.Type(), v.Kind())
-	v = structil.IElemOf(hoge.AaPtr)
-	log.Printf("IElemOf struct ptr: %+v, Type: %+v, Kind: %+v", v, v.Type(), v.Kind())
-	v = structil.IElemOf(hoge.AaPtr.Writer)
-	log.Printf("IElemOf interface: %+v, Type: %+v, Kind: %+v", v, v.Type(), v.Kind())
-	v = structil.IElemOf(hoge.Nil)
-	log.Printf("IElemOf struct ptr nil: %+v", v)
-	v = structil.IElemOf(hoge.XPtrArr)
-	log.Printf("IElemOf struct slice ptr: %+v, Type: %+v, Kind: %+v", v, v.Type(), v.Kind())
 }
