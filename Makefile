@@ -17,6 +17,16 @@ test:
 bench:
 	@go test -bench . $(PKGS)
 
+.PHONY: vet
+vet:
+	@go vet $(PKGS)
+
+ci-test:
+	@./scripts/ci-test.sh
+
+.PHONY: ci
+ci: ci-test vet
+
 mod-dl:
 	@GO111MODULE=on go mod download
 

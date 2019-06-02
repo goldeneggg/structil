@@ -1,0 +1,28 @@
+language: go
+
+go:
+  - 1.12.x
+  - master
+
+matrix:
+  allow_failures:
+    - go: master
+
+sudo: false
+
+env:
+  - GO111MODULE=on
+
+install:
+  - echo $TRAVIS_GO_VERSION
+  - go mod download
+
+script:
+  - make ci
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
+notifications:
+  email:
+    on_success: never
