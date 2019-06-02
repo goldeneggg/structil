@@ -6,9 +6,10 @@ import (
 )
 
 const (
-	errStr  = ""
-	errInt  = -1
-	errBool = false
+	initStr     = ""
+	initInt     = 0
+	initFloat64 = 0.0
+	initBool    = false
 )
 
 type Accessor interface {
@@ -16,6 +17,7 @@ type Accessor interface {
 	Get(name string) (interface{}, error)
 	GetString(name string) (string, error)
 	GetInt(name string) (int, error)
+	GetFloat64(name string) (float64, error)
 	GetBool(name string) (bool, error)
 	IsStruct(name string) bool
 	IsSlice(name string) bool
@@ -118,12 +120,12 @@ func (a *aImpl) recacheI(name string) (interface{}, error) {
 func (a *aImpl) GetString(name string) (string, error) {
 	intf, err := a.Get(name)
 	if err != nil {
-		return errStr, err
+		return initStr, err
 	}
 
 	res, ok := intf.(string)
 	if !ok {
-		return errStr, fmt.Errorf("field %s is not string %+v", name, intf)
+		return initStr, fmt.Errorf("field %s is not string %+v", name, intf)
 	}
 
 	return res, nil
@@ -132,12 +134,26 @@ func (a *aImpl) GetString(name string) (string, error) {
 func (a *aImpl) GetInt(name string) (int, error) {
 	intf, err := a.Get(name)
 	if err != nil {
-		return errInt, err
+		return initInt, err
 	}
 
 	res, ok := intf.(int)
 	if !ok {
-		return errInt, fmt.Errorf("field %s is not int %+v", name, intf)
+		return initInt, fmt.Errorf("field %s is not int %+v", name, intf)
+	}
+
+	return res, nil
+}
+
+func (a *aImpl) GetFloat64(name string) (float64, error) {
+	intf, err := a.Get(name)
+	if err != nil {
+		return initInt, err
+	}
+
+	res, ok := intf.(float64)
+	if !ok {
+		return initFloat64, fmt.Errorf("field %s is not float64 %+v", name, intf)
 	}
 
 	return res, nil
@@ -146,12 +162,12 @@ func (a *aImpl) GetInt(name string) (int, error) {
 func (a *aImpl) GetBool(name string) (bool, error) {
 	intf, err := a.Get(name)
 	if err != nil {
-		return errBool, err
+		return initBool, err
 	}
 
 	res, ok := intf.(bool)
 	if !ok {
-		return errBool, fmt.Errorf("field %s is not bool %+v", name, intf)
+		return initBool, fmt.Errorf("field %s is not bool %+v", name, intf)
 	}
 
 	return res, nil

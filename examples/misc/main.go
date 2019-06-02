@@ -10,15 +10,16 @@ import (
 )
 
 type A struct {
-	ID      int64
-	Name    string
-	NamePtr *string
-	IsMan   bool
-	AaPtr   *AA
-	Nil     *AA
-	XArr    []X
-	XPtrArr []*X
-	StrArr  []string
+	ID       int64
+	Name     string
+	NamePtr  *string
+	IsMan    bool
+	FloatVal float64
+	AaPtr    *AA
+	Nil      *AA
+	XArr     []X
+	XPtrArr  []*X
+	StrArr   []string
 }
 
 type AA struct {
@@ -41,10 +42,11 @@ var (
 	name = "ほげ　ふがお"
 
 	hoge = &A{
-		ID:      1,
-		Name:    name,
-		NamePtr: &name,
-		IsMan:   true,
+		ID:       1,
+		Name:     name,
+		NamePtr:  &name,
+		IsMan:    true,
+		FloatVal: 3.14,
 		AaPtr: &AA{
 			Name:   "あいう　えおあ",
 			Writer: os.Stdout,
@@ -114,6 +116,12 @@ func exampleAccessor() {
 		log.Printf("!!! ERROR: %v", err)
 	}
 	log.Printf("Accessor.GetBool(IsMan): %v", IsMan)
+
+	floatVal, err := ac.GetFloat64("FloatVal")
+	if err != nil {
+		log.Printf("!!! ERROR: %v", err)
+	}
+	log.Printf("Accessor.GetFloat64(FloatVal): %v", floatVal)
 
 	// AaPtr
 	aaPtr, err := ac.Get("AaPtr")
