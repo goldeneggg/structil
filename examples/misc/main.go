@@ -82,7 +82,7 @@ var (
 
 func main() {
 	exampleGetter()
-	exampleNestGetter()
+	exampleEmbedder()
 }
 
 func exampleGetter() {
@@ -162,31 +162,31 @@ func exampleGetter() {
 	log.Printf("results XPtrArr: %v, err: %v", results, err)
 }
 
-func exampleNestGetter() {
-	log.Println("---------- exampleNestGetter")
+func exampleEmbedder() {
+	log.Println("---------- exampleEmbedder")
 	ac, err := structil.NewGetter(hoge)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return
 	}
 
-	swRes, err := structil.NewNestGetter().
-		Nest("AaPtr").Want("Name").
-		Nest("AaaPtr").Want("Name").Want("Val").
+	swRes, err := structil.NewEmbedder().
+		Seek("AaPtr").Want("Name").
+		Seek("AaaPtr").Want("Name").Want("Val").
 		From(hoge)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return
 	}
-	log.Printf("NestGetter.From res: %#v", swRes)
+	log.Printf("Embedder.From res: %#v", swRes)
 
-	swRes, err = structil.NewNestGetter().
-		Nest("AaPtr").Want("Name").
-		Nest("AaaPtr").Want("Name").Want("Val").
+	swRes, err = structil.NewEmbedder().
+		Seek("AaPtr").Want("Name").
+		Seek("AaaPtr").Want("Name").Want("Val").
 		FromGetter(ac)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return
 	}
-	log.Printf("NestGetter.FromGetter res: %#v", swRes)
+	log.Printf("Embedder.FromGetter res: %#v", swRes)
 }

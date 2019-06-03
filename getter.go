@@ -25,6 +25,8 @@ type Getter interface {
 	MapStructs(name string, f func(int, Getter) interface{}) ([]interface{}, error)
 }
 
+// TODO: implement common panic handler
+// if non-exist name assigned, suggest nealy name and pretty error print
 type gImpl struct {
 	rv       reflect.Value
 	cachedRV map[string]reflect.Value
@@ -58,6 +60,12 @@ func NewGetter(i interface{}) (Getter, error) {
 	}, nil
 }
 
+// TODO: map => struct => Getter
+func NewGetterFromMap(m map[string]interface{}) (Getter, error) {
+	return nil, nil
+}
+
+// TODO: non-indirectを取り扱うか決める
 func (g *gImpl) GetRV(name string) reflect.Value {
 	return g.getRV(name, true)
 }
@@ -159,12 +167,12 @@ func (g *gImpl) MapStructs(name string, f func(int, Getter) interface{}) ([]inte
 	return res, nil
 }
 
-// FIXME: candidates of moving to utils
+// TODO: candidates of moving to utils
 func newSettable(typ reflect.Type) reflect.Value {
 	return reflect.New(typ).Elem()
 }
 
-// FIXME: candidates of moving to utils
+// TODO: candidates of moving to utils
 func settableOf(i interface{}) reflect.Value {
 	return reflect.ValueOf(i).Elem()
 }
