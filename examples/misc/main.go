@@ -81,36 +81,36 @@ var (
 )
 
 func main() {
-	exampleAccessor()
-	exampleRetriever()
+	exampleGetter()
+	exampleNestGetter()
 }
 
-func exampleAccessor() {
-	log.Println("---------- exampleAccessor")
-	ac, err := structil.NewAccessor(hoge)
+func exampleGetter() {
+	log.Println("---------- exampleGetter")
+	ac, err := structil.NewGetter(hoge)
 	if err != nil {
 		log.Printf("!!! ERROR: %v", err)
 	}
 
 	name := ac.Get("Name")
-	log.Printf("Accessor.Get(Name): %s", name)
+	log.Printf("Getter.Get(Name): %s", name)
 
 	name = ac.GetString("NamePtr")
-	log.Printf("Accessor.GetString(NamePtr): %s", name)
+	log.Printf("Getter.GetString(NamePtr): %s", name)
 
 	IsMan := ac.GetBool("IsMan")
-	log.Printf("Accessor.GetBool(IsMan): %v", IsMan)
+	log.Printf("Getter.GetBool(IsMan): %v", IsMan)
 
 	floatVal := ac.GetFloat64("FloatVal")
-	log.Printf("Accessor.GetFloat64(FloatVal): %v", floatVal)
+	log.Printf("Getter.GetFloat64(FloatVal): %v", floatVal)
 
 	// AaPtr
 	aaPtr := ac.Get("AaPtr")
-	log.Printf("Accessor.Get(AaPtr): %v", aaPtr)
-	log.Printf("Accessor.IsStruct(AaPtr): %v", ac.IsStruct("AaPtr"))
-	log.Printf("Accessor.IsInterface(AaPtr): %v", ac.IsInterface("AaPtr"))
+	log.Printf("Getter.Get(AaPtr): %v", aaPtr)
+	log.Printf("Getter.IsStruct(AaPtr): %v", ac.IsStruct("AaPtr"))
+	log.Printf("Getter.IsInterface(AaPtr): %v", ac.IsInterface("AaPtr"))
 
-	aaAc, err := structil.NewAccessor(aaPtr)
+	aaAc, err := structil.NewGetter(aaPtr)
 	if err != nil {
 		log.Printf("!!! ERROR: %v", err)
 	}
@@ -123,27 +123,27 @@ func exampleAccessor() {
 
 	// Nil
 	rvNil := ac.GetRV("Nil")
-	log.Printf("Accessor.GetRV(Nil): %v", rvNil)
+	log.Printf("Getter.GetRV(Nil): %v", rvNil)
 	aNil := ac.Get("Nil")
-	log.Printf("Accessor.Get(Nil): %v", aNil)
-	log.Printf("Accessor.IsStruct(Nil): %v", ac.IsStruct("Nil"))
-	log.Printf("Accessor.IsInterface(Nil): %v", ac.IsInterface("Nil"))
+	log.Printf("Getter.Get(Nil): %v", aNil)
+	log.Printf("Getter.IsStruct(Nil): %v", ac.IsStruct("Nil"))
+	log.Printf("Getter.IsInterface(Nil): %v", ac.IsInterface("Nil"))
 
-	aNilAc, err := structil.NewAccessor(aNil)
+	aNilAc, err := structil.NewGetter(aNil)
 	if err != nil {
 		log.Printf("!!! ERROR: %v", err)
 	}
-	log.Printf("Accessor.Get(Nil).NewAccessor: %+v", aNilAc)
+	log.Printf("Getter.Get(Nil).NewGetter: %+v", aNilAc)
 
 	// XArr
 	xArr := ac.Get("XArr")
-	log.Printf("Accessor.Get(XArr): %v", xArr)
-	log.Printf("Accessor.IsStruct(XArr): %v", ac.IsStruct("XArr"))
-	log.Printf("Accessor.IsSlice(XArr): %v", ac.IsSlice("XArr"))
-	log.Printf("Accessor.IsInterface(XArr): %v", ac.IsInterface("XArr"))
+	log.Printf("Getter.Get(XArr): %v", xArr)
+	log.Printf("Getter.IsStruct(XArr): %v", ac.IsStruct("XArr"))
+	log.Printf("Getter.IsSlice(XArr): %v", ac.IsSlice("XArr"))
+	log.Printf("Getter.IsInterface(XArr): %v", ac.IsInterface("XArr"))
 
 	// Map
-	fa := func(i int, a structil.Accessor) interface{} {
+	fa := func(i int, a structil.Getter) interface{} {
 		s1 := a.GetString("Key")
 		s2 := a.GetString("Value")
 		return s1 + "=" + s2
@@ -162,15 +162,15 @@ func exampleAccessor() {
 	log.Printf("results XPtrArr: %v, err: %v", results, err)
 }
 
-func exampleRetriever() {
-	log.Println("---------- exampleRetriever")
-	ac, err := structil.NewAccessor(hoge)
+func exampleNestGetter() {
+	log.Println("---------- exampleNestGetter")
+	ac, err := structil.NewGetter(hoge)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return
 	}
 
-	swRes, err := structil.NewRetriever().
+	swRes, err := structil.NewNestGetter().
 		Nest("AaPtr").Want("Name").
 		Nest("AaaPtr").Want("Name").Want("Val").
 		From(hoge)
@@ -178,15 +178,15 @@ func exampleRetriever() {
 		log.Printf("error: %v", err)
 		return
 	}
-	log.Printf("Retriever.From res: %#v", swRes)
+	log.Printf("NestGetter.From res: %#v", swRes)
 
-	swRes, err = structil.NewRetriever().
+	swRes, err = structil.NewNestGetter().
 		Nest("AaPtr").Want("Name").
 		Nest("AaaPtr").Want("Name").Want("Val").
-		FromAccessor(ac)
+		FromGetter(ac)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return
 	}
-	log.Printf("Retriever.FromAccessor res: %#v", swRes)
+	log.Printf("NestGetter.FromGetter res: %#v", swRes)
 }

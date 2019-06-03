@@ -109,7 +109,7 @@ var (
 	}
 )
 
-func TestNewAccessor(t *testing.T) {
+func TestNewGetter(t *testing.T) {
 	type args struct {
 		st interface{}
 	}
@@ -141,15 +141,15 @@ func TestNewAccessor(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewAccessor(tt.args.st)
+			got, err := NewGetter(tt.args.st)
 
 			if err == nil {
-				if _, ok := got.(Accessor); !ok {
-					t.Errorf("NewAccessor() does not return Accessor: %+v", got)
+				if _, ok := got.(Getter); !ok {
+					t.Errorf("NewGetter() does not return Getter: %+v", got)
 				}
 			} else {
 				if !tt.wantErr {
-					t.Errorf("NewAccessor() unexpected error %v occured. wantErr %v", err, tt.wantErr)
+					t.Errorf("NewGetter() unexpected error %v occured. wantErr %v", err, tt.wantErr)
 				}
 			}
 		})
@@ -157,9 +157,9 @@ func TestNewAccessor(t *testing.T) {
 }
 
 func TestGetString(t *testing.T) {
-	a, err := NewAccessor(tStrPtr)
+	a, err := NewGetter(tStrPtr)
 	if err != nil {
-		t.Errorf("NewAccessor() occurs unexpected error: %v", err)
+		t.Errorf("NewGetter() occurs unexpected error: %v", err)
 	}
 
 	type args struct {
