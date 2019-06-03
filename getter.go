@@ -12,6 +12,7 @@ const (
 	initBool    = false
 )
 
+// TODO: prettize error logging if error
 type Getter interface {
 	GetRV(name string) reflect.Value
 	Get(name string) interface{}
@@ -175,4 +176,10 @@ func newSettable(typ reflect.Type) reflect.Value {
 // TODO: candidates of moving to utils
 func settableOf(i interface{}) reflect.Value {
 	return reflect.ValueOf(i).Elem()
+}
+
+// TODO: candidates of moving to utils
+// 2つのstructの構造比較
+func compareStructure(i1 interface{}, i2 interface{}) bool {
+	return false
 }
