@@ -42,6 +42,7 @@ func NewGetter(i interface{}) (Getter, error) {
 	rv := reflect.ValueOf(i)
 	kind := rv.Kind()
 
+	// Invalid kind is handled here too.
 	if kind != reflect.Ptr && kind != reflect.Struct {
 		return nil, fmt.Errorf("%v is not supported kind", kind)
 	}
@@ -175,6 +176,7 @@ func newSettable(typ reflect.Type) reflect.Value {
 
 // TODO: candidates of moving to utils
 func settableOf(i interface{}) reflect.Value {
+	// i's Kind must be Interface or Ptr(if else, occur panic)
 	return reflect.ValueOf(i).Elem()
 }
 
