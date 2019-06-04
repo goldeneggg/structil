@@ -98,11 +98,14 @@ func exampleGetter() {
 	name = ac.GetString("NamePtr")
 	log.Printf("Getter.GetString(NamePtr): %s", name)
 
-	IsMan := ac.GetBool("IsMan")
-	log.Printf("Getter.GetBool(IsMan): %v", IsMan)
+	intVal := ac.GetInt64("ID")
+	log.Printf("Getter.GetInt64(ID): %v", intVal)
 
 	floatVal := ac.GetFloat64("FloatVal")
 	log.Printf("Getter.GetFloat64(FloatVal): %v", floatVal)
+
+	IsMan := ac.GetBool("IsMan")
+	log.Printf("Getter.GetBool(IsMan): %v", IsMan)
 
 	// AaPtr
 	aaPtr := ac.Get("AaPtr")
@@ -122,8 +125,6 @@ func exampleGetter() {
 	log.Printf("AaPtr.IsInterface(Writer): %v", aaAc.IsInterface("Writer"))
 
 	// Nil
-	rvNil := ac.GetRV("Nil")
-	log.Printf("Getter.GetRV(Nil): %v", rvNil)
 	aNil := ac.Get("Nil")
 	log.Printf("Getter.Get(Nil): %v", aNil)
 	log.Printf("Getter.IsStruct(Nil): %v", ac.IsStruct("Nil"))
@@ -149,13 +150,13 @@ func exampleGetter() {
 		return s1 + "=" + s2
 	}
 
-	results, err := ac.MapStructs("XArr", fa)
+	results, err := ac.MapGet("XArr", fa)
 	if err != nil {
 		log.Printf("!!! ERROR: %+v", err)
 	}
 	log.Printf("results XArr: %v, err: %v", results, err)
 
-	results, err = ac.MapStructs("XPtrArr", fa)
+	results, err = ac.MapGet("XPtrArr", fa)
 	if err != nil {
 		log.Printf("!!! ERROR: %+v", err)
 	}
