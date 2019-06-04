@@ -171,9 +171,9 @@ func exampleEmbedder() {
 		return
 	}
 
-	swRes, err := structil.NewEmbedder().
-		Seek("AaPtr").Want("Name").
-		Seek("AaaPtr").Want("Name").Want("Val").
+	swRes, err := structil.NewFinder().
+		Struct("AaPtr").Find("Name").
+		Struct("AaaPtr").Find("Name").Find("Val").
 		From(hoge)
 	if err != nil {
 		log.Printf("error: %v", err)
@@ -181,9 +181,9 @@ func exampleEmbedder() {
 	}
 	log.Printf("Embedder.From res: %#v", swRes)
 
-	swRes, err = structil.NewEmbedder().
-		Seek("AaPtr").Want("Name").
-		Seek("AaaPtr").Want("Name").Want("Val").
+	swRes, err = structil.NewFinder().
+		Struct("AaPtr").Find("Name").
+		Struct("AaaPtr").Find("Name").Find("Val").
 		FromGetter(ac)
 	if err != nil {
 		log.Printf("error: %v", err)

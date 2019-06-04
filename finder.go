@@ -10,65 +10,60 @@ const (
 	defaultNameSep = "."
 )
 
-type Embedder interface {
+type Finder interface {
 	// TODO: 同一階層で複数の子要素nestを行いたいケースへの対応
 	// nameをvariadic(可変) で受ける形式が良さそう
-	Seek(name string) Embedder
-
-	Want(name string) Embedder
-
-	// MapConfigure(m map[string]interface{}) Embedder  // TODO: mapでネストを一括設定
-
+	Struct(name string) Finder
+	Find(name string) Finder
+	// MapConfigure(m map[string]interface{}) Finder  // TODO: mapでネストを一括設定
 	From(st interface{}) (map[string]interface{}, error)
-
 	FromGetter(g Getter) (map[string]interface{}, error)
-
 	GetNameSeparator() string
 }
 
-type embImpl struct {
+type fImpl struct {
 	current string
-	seeks   []string
-	wants   map[string][]string
+	structs []string
+	finds   map[string][]string
 	sep     string
 }
 
-func NewEmbedder() Embedder {
-	return NewEmbedderWithSep(defaultNameSep)
+func NewFinder() Finder {
+	return NewFinderWithSep(defaultNameSep)
 }
 
-func NewEmbedderWithSep(sep string) Embedder {
-	return &embImpl{wants: map[string][]string{}, sep: sep}
+func NewFinderWithSep(sep string) Finder {
+	return &fImpl{finds: map[string][]string{}, sep: sep}
 }
 
-func (e *embImpl) Seek(name string) Embedder {
-	e.seeks = append(e.seeks, name)
+func (f *fImpl) Struct(name string) Finder {
+	f.structs = append(f.structs, name)
 
-	e.current = strconv.Itoa(len(e.seeks)-1) + name
-	e.wants[e.current] = []string{}
-	return e
+	f.current = strconv.Itoa(len(f.structs)-1) + name
+	f.finds[f.current] = []string{}
+	return f
 }
 
-// TODO: 一段もSeekしてなくてもWantできるように
-func (e *embImpl) Want(name string) Embedder {
-	if _, ok := e.wants[e.current]; ok {
-		e.wants[e.current] = append(e.wants[e.current], name)
+// TODO: 一段もStructしてなくてもFindできるように
+func (f *fImpl) Find(name string) Finder {
+	if _, ok := f.finds[f.current]; ok {
+		f.finds[f.current] = append(f.finds[f.current], name)
 	}
 
-	return e
+	return f
 }
 
-func (e *embImpl) From(i interface{}) (map[string]interface{}, error) {
+func (f *fImpl) From(i interface{}) (map[string]interface{}, error) {
 	g, err := NewGetter(i)
 	if err != nil {
 		return nil, err
 	}
 
-	return e.FromGetter(g)
+	return f.FromGetter(g)
 }
 
 // TODO: 並列化検討
-func (e *embImpl) FromGetter(g Getter) (map[string]interface{}, error) {
+func (f *fImpl) FromGetter(g Getter) (map[string]interface{}, error) {
 	res := map[string]interface{}{}
 	var prefix string
 	var resIntf interface{}
@@ -82,7 +77,7 @@ func (e *embImpl) FromGetter(g Getter) (map[string]interface{}, error) {
 
 	var err error
 
-	for idx, n := range e.seeks {
+	for idx, n := range f.structs {
 		// get nested struct
 		if !g.IsStruct(n) {
 			return nil, fmt.Errorf("struct named %s does not exist in %+v", n, g)
@@ -103,7 +98,7 @@ func (e *embImpl) FromGetter(g Getter) (map[string]interface{}, error) {
 
 		// retrieve items from nested struct
 		pk = strconv.Itoa(idx) + n
-		pvs, ok = e.wants[pk]
+		pvs, ok = f.finds[pk]
 		if !ok {
 			continue
 		}
@@ -111,17 +106,17 @@ func (e *embImpl) FromGetter(g Getter) (map[string]interface{}, error) {
 		if prefix == "" {
 			prefix = n
 		} else {
-			prefix = prefix + e.sep + n
+			prefix = prefix + f.sep + n
 		}
 		for _, pv := range pvs {
 			resIntf = g.Get(pv)
-			res[prefix+e.sep+pv] = resIntf
+			res[prefix+f.sep+pv] = resIntf
 		}
 	}
 
 	return res, nil
 }
 
-func (e *embImpl) GetNameSeparator() string {
+func (e *fImpl) GetNameSeparator() string {
 	return e.sep
 }
