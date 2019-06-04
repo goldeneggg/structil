@@ -208,6 +208,11 @@ func toI(rv reflect.Value) interface{} {
 }
 
 // TODO: candidates of moving to utils
+func clone(i interface{}) interface{} {
+	return reflect.Indirect(reflect.ValueOf(i)).Interface()
+}
+
+// TODO: candidates of moving to utils
 func newSettable(typ reflect.Type) reflect.Value {
 	return reflect.New(typ).Elem()
 }
