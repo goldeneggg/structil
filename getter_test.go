@@ -23,7 +23,9 @@ type TestStruct struct {
 	ExpMap         map[string]interface{}
 	ExpFunc        func(string) interface{}
 	uexpString     string
-	*TestStruct2
+	TestStruct2
+	TestStruct2Ptr     *TestStruct2
+	TestStructSlice    []TestStruct4
 	TestStructPtrSlice []*TestStruct4
 }
 
@@ -35,7 +37,7 @@ type TestStruct2 struct {
 
 type TestStruct3 struct {
 	ExpString string
-	Exp_int   int
+	ExpInt    int
 }
 
 type TestStruct4 struct {
@@ -79,15 +81,23 @@ func newTestStruct() TestStruct {
 		ExpMap:         map[string]interface{}{"k1": "v1", "k2": 2},
 		ExpFunc:        testFunc,
 		uexpString:     "unexported string",
-		TestStruct2: &TestStruct2{
+		TestStruct2: TestStruct2{
 			ExpString: "struct2 string",
 			Writer:    os.Stdout,
 			TestStruct3: &TestStruct3{
 				ExpString: "struct3 string",
-				Exp_int:   -123,
+				ExpInt:    -123,
 			},
 		},
-		TestStructPtrSlice: []*TestStruct4{
+		TestStruct2Ptr: &TestStruct2{
+			ExpString: "struct2 string ptr",
+			Writer:    os.Stderr,
+			TestStruct3: &TestStruct3{
+				ExpString: "struct3 string ptr",
+				ExpInt:    -456,
+			},
+		},
+		TestStructSlice: []TestStruct4{
 			{
 				ExpString:  "key100",
 				ExpString2: "value100",
@@ -95,6 +105,16 @@ func newTestStruct() TestStruct {
 			{
 				ExpString:  "key200",
 				ExpString2: "value200",
+			},
+		},
+		TestStructPtrSlice: []*TestStruct4{
+			{
+				ExpString:  "key991",
+				ExpString2: "value991",
+			},
+			{
+				ExpString:  "key992",
+				ExpString2: "value992",
 			},
 		},
 	}
@@ -222,9 +242,21 @@ func TestGetRT(t *testing.T) {
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is struct ptr",
+			name:      "name exists in accessor and it's type is struct",
 			args:      args{name: "TestStruct2"},
 			want:      reflect.TypeOf(testStructPtr.TestStruct2),
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is struct ptr",
+			args:      args{name: "TestStruct2Ptr"},
+			want:      reflect.TypeOf(testStructPtr.TestStruct2Ptr),
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is struct slice",
+			args:      args{name: "TestStructSlice"},
+			want:      reflect.TypeOf(testStructPtr.TestStructSlice),
 			wantPanic: false,
 		},
 		{
@@ -251,9 +283,123 @@ func TestGetRT(t *testing.T) {
 			defer deferPanic(t, tt.wantPanic, false, tt.args)
 
 			got := a.GetRT(tt.args.name)
-			if d := cmp.Diff(got.Name(), tt.want.Name()); d != "" {
+			if d := cmp.Diff(got.String(), tt.want.String()); d != "" {
 				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
+		})
+	}
+}
+
+func TestGet(t *testing.T) {
+	t.Parallel()
+
+	testStructPtr := newTestStructPtr()
+
+	a, err := NewGetter(testStructPtr)
+	if err != nil {
+		t.Errorf("NewGetter() occurs unexpected error: %v", err)
+	}
+
+	type args struct {
+		name string
+	}
+	tests := []struct {
+		name      string
+		args      args
+		want      interface{}
+		wantPanic bool
+	}{
+		{
+			name:      "name exists in accessor and it's type is string",
+			args:      args{name: "ExpString"},
+			want:      testStructPtr.ExpString,
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is string (2nd)",
+			args:      args{name: "ExpString"},
+			want:      testStructPtr.ExpString,
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is int64",
+			args:      args{name: "ExpInt64"},
+			want:      testStructPtr.ExpInt64,
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is uint64",
+			args:      args{name: "ExpUint64"},
+			want:      testStructPtr.ExpUint64,
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is float32",
+			args:      args{name: "ExpFloat32"},
+			want:      testStructPtr.ExpFloat32,
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is float64",
+			args:      args{name: "ExpFloat64"},
+			want:      testStructPtr.ExpFloat64,
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is bool",
+			args:      args{name: "ExpBool"},
+			want:      testStructPtr.ExpBool,
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is struct",
+			args:      args{name: "TestStruct2"},
+			want:      testStructPtr.TestStruct2,
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is struct ptr",
+			args:      args{name: "TestStruct2Ptr"},
+			want:      testStructPtr.TestStruct2Ptr,
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is struct slice",
+			args:      args{name: "TestStructSlice"},
+			want:      testStructPtr.TestStructSlice,
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is struct slice ptr",
+			args:      args{name: "TestStructPtrSlice"},
+			want:      testStructPtr.TestStructPtrSlice,
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is string and unexported field",
+			args:      args{name: "uexpString"},
+			want:      testStructPtr.uexpString,
+			wantPanic: false,
+		},
+		{
+			name:      "name does not exist",
+			args:      args{name: "XXX"},
+			want:      nil,
+			wantPanic: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			defer deferPanic(t, tt.wantPanic, false, tt.args)
+
+			got := a.Get(tt.args.name)
+			if d := cmp.Diff(got, tt.want); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
+			}
+			// if got != tt.want {
+			// if !reflect.DeepEqual(got, tt.want) {
+			// 	t.Errorf("unexpected mismatch: args: %+v, got: %+v, want: %+v", tt.args, got, tt.want)
+			// }
 		})
 	}
 }

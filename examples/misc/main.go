@@ -87,31 +87,31 @@ func main() {
 
 func exampleGetter() {
 	log.Println("---------- exampleGetter")
-	ac, err := structil.NewGetter(hoge)
+	g, err := structil.NewGetter(hoge)
 	if err != nil {
 		log.Printf("!!! ERROR: %v", err)
 	}
 
-	name := ac.Get("Name")
+	name := g.Get("Name")
 	log.Printf("Getter.Get(Name): %s", name)
 
-	name = ac.GetString("NamePtr")
+	name = g.GetString("NamePtr")
 	log.Printf("Getter.GetString(NamePtr): %s", name)
 
-	intVal := ac.GetInt64("ID")
+	intVal := g.GetInt64("ID")
 	log.Printf("Getter.GetInt64(ID): %v", intVal)
 
-	floatVal := ac.GetFloat64("FloatVal")
+	floatVal := g.GetFloat64("FloatVal")
 	log.Printf("Getter.GetFloat64(FloatVal): %v", floatVal)
 
-	IsMan := ac.GetBool("IsMan")
+	IsMan := g.GetBool("IsMan")
 	log.Printf("Getter.GetBool(IsMan): %v", IsMan)
 
 	// AaPtr
-	aaPtr := ac.Get("AaPtr")
+	aaPtr := g.Get("AaPtr")
 	log.Printf("Getter.Get(AaPtr): %v", aaPtr)
-	log.Printf("Getter.IsStruct(AaPtr): %v", ac.IsStruct("AaPtr"))
-	log.Printf("Getter.IsInterface(AaPtr): %v", ac.IsInterface("AaPtr"))
+	log.Printf("Getter.IsStruct(AaPtr): %v", g.IsStruct("AaPtr"))
+	log.Printf("Getter.IsInterface(AaPtr): %v", g.IsInterface("AaPtr"))
 
 	aaAc, err := structil.NewGetter(aaPtr)
 	if err != nil {
@@ -125,10 +125,10 @@ func exampleGetter() {
 	log.Printf("AaPtr.IsInterface(Writer): %v", aaAc.IsInterface("Writer"))
 
 	// Nil
-	aNil := ac.Get("Nil")
+	aNil := g.Get("Nil")
 	log.Printf("Getter.Get(Nil): %v", aNil)
-	log.Printf("Getter.IsStruct(Nil): %v", ac.IsStruct("Nil"))
-	log.Printf("Getter.IsInterface(Nil): %v", ac.IsInterface("Nil"))
+	log.Printf("Getter.IsStruct(Nil): %v", g.IsStruct("Nil"))
+	log.Printf("Getter.IsInterface(Nil): %v", g.IsInterface("Nil"))
 
 	aNilAc, err := structil.NewGetter(aNil)
 	if err != nil {
@@ -137,11 +137,11 @@ func exampleGetter() {
 	log.Printf("Getter.Get(Nil).NewGetter: %+v", aNilAc)
 
 	// XArr
-	xArr := ac.Get("XArr")
+	xArr := g.Get("XArr")
 	log.Printf("Getter.Get(XArr): %v", xArr)
-	log.Printf("Getter.IsStruct(XArr): %v", ac.IsStruct("XArr"))
-	log.Printf("Getter.IsSlice(XArr): %v", ac.IsSlice("XArr"))
-	log.Printf("Getter.IsInterface(XArr): %v", ac.IsInterface("XArr"))
+	log.Printf("Getter.IsStruct(XArr): %v", g.IsStruct("XArr"))
+	log.Printf("Getter.IsSlice(XArr): %v", g.IsSlice("XArr"))
+	log.Printf("Getter.IsInterface(XArr): %v", g.IsInterface("XArr"))
 
 	// Map
 	fa := func(i int, a structil.Getter) interface{} {
@@ -150,17 +150,19 @@ func exampleGetter() {
 		return s1 + "=" + s2
 	}
 
-	results, err := ac.MapGet("XArr", fa)
+	results, err := g.MapGet("XArr", fa)
 	if err != nil {
 		log.Printf("!!! ERROR: %+v", err)
 	}
 	log.Printf("results XArr: %v, err: %v", results, err)
 
-	results, err = ac.MapGet("XPtrArr", fa)
+	results, err = g.MapGet("XPtrArr", fa)
 	if err != nil {
 		log.Printf("!!! ERROR: %+v", err)
 	}
 	log.Printf("results XPtrArr: %v, err: %v", results, err)
+
+	g.DumpRVs()
 }
 
 func exampleFinder() {

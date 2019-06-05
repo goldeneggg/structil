@@ -2,7 +2,11 @@ package structil
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"reflect"
+	"text/tabwriter"
+	"unsafe"
 )
 
 const (
@@ -33,6 +37,7 @@ type Getter interface {
 	IsSlice(name string) bool
 	IsInterface(name string) bool
 	MapGet(name string, f func(int, Getter) interface{}) ([]interface{}, error)
+	DumpRVs() error
 }
 
 // TODO: implement common panic handler
@@ -107,7 +112,7 @@ func (g *gImpl) getRV(name string) reflect.Value {
 }
 
 func (g *gImpl) cache(name string) {
-	frv := g.rv.FieldByName(name)
+	frv := g.rv.FieldByName(name) // This is slow
 	if frv.IsValid() {
 		g.cachedRT[name] = frv.Type()
 	} else {
@@ -216,6 +221,16 @@ func (g *gImpl) MapGet(name string, f func(int, Getter) interface{}) ([]interfac
 	return res, nil
 }
 
+func (g *gImpl) DumpRVs() error {
+	var rvs []reflect.Value
+
+	for _, rv := range g.cachedRV {
+		rvs = append(rvs, rv)
+	}
+
+	return dumpValues(rvs)
+}
+
 // TODO: candidates of moving to utils
 func toI(rv reflect.Value) interface{} {
 	if rv.IsValid() && rv.CanInterface() {
@@ -242,7 +257,65 @@ func settableOf(i interface{}) reflect.Value {
 }
 
 // TODO: candidates of moving to utils
+func genericsTypeOf() reflect.Type {
+	// generics type is interface pointer
+	return reflect.TypeOf((*interface{})(nil)).Elem()
+}
+
+// TODO: candidates of moving to utils
+func newGenericsSettable() reflect.Value {
+	return newSettable(genericsTypeOf())
+}
+
+// TODO: candidates of moving to utils
+func unexportedField(i interface{}, name string) reflect.Value {
+	sv := settableOf(i)
+	f := sv.FieldByName(name)
+	return reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem()
+}
+
+// TODO: candidates of moving to utils
 func compareStructure(i1 interface{}, i2 interface{}) bool {
 	// TODO: 2つのstructの構造比較
 	return false
+}
+
+// TODO: candidates of moving to utils
+func dumpValues(rvs []reflect.Value) error {
+	var t interface{}
+	ds := make([][]interface{}, len(rvs))
+
+	for i, rv := range rvs {
+		if rv.IsValid() {
+			t = rv.Type()
+		} else {
+			t = rv.Kind()
+		}
+		ds[i] = []interface{}{
+			t,  // Type
+			rv, // Value
+		}
+	}
+
+	w := getValueWriter(nil)
+	w.Write([]byte(fmt.Sprintf("%s\t%s\n", "Type", "Value")))
+	w.Write([]byte(fmt.Sprintf("%s\t%s\n", "-----", "-----")))
+
+	for _, d := range ds {
+		w.Write([]byte(fmt.Sprintf(
+			"%v\t%+v\n", d[0], d[1],
+		)))
+	}
+	err := w.Flush()
+
+	return err
+}
+
+// TODO: candidates of moving to utils
+func getValueWriter(wrap io.Writer) *tabwriter.Writer {
+	if wrap == nil {
+		wrap = os.Stdout
+	}
+
+	return tabwriter.NewWriter(wrap, 0, 4, 4, ' ', 0)
 }
