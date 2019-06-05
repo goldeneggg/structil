@@ -2,36 +2,29 @@ package structil
 
 import (
 	"fmt"
-	"reflect"
-	"strconv"
 	"strings"
 )
 
 const (
-	defaultNameSep = "."
-	rootKey        = "!"
+	defaultSep = "."
+	rootKey    = "!"
 )
 
 type Finder interface {
-	// TODO: 同一階層で複数の子要素nestを行いたいケースへの対応
-	// nameをvariadic(可変) で受ける形式が良さそう
-	//Struct(name string) Finder
 	Struct(names ...string) Finder
 	Find(names ...string) Finder
-	// MapConfigure(m map[string]interface{}) Finder  // TODO: mapでネストを一括設定
-	From(st interface{}) (map[string]interface{}, error)
-	FromGetter(g Getter) (map[string]interface{}, error)
+	ToMap() (map[string]interface{}, error)
 	HasError() bool
 	Error() string
 	GetNameSeparator() string
 }
 
 type fImpl struct {
-	getters map[string]Getter
-	finds   map[string][]string
-	errs    map[string][]error
-	ck      string
-	sep     string
+	gMap map[string]Getter
+	fMap map[string][]string
+	eMap map[string][]error
+	ck   string
+	sep  string
 }
 
 func NewFinder(i interface{}) (Finder, error) {
@@ -40,24 +33,28 @@ func NewFinder(i interface{}) (Finder, error) {
 		return nil, err
 	}
 
-	return NewFinderWithGetterAndSep(g, defaultNameSep)
+	return NewFinderWithGetterAndSep(g, defaultSep)
 }
 
 func NewFinderWithGetter(g Getter) (Finder, error) {
-	return NewFinderWithGetterAndSep(g, defaultNameSep)
+	return NewFinderWithGetterAndSep(g, defaultSep)
 }
 
 func NewFinderWithGetterAndSep(g Getter, sep string) (Finder, error) {
-	getters := map[string]Getter{}
-	getters[rootKey] = g
+	if sep == "" {
+		return nil, fmt.Errorf("sep [%s] is invalid", sep)
+	}
 
-	finds := map[string][]string{}
-	finds[rootKey] = []string{}
+	gMap := map[string]Getter{}
+	gMap[rootKey] = g
 
-	errs := map[string][]error{}
-	errs[rootKey] = []error{}
+	fMap := map[string][]string{}
+	fMap[rootKey] = []string{}
 
-	return &fImpl{getters: getters, finds: finds, errs: errs, ck: rootKey, sep: sep}, nil
+	eMap := map[string][]error{}
+	eMap[rootKey] = []error{}
+
+	return &fImpl{gMap: gMap, fMap: fMap, eMap: eMap, ck: rootKey, sep: sep}, nil
 }
 
 func (f *fImpl) Struct(names ...string) Finder {
@@ -71,67 +68,55 @@ func (f *fImpl) Struct(names ...string) Finder {
 	f.ck = rootKey
 
 	for _, name := range names {
-		if errs, _ := f.errs[f.ck]; len(errs) > 0 {
+		if f.HasError() {
 			break
 		}
 
-		g, err = NewGetter(f.getters[f.ck].Get(name))
+		g, err = NewGetter(f.gMap[f.ck].Get(name))
 
-		f.ck = strings.Join(names, f.sep)
-
-		f.errs[f.ck] = []error{}
-		if err != nil {
-			f.errs[f.ck] = append(f.errs[f.ck], err)
+		if f.ck == rootKey {
+			f.ck = name
+		} else {
+			f.ck = f.ck + f.sep + name
 		}
 
-		f.getters[f.ck] = g
-		f.finds[f.ck] = []string{}
+		f.eMap[f.ck] = []error{}
+		if err != nil {
+			err = fmt.Errorf("Error in name: %s, ck: %s. [%v]", name, f.ck, err)
+			f.eMap[f.ck] = append(f.eMap[f.ck], err)
+		}
+
+		f.gMap[f.ck] = g
+		f.fMap[f.ck] = []string{}
 	}
 
 	return f
 }
 
 func (f *fImpl) Find(names ...string) Finder {
-	f.finds[f.ck] = append(f.finds[f.ck], names...)
+	f.fMap[f.ck] = append(f.fMap[f.ck], names...)
 
 	return f
 }
 
-func (f *fImpl) From(i interface{}) (map[string]interface{}, error) {
-	g, err := NewGetter(i)
-	if err != nil {
-		return nil, err
+func (f *fImpl) ToMap() (map[string]interface{}, error) {
+	if f.HasError() {
+		return nil, f
 	}
 
-	return f.FromGetter(g)
-}
+	res := map[string]interface{}{}
 
-func (f *fImpl) FromGetter(g Getter) (res map[string]interface{}, err error) {
-	var ck string
-	var ng Getter
-
-	cGetters := map[string]Getter{}
-	res = map[string]interface{}{}
-
-	for sName, targets := range f.finds {
-		ck = ""
-
-		for _, n := range strings.Split(sName, f.sep) {
-			ng, err = NewGetter(g.Get(n))
-			if err != nil {
-				return
-			}
-
-			cGetters
+	for kg, getter := range f.gMap {
+		for _, name := range f.fMap[kg] {
+			res[kg+f.sep+name] = getter.Get(name)
 		}
-
 	}
 
-	return
+	return res, nil
 }
 
 func (f *fImpl) HasError() bool {
-	for _, errs := range f.errs {
+	for _, errs := range f.eMap {
 		if len(errs) > 0 {
 			return true
 		}
@@ -143,159 +128,16 @@ func (f *fImpl) HasError() bool {
 func (f *fImpl) Error() string {
 	tmp := []string{}
 
-	for _, errs := range f.errs {
+	for _, errs := range f.eMap {
 		for _, err := range errs {
 			tmp = append(tmp, err.Error())
 		}
 	}
 
+	// TODO: format prettize
 	return strings.Join(tmp, "\n")
 }
 
 func (f *fImpl) GetNameSeparator() string {
 	return f.sep
-}
-
-// TODO: 並列化検討
-func (f *fImpl) FromGetterOld(g Getter) (map[string]interface{}, error) {
-	res := map[string]interface{}{}
-	var prefix string
-	var resIntf interface{}
-
-	var nested interface{}
-	var typ reflect.Type
-	var kind reflect.Kind
-	var pk string
-	var pvs []string
-	var ok bool
-
-	var err error
-
-	for idx, n := range f.structs {
-		// get nested struct
-		if !g.IsStruct(n) {
-			return nil, fmt.Errorf("struct named %s does not exist in %+v", n, g)
-		}
-
-		nested = g.Get(n)
-
-		typ = reflect.TypeOf(nested)
-		kind = typ.Kind()
-		if kind != reflect.Struct {
-			return nil, fmt.Errorf("name %s is not struct: %+v", n, nested)
-		}
-
-		g, err = NewGetter(nested)
-		if err != nil {
-			return nil, err
-		}
-
-		// retrieve items from nested struct
-		pk = strconv.Itoa(idx) + n
-		pvs, ok = f.finds[pk]
-		if !ok {
-			continue
-		}
-
-		if prefix == "" {
-			prefix = n
-		} else {
-			prefix = prefix + f.sep + n
-		}
-		for _, pv := range pvs {
-			resIntf = g.Get(pv)
-			res[prefix+f.sep+pv] = resIntf
-		}
-	}
-
-	return res, nil
-}
-
-func (f *fImpl) StructOld(name string) Finder {
-	f.structs = append(f.structs, name)
-
-	f.current = strconv.Itoa(len(f.structs)-1) + name
-	f.finds[f.current] = []string{}
-	return f
-}
-
-// TODO: 一段もStructしてなくてもFindできるように
-func (f *fImpl) FindOld(name string) Finder {
-	if _, ok := f.finds[f.current]; ok {
-		f.finds[f.current] = append(f.finds[f.current], name)
-	}
-
-	return f
-}
-
-// TODO: 並列化検討
-func (f *fImpl) FromGetterOld(g Getter) (map[string]interface{}, error) {
-	res := map[string]interface{}{}
-	var prefix string
-	var resIntf interface{}
-
-	var nested interface{}
-	var typ reflect.Type
-	var kind reflect.Kind
-	var pk string
-	var pvs []string
-	var ok bool
-
-	var err error
-
-	for idx, n := range f.structs {
-		// get nested struct
-		if !g.IsStruct(n) {
-			return nil, fmt.Errorf("struct named %s does not exist in %+v", n, g)
-		}
-
-		nested = g.Get(n)
-
-		typ = reflect.TypeOf(nested)
-		kind = typ.Kind()
-		if kind != reflect.Struct {
-			return nil, fmt.Errorf("name %s is not struct: %+v", n, nested)
-		}
-
-		g, err = NewGetter(nested)
-		if err != nil {
-			return nil, err
-		}
-
-		// retrieve items from nested struct
-		pk = strconv.Itoa(idx) + n
-		pvs, ok = f.finds[pk]
-		if !ok {
-			continue
-		}
-
-		if prefix == "" {
-			prefix = n
-		} else {
-			prefix = prefix + f.sep + n
-		}
-		for _, pv := range pvs {
-			resIntf = g.Get(pv)
-			res[prefix+f.sep+pv] = resIntf
-		}
-	}
-
-	return res, nil
-}
-
-func (f *fImpl) StructOld(name string) Finder {
-	f.structs = append(f.structs, name)
-
-	f.current = strconv.Itoa(len(f.structs)-1) + name
-	f.finds[f.current] = []string{}
-	return f
-}
-
-// TODO: 一段もStructしてなくてもFindできるように
-func (f *fImpl) FindOld(name string) Finder {
-	if _, ok := f.finds[f.current]; ok {
-		f.finds[f.current] = append(f.finds[f.current], name)
-	}
-
-	return f
 }

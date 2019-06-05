@@ -82,7 +82,7 @@ var (
 
 func main() {
 	exampleGetter()
-	exampleEmbedder()
+	exampleFinder()
 }
 
 func exampleGetter() {
@@ -163,31 +163,19 @@ func exampleGetter() {
 	log.Printf("results XPtrArr: %v, err: %v", results, err)
 }
 
-func exampleEmbedder() {
-	log.Println("---------- exampleEmbedder")
-	ac, err := structil.NewGetter(hoge)
-	if err != nil {
-		log.Printf("error: %v", err)
-		return
-	}
+func exampleFinder() {
+	log.Println("---------- exampleFinder")
 
-	swRes, err := structil.NewFinder().
-		Struct("AaPtr").Find("Name").
-		Struct("AaaPtr").Find("Name").Find("Val").
-		From(hoge)
+	finder, err := structil.NewFinder(hoge)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return
 	}
-	log.Printf("Embedder.From res: %#v", swRes)
+	log.Printf("Finder: %#v", finder)
 
-	swRes, err = structil.NewFinder().
+	swRes, err := finder.
 		Struct("AaPtr").Find("Name").
-		Struct("AaaPtr").Find("Name").Find("Val").
-		FromGetter(ac)
-	if err != nil {
-		log.Printf("error: %v", err)
-		return
-	}
-	log.Printf("Embedder.FromGetter res: %#v", swRes)
+		Struct("AaPtr", "AaaPtr").Find("Name", "Val").
+		ToMap()
+	log.Printf("Finder.ToMap res: %+v, err: %v", swRes, err)
 }
