@@ -3,6 +3,8 @@ package structil_test
 import (
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+
 	"github.com/goldeneggg/structil"
 )
 
@@ -82,6 +84,59 @@ func TestNewFinderWithGetterAndSep(t *testing.T) {
 			_, err := structil.NewFinderWithGetterAndSep(tt.args.g, tt.args.sep)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewFinder() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestToMap(t *testing.T) {
+	f, err := structil.NewFinder(newTestStructPtr())
+	if err != nil {
+		t.Errorf("NewFinder() error = %v", err)
+	}
+
+	type args struct {
+		chain structil.Finder
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+		wantMap map[string]interface{}
+	}{
+		{
+			name:    "ToMap with non-nest chain",
+			args:    args{chain: f.Find("ExpInt64", "ExpString")},
+			wantErr: false,
+			wantMap: map[string]interface{}{"ExpInt64": int64(-1), "ExpString": testString},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			res, err := tt.args.chain.ToMap()
+
+			if err == nil {
+				if res == nil {
+					t.Errorf("ToMap() result is nil %v", res)
+					return
+				}
+
+				for k, v := range tt.wantMap {
+					resV, ok := res[k]
+					// Note: reflectDeepEqual does not work
+					if ok {
+						if d := cmp.Diff(v, resV); d != "" {
+							t.Errorf("ToMap() key: %s, want: [%v], resV: [%v], resmap: %+v, diff: \n%s ", k, v, resV, res, d)
+							return
+						}
+					} else {
+						t.Errorf("ToMap() ok: %v, key: %s, want: [%v], resV: [%v], resmap: %+v, ", ok, k, v, resV, res)
+						return
+					}
+				}
+			} else if !tt.wantErr {
+				t.Errorf("ToMap() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

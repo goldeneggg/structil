@@ -62,10 +62,10 @@ func (f *fImpl) Struct(names ...string) Finder {
 		return f
 	}
 
+	f.ck = rootKey
+
 	var g Getter
 	var err error
-
-	f.ck = rootKey
 
 	for _, name := range names {
 		if f.HasError() {
@@ -105,10 +105,17 @@ func (f *fImpl) ToMap() (map[string]interface{}, error) {
 	}
 
 	res := map[string]interface{}{}
+	var key string
 
 	for kg, getter := range f.gMap {
 		for _, name := range f.fMap[kg] {
-			res[kg+f.sep+name] = getter.Get(name)
+			if kg == rootKey {
+				key = name
+			} else {
+				key = kg + f.sep + name
+			}
+
+			res[key] = getter.Get(name)
 		}
 	}
 

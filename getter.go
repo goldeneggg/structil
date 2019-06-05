@@ -14,6 +14,7 @@ const (
 
 // TODO: prettize error logging if error
 type Getter interface {
+	GetRT(name string) reflect.Type
 	Get(name string) interface{}
 	GetString(name string) string
 	GetInt64(name string) int64
@@ -25,11 +26,11 @@ type Getter interface {
 	IsUint64(name string) bool
 	IsFloat64(name string) bool
 	IsBool(name string) bool
-	IsStruct(name string) bool
-	IsSlice(name string) bool
 	IsMap(name string) bool
 	IsFunc(name string) bool
 	IsChan(name string) bool
+	IsStruct(name string) bool
+	IsSlice(name string) bool
 	IsInterface(name string) bool
 	MapGet(name string, f func(int, Getter) interface{}) ([]interface{}, error)
 }
@@ -37,9 +38,10 @@ type Getter interface {
 // TODO: implement common panic handler
 // if non-exist name assigned, suggest nealy name and pretty error print
 type gImpl struct {
-	rv       reflect.Value
-	cachedRV map[string]reflect.Value
-	cachedI  map[string]interface{}
+	rv       reflect.Value            // Value of input interface
+	cachedRT map[string]reflect.Type  // Type map of struct fields
+	cachedRV map[string]reflect.Value // Value map of indirected struct fields
+	cachedI  map[string]interface{}   // interface map of struct fields
 }
 
 func NewGetter(i interface{}) (Getter, error) {
@@ -66,6 +68,7 @@ func NewGetter(i interface{}) (Getter, error) {
 	return &gImpl{
 		rv:       rv,
 		cachedRV: map[string]reflect.Value{},
+		cachedRT: map[string]reflect.Type{},
 		cachedI:  map[string]interface{}{},
 	}, nil
 }
@@ -73,6 +76,15 @@ func NewGetter(i interface{}) (Getter, error) {
 // TODO: map => struct => Getter
 func NewGetterFromMap(m map[string]interface{}) (Getter, error) {
 	return nil, nil
+}
+
+func (g *gImpl) GetRT(name string) reflect.Type {
+	_, ok := g.cachedRT[name]
+	if !ok {
+		g.cache(name)
+	}
+
+	return g.cachedRT[name]
 }
 
 func (g *gImpl) Get(name string) interface{} {
@@ -96,6 +108,12 @@ func (g *gImpl) getRV(name string) reflect.Value {
 
 func (g *gImpl) cache(name string) {
 	frv := g.rv.FieldByName(name)
+	if frv.IsValid() {
+		g.cachedRT[name] = frv.Type()
+	} else {
+		g.cachedRT[name] = nil
+	}
+
 	frv = reflect.Indirect(frv)
 	g.cachedRV[name] = frv
 
@@ -144,14 +162,6 @@ func (g *gImpl) IsBool(name string) bool {
 	return g.is(name, reflect.Bool)
 }
 
-func (g *gImpl) IsStruct(name string) bool {
-	return g.is(name, reflect.Struct)
-}
-
-func (g *gImpl) IsSlice(name string) bool {
-	return g.is(name, reflect.Slice)
-}
-
 func (g *gImpl) IsMap(name string) bool {
 	return g.is(name, reflect.Map)
 }
@@ -162,6 +172,14 @@ func (g *gImpl) IsFunc(name string) bool {
 
 func (g *gImpl) IsChan(name string) bool {
 	return g.is(name, reflect.Chan)
+}
+
+func (g *gImpl) IsStruct(name string) bool {
+	return g.is(name, reflect.Struct)
+}
+
+func (g *gImpl) IsSlice(name string) bool {
+	return g.is(name, reflect.Slice)
 }
 
 func (g *gImpl) IsInterface(name string) bool {
