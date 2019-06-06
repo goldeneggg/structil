@@ -52,6 +52,7 @@ const (
 var (
 	testString2 = "test name2"
 	testFunc    = func(s string) interface{} { return s + "-func" }
+	testChan    = make(chan int)
 
 	deferPanic = func(t *testing.T, wantPanic bool, isXXX bool, args interface{}) {
 		r := recover()
@@ -79,7 +80,7 @@ func newTestStruct() TestStruct {
 		ExpBool:        true,
 		ExpMap:         map[string]interface{}{"k1": "v1", "k2": 2},
 		ExpFunc:        testFunc,
-		ExpChInt:       make(chan int),
+		ExpChInt:       testChan,
 		uexpString:     "unexported string",
 		TestStruct2: TestStruct2{
 			ExpString: "struct2 string",

@@ -95,7 +95,7 @@ func TestToMap(t *testing.T) {
 	var fs []Finder
 	var err error
 
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 4; i++ {
 		f, err = NewFinder(newTestStructPtr())
 		if err != nil {
 			t.Errorf("NewFinder() error = %v", err)
@@ -119,7 +119,22 @@ func TestToMap(t *testing.T) {
 			name: "ToMap with non-nest chain",
 			args: args{
 				chain: fs[0].
-					Find("ExpInt64", "ExpFloat64", "ExpString", "ExpStringptr", "ExpStringslice", "ExpBool", "ExpMap"),
+					Find(
+						"ExpInt64",
+						"ExpFloat64",
+						"ExpString",
+						"ExpStringptr",
+						"ExpStringslice",
+						"ExpBool",
+						"ExpMap",
+						//"ExpFunc",
+						"ExpChInt",
+						"uexpString",
+						"TestStruct2",
+						"TestStruct2Ptr",
+						"TestStructSlice",
+						"TestStructPtrSlice",
+					),
 			},
 			wantErr: false,
 			wantMap: map[string]interface{}{
@@ -130,10 +145,29 @@ func TestToMap(t *testing.T) {
 				"ExpStringslice": []string{"strslice1", "strslice2"},
 				"ExpBool":        true,
 				"ExpMap":         map[string]interface{}{"k1": "v1", "k2": 2},
+				//"ExpFunc":        testFunc,  // TODO: func is fail
+				"ExpChInt":   testChan,
+				"uexpString": nil, // unexported field is nil
+				"TestStruct2": TestStruct2{
+					ExpString:   "struct2 string",
+					TestStruct3: &TestStruct3{ExpString: "struct3 string", ExpInt: -123},
+				},
+				"TestStruct2Ptr": TestStruct2{ // not ptr
+					ExpString:   "struct2 string ptr",
+					TestStruct3: &TestStruct3{ExpString: "struct3 string ptr", ExpInt: -456},
+				},
+				"TestStructSlice": []TestStruct4{
+					{ExpString: "key100", ExpString2: "value100"},
+					{ExpString: "key200", ExpString2: "value200"},
+				},
+				"TestStructPtrSlice": []*TestStruct4{
+					{ExpString: "key991", ExpString2: "value991"},
+					{ExpString: "key992", ExpString2: "value992"},
+				},
 			},
 		},
 		{
-			name: "ToMap with a nest chain",
+			name: "ToMap with single-nest chain",
 			args: args{
 				chain: fs[1].
 					Struct("TestStruct2").Find("ExpString"),
@@ -144,14 +178,28 @@ func TestToMap(t *testing.T) {
 			},
 		},
 		{
-			name: "ToMap with multi nest chains",
+			name: "ToMap with two-nest chain",
 			args: args{
 				chain: fs[2].
+					Struct("TestStruct2Ptr", "TestStruct3").Find("ExpString", "ExpInt"),
+			},
+			wantErr: false,
+			wantMap: map[string]interface{}{
+				"TestStruct2Ptr.TestStruct3.ExpString": "struct3 string ptr",
+				"TestStruct2Ptr.TestStruct3.ExpInt":    int(-456),
+			},
+		},
+		{
+			name: "ToMap with multi nest chains",
+			args: args{
+				chain: fs[3].
+					Struct("TestStruct2").Find("ExpString").
 					Struct("TestStruct2Ptr").Find("ExpString").
 					Struct("TestStruct2Ptr", "TestStruct3").Find("ExpString", "ExpInt"),
 			},
 			wantErr: false,
 			wantMap: map[string]interface{}{
+				"TestStruct2.ExpString":                "struct2 string",
 				"TestStruct2Ptr.ExpString":             "struct2 string ptr",
 				"TestStruct2Ptr.TestStruct3.ExpString": "struct3 string ptr",
 				"TestStruct2Ptr.TestStruct3.ExpInt":    int(-456),

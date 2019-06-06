@@ -77,31 +77,39 @@ func (f *fImpl) Struct(names ...string) Finder {
 
 	f.ck = rootKey
 
-	var g Getter
+	var nextG Getter
+	var ok bool
 	var err error
+	nextKey := ""
 
 	for _, name := range names {
 		if f.HasError() {
 			break
 		}
 
-		g, err = NewGetter(f.gMap[f.ck].Get(name))
-
-		if f.ck == rootKey {
-			f.ck = name
+		if nextKey == "" {
+			nextKey = name
 		} else {
-			f.ck = f.ck + f.sep + name
+			nextKey = nextKey + f.sep + name
 		}
 
-		f.eMap[f.ck] = []error{}
-		if err != nil {
-			err = fmt.Errorf("Error in name: %s, ck: %s. [%v]", name, f.ck, err)
-			f.eMap[f.ck] = append(f.eMap[f.ck], err)
+		nextG, ok = f.gMap[nextKey]
+		if !ok {
+			nextG, err = NewGetter(f.gMap[f.ck].Get(name))
 		}
+
+		f.eMap[nextKey] = []error{}
+		if err != nil {
+			err = fmt.Errorf("Error in name: %s, key: %s. [%v]", name, nextKey, err)
+			f.eMap[nextKey] = append(f.eMap[f.ck], err)
+		}
+
+		f.gMap[nextKey] = nextG
+		f.ck = nextKey
+		err = nil
 	}
 
 	if !f.HasError() {
-		f.gMap[f.ck] = g
 		f.fMap[f.ck] = []string{}
 	}
 
