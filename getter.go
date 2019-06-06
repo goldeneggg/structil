@@ -8,16 +8,16 @@ import (
 )
 
 type Getter interface {
-	GetRT(name string) reflect.Type
-	GetRV(name string) reflect.Value
 	Has(name string) bool
+	GetType(name string) reflect.Type
+	GetValue(name string) reflect.Value
 	Get(name string) interface{}
-	GetBytes(name string) []byte
-	GetString(name string) string
-	GetInt64(name string) int64
-	GetUint64(name string) uint64
-	GetFloat64(name string) float64
-	GetBool(name string) bool
+	Bytes(name string) []byte
+	String(name string) string
+	Int64(name string) int64
+	Uint64(name string) uint64
+	Float64(name string) float64
+	Bool(name string) bool
 	IsBytes(name string) bool
 	IsString(name string) bool
 	IsInt64(name string) bool
@@ -33,11 +33,11 @@ type Getter interface {
 }
 
 type gImpl struct {
-	rv        reflect.Value // Value of input interface
-	cachedHas map[string]bool
-	cachedRT  map[string]reflect.Type  // Type map of struct fields
-	cachedRV  map[string]reflect.Value // Value map of indirected struct fields
-	cachedI   map[string]interface{}   // interface map of struct fields
+	rv     reflect.Value // Value of input interface
+	hases  map[string]bool
+	types  map[string]reflect.Type  // Type map of struct fields
+	values map[string]reflect.Value // Value map of indirected struct fields
+	intfs  map[string]interface{}   // interface map of struct fields
 }
 
 func NewGetter(i interface{}) (Getter, error) {
@@ -62,95 +62,95 @@ func NewGetter(i interface{}) (Getter, error) {
 	}
 
 	return &gImpl{
-		rv:        rv,
-		cachedHas: map[string]bool{},
-		cachedRV:  map[string]reflect.Value{},
-		cachedRT:  map[string]reflect.Type{},
-		cachedI:   map[string]interface{}{},
+		rv:     rv,
+		hases:  map[string]bool{},
+		values: map[string]reflect.Value{},
+		types:  map[string]reflect.Type{},
+		intfs:  map[string]interface{}{},
 	}, nil
 }
 
-func (g *gImpl) GetRT(name string) reflect.Type {
-	_, ok := g.cachedRT[name]
+func (g *gImpl) Has(name string) bool {
+	_, ok := g.hases[name]
 	if !ok {
 		g.cache(name)
 	}
 
-	return g.cachedRT[name]
+	return g.hases[name]
+}
+
+func (g *gImpl) GetType(name string) reflect.Type {
+	_, ok := g.types[name]
+	if !ok {
+		g.cache(name)
+	}
+
+	return g.types[name]
 }
 
 func (g *gImpl) cache(name string) {
 	frv := g.rv.FieldByName(name) // XXX: This code is slow
 	if frv.IsValid() {
-		g.cachedRT[name] = frv.Type()
-		g.cachedHas[name] = true
+		g.types[name] = frv.Type()
+		g.hases[name] = true
 	} else {
-		g.cachedRT[name] = nil
-		g.cachedHas[name] = false
+		g.types[name] = nil
+		g.hases[name] = false
 	}
 
 	frv = reflect.Indirect(frv)
-	g.cachedRV[name] = frv
+	g.values[name] = frv
 
-	g.cachedI[name] = reflectil.ToI(frv)
+	g.intfs[name] = reflectil.ToI(frv)
 }
 
-func (g *gImpl) GetRV(name string) reflect.Value {
-	_, ok := g.cachedRV[name]
+func (g *gImpl) GetValue(name string) reflect.Value {
+	_, ok := g.values[name]
 	if !ok {
 		g.cache(name)
 	}
 
-	return g.cachedRV[name]
-}
-
-func (g *gImpl) Has(name string) bool {
-	_, ok := g.cachedHas[name]
-	if !ok {
-		g.cache(name)
-	}
-
-	return g.cachedHas[name]
+	return g.values[name]
 }
 
 func (g *gImpl) Get(name string) interface{} {
-	_, ok := g.cachedI[name]
+	_, ok := g.intfs[name]
 	if !ok {
 		g.cache(name)
 	}
 
-	return g.cachedI[name]
+	return g.intfs[name]
 }
 
-func (g *gImpl) GetBytes(name string) []byte {
-	return g.GetRV(name).Bytes()
+func (g *gImpl) Bytes(name string) []byte {
+	return g.GetValue(name).Bytes()
 }
 
-func (g *gImpl) GetString(name string) string {
+func (g *gImpl) String(name string) string {
 	// Note:
 	// reflect.Value has String() method because it implements the Stringer interface.
 	// So this method does not occur panic.
-	return g.GetRV(name).String()
+	return g.GetValue(name).String()
 }
 
-func (g *gImpl) GetInt64(name string) int64 {
-	return g.GetRV(name).Int()
+func (g *gImpl) Int64(name string) int64 {
+	return g.GetValue(name).Int()
 }
 
-func (g *gImpl) GetUint64(name string) uint64 {
-	return g.GetRV(name).Uint()
+func (g *gImpl) Uint64(name string) uint64 {
+	return g.GetValue(name).Uint()
 }
 
-func (g *gImpl) GetFloat64(name string) float64 {
-	return g.GetRV(name).Float()
+func (g *gImpl) Float64(name string) float64 {
+	return g.GetValue(name).Float()
 }
 
-func (g *gImpl) GetBool(name string) bool {
-	return g.GetRV(name).Bool()
+func (g *gImpl) Bool(name string) bool {
+	return g.GetValue(name).Bool()
 }
 
 func (g *gImpl) IsBytes(name string) bool {
-	return g.IsSlice(name) && g.GetRT(name).Elem().Kind() == reflect.Uint8
+	return g.IsSlice(name) && g.GetType(name).Elem().Kind() == reflect.Uint8
 }
 
 func (g *gImpl) IsString(name string) bool {
@@ -194,7 +194,7 @@ func (g *gImpl) IsSlice(name string) bool {
 }
 
 func (g *gImpl) is(name string, exp reflect.Kind) bool {
-	frv := g.GetRV(name)
+	frv := g.GetValue(name)
 	return frv.Kind() == exp
 }
 
@@ -207,7 +207,7 @@ func (g *gImpl) MapGet(name string, f func(int, Getter) interface{}) ([]interfac
 	var ac Getter
 	var err error
 	var res []interface{}
-	srv := g.GetRV(name)
+	srv := g.GetValue(name)
 
 	for i := 0; i < srv.Len(); i++ {
 		vi = srv.Index(i)

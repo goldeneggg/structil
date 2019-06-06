@@ -24,7 +24,7 @@ func BenchmarkNewGetter_Ptr(b *testing.B) {
 	}
 }
 
-func BenchmarkGetRT_String(b *testing.B) {
+func BenchmarkGetType_String(b *testing.B) {
 	testStructPtr := newTestStructPtr()
 	g, err := NewGetter(testStructPtr)
 	if err != nil {
@@ -34,11 +34,11 @@ func BenchmarkGetRT_String(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		g.GetRT("ExpString")
+		g.GetType("ExpString")
 	}
 }
 
-func BenchmarkGetRV_String(b *testing.B) {
+func BenchmarkGetValue_String(b *testing.B) {
 	testStructPtr := newTestStructPtr()
 	g, err := NewGetter(testStructPtr)
 	if err != nil {
@@ -48,7 +48,7 @@ func BenchmarkGetRV_String(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		g.GetRV("ExpString")
+		g.GetValue("ExpString")
 	}
 }
 
@@ -80,7 +80,7 @@ func BenchmarkGet_String(b *testing.B) {
 	}
 }
 
-func BenchmarkGetString(b *testing.B) {
+func BenchmarkString(b *testing.B) {
 	testStructPtr := newTestStructPtr()
 	g, err := NewGetter(testStructPtr)
 	if err != nil {
@@ -90,7 +90,7 @@ func BenchmarkGetString(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		g.GetString("ExpString")
+		g.String("ExpString")
 	}
 }
 
@@ -102,7 +102,7 @@ func BenchmarkMapGet(b *testing.B) {
 		return
 	}
 	fn := func(i int, g Getter) interface{} {
-		return g.GetString("ExpString") + ":" + g.GetString("ExpString2")
+		return g.String("ExpString") + ":" + g.String("ExpString2")
 	}
 
 	b.ResetTimer()

@@ -98,8 +98,8 @@ func exampleGetter() {
 
 	by := g.Get("By")
 	log.Printf("Getter.Get(By): %v", by)
-	byy := g.GetBytes("By")
-	log.Printf("Getter.GetBytes(By): %v", byy)
+	byy := g.Bytes("By")
+	log.Printf("Getter.Bytes(By): %v", byy)
 	vx := reflect.Indirect(reflect.ValueOf(hoge)).FieldByName("By")
 	log.Printf("ValueOf bytes: %+v", vx)
 	log.Printf("Kind bytes: %+v", vx.Kind())
@@ -108,17 +108,17 @@ func exampleGetter() {
 	name := g.Get("Name")
 	log.Printf("Getter.Get(Name): %s", name)
 
-	name = g.GetString("NamePtr")
-	log.Printf("Getter.GetString(NamePtr): %s", name)
+	name = g.String("NamePtr")
+	log.Printf("Getter.String(NamePtr): %s", name)
 
-	intVal := g.GetInt64("ID")
-	log.Printf("Getter.GetInt64(ID): %v", intVal)
+	intVal := g.Int64("ID")
+	log.Printf("Getter.Int64(ID): %v", intVal)
 
-	floatVal := g.GetFloat64("FloatVal")
-	log.Printf("Getter.GetFloat64(FloatVal): %v", floatVal)
+	floatVal := g.Float64("FloatVal")
+	log.Printf("Getter.Float64(FloatVal): %v", floatVal)
 
-	IsMan := g.GetBool("IsMan")
-	log.Printf("Getter.GetBool(IsMan): %v", IsMan)
+	IsMan := g.Bool("IsMan")
+	log.Printf("Getter.Bool(IsMan): %v", IsMan)
 
 	// AaPtr
 	aaPtr := g.Get("AaPtr")
@@ -154,8 +154,8 @@ func exampleGetter() {
 
 	// Map
 	fa := func(i int, a structil.Getter) interface{} {
-		s1 := a.GetString("Key")
-		s2 := a.GetString("Value")
+		s1 := a.String("Key")
+		s2 := a.String("Value")
 		return s1 + "=" + s2
 	}
 
@@ -202,7 +202,7 @@ func exampleDumper() {
 	}
 
 	dw := dumper.New()
-	err = dw.Dump(g.GetRV("By"), g.GetRV("Name"))
+	err = dw.Dump(g.GetValue("By"), g.GetValue("Name"))
 	if err != nil {
 		log.Printf("!!! ERROR: %v", err)
 	}

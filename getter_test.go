@@ -181,7 +181,7 @@ func TestNewGetter(t *testing.T) {
 	}
 }
 
-func TestGetRT(t *testing.T) {
+func TestGetType(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
@@ -308,7 +308,7 @@ func TestGetRT(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			defer deferPanic(t, tt.wantPanic, false, tt.args)
 
-			got := a.GetRT(tt.args.name)
+			got := a.GetType(tt.args.name)
 			if d := cmp.Diff(got.String(), tt.want.String()); d != "" {
 				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
@@ -316,7 +316,7 @@ func TestGetRT(t *testing.T) {
 	}
 }
 
-func TestGetRV(t *testing.T) {
+func TestGetValue(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
@@ -443,7 +443,7 @@ func TestGetRV(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			defer deferPanic(t, tt.wantPanic, false, tt.args)
 
-			got := a.GetRV(tt.args.name)
+			got := a.GetValue(tt.args.name)
 			if d := cmp.Diff(got.String(), tt.want.String()); d != "" {
 				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
@@ -633,7 +633,7 @@ func TestGet(t *testing.T) {
 	}
 }
 
-func TestGetBytes(t *testing.T) {
+func TestBytes(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
@@ -749,7 +749,7 @@ func TestGetBytes(t *testing.T) {
 			isXXX := a.IsBytes(tt.args.name)
 			defer deferPanic(t, tt.wantPanic, isXXX, tt.args)
 
-			got := a.GetBytes(tt.args.name)
+			got := a.Bytes(tt.args.name)
 			if d := cmp.Diff(got, tt.want.Bytes()); d != "" {
 				t.Errorf("unexpected mismatch: args: %+v, IsInt64: %v, (-got +want)\n%s", tt.args, isXXX, d)
 			}
@@ -757,7 +757,7 @@ func TestGetBytes(t *testing.T) {
 	}
 }
 
-func TestGetString(t *testing.T) {
+func TestString(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
@@ -873,7 +873,7 @@ func TestGetString(t *testing.T) {
 			isXXX := a.IsString(tt.args.name)
 			defer deferPanic(t, tt.wantPanic, isXXX, tt.args)
 
-			got := a.GetString(tt.args.name)
+			got := a.String(tt.args.name)
 			if d := cmp.Diff(got, tt.want); d != "" {
 				t.Errorf("unexpected mismatch: args: %+v, IsString: %v, (-got +want)\n%s", tt.args, isXXX, d)
 			}
@@ -881,7 +881,7 @@ func TestGetString(t *testing.T) {
 	}
 }
 
-func TestGetInt64(t *testing.T) {
+func TestInt64(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
@@ -997,7 +997,7 @@ func TestGetInt64(t *testing.T) {
 			isXXX := a.IsInt64(tt.args.name)
 			defer deferPanic(t, tt.wantPanic, isXXX, tt.args)
 
-			got := a.GetInt64(tt.args.name)
+			got := a.Int64(tt.args.name)
 			if d := cmp.Diff(got, tt.want.Int()); d != "" {
 				t.Errorf("unexpected mismatch: args: %+v, IsInt64: %v, (-got +want)\n%s", tt.args, isXXX, d)
 			}
@@ -1005,7 +1005,7 @@ func TestGetInt64(t *testing.T) {
 	}
 }
 
-func TestGetUint64(t *testing.T) {
+func TestUint64(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
@@ -1121,7 +1121,7 @@ func TestGetUint64(t *testing.T) {
 			isXXX := a.IsUint64(tt.args.name)
 			defer deferPanic(t, tt.wantPanic, isXXX, tt.args)
 
-			got := a.GetUint64(tt.args.name)
+			got := a.Uint64(tt.args.name)
 			if d := cmp.Diff(got, tt.want.Uint()); d != "" {
 				t.Errorf("unexpected mismatch: args: %+v, IsUint64: %v, (-got +want)\n%s", tt.args, isXXX, d)
 			}
@@ -1129,7 +1129,7 @@ func TestGetUint64(t *testing.T) {
 	}
 }
 
-func TestGetFloat64(t *testing.T) {
+func TestFloat64(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
@@ -1245,7 +1245,7 @@ func TestGetFloat64(t *testing.T) {
 			isXXX := a.IsFloat64(tt.args.name)
 			defer deferPanic(t, tt.wantPanic, isXXX, tt.args)
 
-			got := a.GetFloat64(tt.args.name)
+			got := a.Float64(tt.args.name)
 			if d := cmp.Diff(got, tt.want.Float()); d != "" {
 				t.Errorf("unexpected mismatch: args: %+v, IsFloat64: %v, (-got +want)\n%s", tt.args, isXXX, d)
 			}
@@ -1253,7 +1253,7 @@ func TestGetFloat64(t *testing.T) {
 	}
 }
 
-func TestGetBool(t *testing.T) {
+func TestBool(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
@@ -1369,7 +1369,7 @@ func TestGetBool(t *testing.T) {
 			isXXX := a.IsBool(tt.args.name)
 			defer deferPanic(t, tt.wantPanic, isXXX, tt.args)
 
-			got := a.GetBool(tt.args.name)
+			got := a.Bool(tt.args.name)
 			if d := cmp.Diff(got, tt.want.Bool()); d != "" {
 				t.Errorf("unexpected mismatch: args: %+v, IsBool: %v, (-got +want)\n%s", tt.args, isXXX, d)
 			}
@@ -2630,7 +2630,7 @@ func TestMapGet(t *testing.T) {
 			args: args{
 				name: "TestStructSlice",
 				fn: func(i int, g Getter) interface{} {
-					return g.GetString("ExpString") + "=" + g.GetString("ExpString2")
+					return g.String("ExpString") + "=" + g.String("ExpString2")
 				},
 			},
 			wantErr:   false,
@@ -2642,7 +2642,7 @@ func TestMapGet(t *testing.T) {
 			args: args{
 				name: "TestStructPtrSlice",
 				fn: func(i int, g Getter) interface{} {
-					return g.GetString("ExpString") + ":" + g.GetString("ExpString2")
+					return g.String("ExpString") + ":" + g.String("ExpString2")
 				},
 			},
 			wantErr:   false,
