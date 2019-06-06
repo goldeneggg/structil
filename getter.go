@@ -9,13 +9,6 @@ import (
 	"unsafe"
 )
 
-const (
-	initStr     = ""
-	initInt     = 0
-	initFloat64 = 0.0
-	initBool    = false
-)
-
 // TODO: prettize error logging if error
 type Getter interface {
 	GetRT(name string) reflect.Type
@@ -75,11 +68,6 @@ func NewGetter(i interface{}) (Getter, error) {
 		cachedRT: map[string]reflect.Type{},
 		cachedI:  map[string]interface{}{},
 	}, nil
-}
-
-// TODO: map => struct => Getter
-func NewGetterFromMap(m map[string]interface{}) (Getter, error) {
-	return nil, nil
 }
 
 func (g *gImpl) GetRT(name string) reflect.Type {
