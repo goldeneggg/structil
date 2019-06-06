@@ -111,7 +111,6 @@ func exampleGetter() {
 	aaPtr := g.Get("AaPtr")
 	log.Printf("Getter.Get(AaPtr): %v", aaPtr)
 	log.Printf("Getter.IsStruct(AaPtr): %v", g.IsStruct("AaPtr"))
-	log.Printf("Getter.IsInterface(AaPtr): %v", g.IsInterface("AaPtr"))
 
 	aaAc, err := structil.NewGetter(aaPtr)
 	if err != nil {
@@ -122,13 +121,11 @@ func exampleGetter() {
 	log.Printf("AaPtr.Get(Writer): %+v", it)
 	log.Printf("AaPtr.Get(Writer).ValueOf().Elem(): %+v", reflect.ValueOf(it).Elem())
 	log.Printf("AaPtr.IsStruct(Writer): %v", aaAc.IsStruct("Writer"))
-	log.Printf("AaPtr.IsInterface(Writer): %v", aaAc.IsInterface("Writer"))
 
 	// Nil
 	aNil := g.Get("Nil")
 	log.Printf("Getter.Get(Nil): %v", aNil)
 	log.Printf("Getter.IsStruct(Nil): %v", g.IsStruct("Nil"))
-	log.Printf("Getter.IsInterface(Nil): %v", g.IsInterface("Nil"))
 
 	aNilAc, err := structil.NewGetter(aNil)
 	if err != nil {
@@ -141,7 +138,6 @@ func exampleGetter() {
 	log.Printf("Getter.Get(XArr): %v", xArr)
 	log.Printf("Getter.IsStruct(XArr): %v", g.IsStruct("XArr"))
 	log.Printf("Getter.IsSlice(XArr): %v", g.IsSlice("XArr"))
-	log.Printf("Getter.IsInterface(XArr): %v", g.IsInterface("XArr"))
 
 	// Map
 	fa := func(i int, a structil.Getter) interface{} {

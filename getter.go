@@ -35,7 +35,6 @@ type Getter interface {
 	IsChan(name string) bool
 	IsStruct(name string) bool
 	IsSlice(name string) bool
-	IsInterface(name string) bool
 	MapGet(name string, f func(int, Getter) interface{}) ([]interface{}, error)
 	DumpRVs() error
 }
@@ -152,11 +151,11 @@ func (g *gImpl) IsString(name string) bool {
 }
 
 func (g *gImpl) IsInt64(name string) bool {
-	return g.is(name, reflect.Int)
+	return g.is(name, reflect.Int64)
 }
 
 func (g *gImpl) IsUint64(name string) bool {
-	return g.is(name, reflect.Uint)
+	return g.is(name, reflect.Uint64)
 }
 
 func (g *gImpl) IsFloat64(name string) bool {
@@ -185,10 +184,6 @@ func (g *gImpl) IsStruct(name string) bool {
 
 func (g *gImpl) IsSlice(name string) bool {
 	return g.is(name, reflect.Slice)
-}
-
-func (g *gImpl) IsInterface(name string) bool {
-	return g.is(name, reflect.Interface)
 }
 
 func (g *gImpl) is(name string, exp reflect.Kind) bool {
