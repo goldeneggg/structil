@@ -9,6 +9,7 @@ import (
 
 type Getter interface {
 	GetRT(name string) reflect.Type
+	GetRV(name string) reflect.Value
 	Has(name string) bool
 	Get(name string) interface{}
 	GetBytes(name string) []byte
@@ -94,6 +95,15 @@ func (g *gImpl) cache(name string) {
 	g.cachedI[name] = reflectil.ToI(frv)
 }
 
+func (g *gImpl) GetRV(name string) reflect.Value {
+	_, ok := g.cachedRV[name]
+	if !ok {
+		g.cache(name)
+	}
+
+	return g.cachedRV[name]
+}
+
 func (g *gImpl) Has(name string) bool {
 	_, ok := g.cachedHas[name]
 	if !ok {
@@ -112,40 +122,31 @@ func (g *gImpl) Get(name string) interface{} {
 	return g.cachedI[name]
 }
 
-func (g *gImpl) getRV(name string) reflect.Value {
-	_, ok := g.cachedRV[name]
-	if !ok {
-		g.cache(name)
-	}
-
-	return g.cachedRV[name]
-}
-
 func (g *gImpl) GetBytes(name string) []byte {
-	return g.getRV(name).Bytes()
+	return g.GetRV(name).Bytes()
 }
 
 func (g *gImpl) GetString(name string) string {
 	// Note:
 	// reflect.Value has String() method because it implements the Stringer interface.
 	// So this method does not occur panic.
-	return g.getRV(name).String()
+	return g.GetRV(name).String()
 }
 
 func (g *gImpl) GetInt64(name string) int64 {
-	return g.getRV(name).Int()
+	return g.GetRV(name).Int()
 }
 
 func (g *gImpl) GetUint64(name string) uint64 {
-	return g.getRV(name).Uint()
+	return g.GetRV(name).Uint()
 }
 
 func (g *gImpl) GetFloat64(name string) float64 {
-	return g.getRV(name).Float()
+	return g.GetRV(name).Float()
 }
 
 func (g *gImpl) GetBool(name string) bool {
-	return g.getRV(name).Bool()
+	return g.GetRV(name).Bool()
 }
 
 func (g *gImpl) IsBytes(name string) bool {
@@ -193,7 +194,7 @@ func (g *gImpl) IsSlice(name string) bool {
 }
 
 func (g *gImpl) is(name string, exp reflect.Kind) bool {
-	frv := g.getRV(name)
+	frv := g.GetRV(name)
 	return frv.Kind() == exp
 }
 
@@ -206,7 +207,7 @@ func (g *gImpl) MapGet(name string, f func(int, Getter) interface{}) ([]interfac
 	var ac Getter
 	var err error
 	var res []interface{}
-	srv := g.getRV(name)
+	srv := g.GetRV(name)
 
 	for i := 0; i < srv.Len(); i++ {
 		vi = srv.Index(i)

@@ -316,6 +316,141 @@ func TestGetRT(t *testing.T) {
 	}
 }
 
+func TestGetRV(t *testing.T) {
+	t.Parallel()
+
+	testStructPtr := newTestStructPtr()
+
+	a, err := NewGetter(testStructPtr)
+	if err != nil {
+		t.Errorf("NewGetter() occurs unexpected error: %v", err)
+	}
+
+	type args struct {
+		name string
+	}
+	tests := []struct {
+		name      string
+		args      args
+		want      reflect.Value
+		wantPanic bool
+	}{
+		{
+			name:      "name exists in accessor and it's type is bytes",
+			args:      args{name: "ExpBytes"},
+			want:      reflect.ValueOf(testStructPtr.ExpBytes),
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is string",
+			args:      args{name: "ExpString"},
+			want:      reflect.ValueOf(testStructPtr.ExpString),
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is string (2nd)",
+			args:      args{name: "ExpString"},
+			want:      reflect.ValueOf(testStructPtr.ExpString),
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is int64",
+			args:      args{name: "ExpInt64"},
+			want:      reflect.ValueOf(testStructPtr.ExpInt64),
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is uint64",
+			args:      args{name: "ExpUint64"},
+			want:      reflect.ValueOf(testStructPtr.ExpUint64),
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is float32",
+			args:      args{name: "ExpFloat32"},
+			want:      reflect.ValueOf(testStructPtr.ExpFloat32),
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is float64",
+			args:      args{name: "ExpFloat64"},
+			want:      reflect.ValueOf(testStructPtr.ExpFloat64),
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is bool",
+			args:      args{name: "ExpBool"},
+			want:      reflect.ValueOf(testStructPtr.ExpBool),
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is map",
+			args:      args{name: "ExpMap"},
+			want:      reflect.ValueOf(testStructPtr.ExpMap),
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is func",
+			args:      args{name: "ExpFunc"},
+			want:      reflect.ValueOf(testStructPtr.ExpFunc),
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is chan int",
+			args:      args{name: "ExpChInt"},
+			want:      reflect.ValueOf(testStructPtr.ExpChInt),
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is struct",
+			args:      args{name: "TestStruct2"},
+			want:      reflect.ValueOf(testStructPtr.TestStruct2),
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is struct ptr",
+			args:      args{name: "TestStruct2Ptr"},
+			want:      reflect.ValueOf(testStructPtr.TestStruct2), // is not ptr
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is struct slice",
+			args:      args{name: "TestStructSlice"},
+			want:      reflect.ValueOf(testStructPtr.TestStructSlice),
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is struct ptr slice",
+			args:      args{name: "TestStructPtrSlice"},
+			want:      reflect.ValueOf(testStructPtr.TestStructPtrSlice),
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is string and unexported field",
+			args:      args{name: "uexpString"},
+			want:      reflect.ValueOf(testStructPtr.uexpString),
+			wantPanic: false,
+		},
+		{
+			name:      "name does not exist",
+			args:      args{name: "XXX"},
+			want:      reflect.ValueOf(nil),
+			wantPanic: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			defer deferPanic(t, tt.wantPanic, false, tt.args)
+
+			got := a.GetRV(tt.args.name)
+			if d := cmp.Diff(got.String(), tt.want.String()); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
+			}
+		})
+	}
+}
+
 func TestHas(t *testing.T) {
 	t.Parallel()
 
