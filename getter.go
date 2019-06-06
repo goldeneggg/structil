@@ -2,11 +2,9 @@ package structil
 
 import (
 	"fmt"
-	"io"
-	"os"
 	"reflect"
-	"text/tabwriter"
-	"unsafe"
+
+	"github.com/goldeneggg/structil/reflectil"
 )
 
 type Getter interface {
@@ -31,7 +29,6 @@ type Getter interface {
 	IsStruct(name string) bool
 	IsSlice(name string) bool
 	MapGet(name string, f func(int, Getter) interface{}) ([]interface{}, error)
-	DumpRVs() error
 }
 
 type gImpl struct {
@@ -94,7 +91,7 @@ func (g *gImpl) cache(name string) {
 	frv = reflect.Indirect(frv)
 	g.cachedRV[name] = frv
 
-	g.cachedI[name] = toI(frv)
+	g.cachedI[name] = reflectil.ToI(frv)
 }
 
 func (g *gImpl) Has(name string) bool {
@@ -213,7 +210,7 @@ func (g *gImpl) MapGet(name string, f func(int, Getter) interface{}) ([]interfac
 
 	for i := 0; i < srv.Len(); i++ {
 		vi = srv.Index(i)
-		ac, err = NewGetter(toI(vi))
+		ac, err = NewGetter(reflectil.ToI(vi))
 		if err != nil {
 			res = append(res, nil)
 			continue
@@ -223,103 +220,4 @@ func (g *gImpl) MapGet(name string, f func(int, Getter) interface{}) ([]interfac
 	}
 
 	return res, nil
-}
-
-func (g *gImpl) DumpRVs() error {
-	var rvs []reflect.Value
-
-	for _, rv := range g.cachedRV {
-		rvs = append(rvs, rv)
-	}
-
-	return dumpValues(rvs)
-}
-
-// TODO: candidates of moving to utils
-func toI(rv reflect.Value) interface{} {
-	if rv.IsValid() && rv.CanInterface() {
-		return rv.Interface()
-	} else {
-		return nil
-	}
-}
-
-// TODO: candidates of moving to utils
-func clone(i interface{}) interface{} {
-	return reflect.Indirect(reflect.ValueOf(i)).Interface()
-}
-
-// TODO: candidates of moving to utils
-func newSettable(typ reflect.Type) reflect.Value {
-	return reflect.New(typ).Elem()
-}
-
-// TODO: candidates of moving to utils
-func settableOf(i interface{}) reflect.Value {
-	// i's Kind must be Interface or Ptr(if else, occur panic)
-	return reflect.ValueOf(i).Elem()
-}
-
-// TODO: candidates of moving to utils
-func genericsTypeOf() reflect.Type {
-	// generics type is interface pointer
-	return reflect.TypeOf((*interface{})(nil)).Elem()
-}
-
-// TODO: candidates of moving to utils
-func newGenericsSettable() reflect.Value {
-	return newSettable(genericsTypeOf())
-}
-
-// TODO: candidates of moving to utils
-func unexportedField(i interface{}, name string) reflect.Value {
-	sv := settableOf(i)
-	f := sv.FieldByName(name)
-	return reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem()
-}
-
-// TODO: candidates of moving to utils
-func compareStructure(i1 interface{}, i2 interface{}) bool {
-	// TODO: 2つのstructの構造比較
-	return false
-}
-
-// TODO: candidates of moving to utils
-func dumpValues(rvs []reflect.Value) error {
-	var t interface{}
-	ds := make([][]interface{}, len(rvs))
-
-	for i, rv := range rvs {
-		if rv.IsValid() {
-			t = rv.Type()
-		} else {
-			t = rv.Kind()
-		}
-		ds[i] = []interface{}{
-			t,  // Type
-			rv, // Value
-		}
-	}
-
-	w := getValueWriter(nil)
-	w.Write([]byte(fmt.Sprintf("%s\t%s\n", "Type", "Value")))
-	w.Write([]byte(fmt.Sprintf("%s\t%s\n", "-----", "-----")))
-
-	for _, d := range ds {
-		w.Write([]byte(fmt.Sprintf(
-			"%v\t%+v\n", d[0], d[1],
-		)))
-	}
-	err := w.Flush()
-
-	return err
-}
-
-// TODO: candidates of moving to utils
-func getValueWriter(wrap io.Writer) *tabwriter.Writer {
-	if wrap == nil {
-		wrap = os.Stdout
-	}
-
-	return tabwriter.NewWriter(wrap, 0, 4, 4, ' ', 0)
 }

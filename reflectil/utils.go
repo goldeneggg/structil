@@ -1,4 +1,4 @@
-package structil
+package reflectil
 
 import (
 	"reflect"
