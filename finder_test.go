@@ -1,7 +1,6 @@
 package structil_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/goldeneggg/structil"
@@ -119,14 +118,13 @@ func TestToMap(t *testing.T) {
 			name: "ToMap with a nest chain",
 			args: args{
 				chain: f.Find("ExpInt64", "ExpString").
-					Struct("TestStruct2").Find("ExpString", "Writer"),
+					Struct("TestStruct2").Find("ExpString"),
 			},
 			wantErr: false,
 			wantMap: map[string]interface{}{
 				"ExpInt64":              int64(-1),
 				"ExpString":             testString,
 				"TestStruct2.ExpString": "struct2 string",
-				"TestStruct2.Writer":    os.Stdout,
 			},
 		},
 	}

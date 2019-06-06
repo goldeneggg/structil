@@ -1,8 +1,6 @@
 package structil_test
 
 import (
-	"io"
-	"os"
 	"reflect"
 	"testing"
 
@@ -31,7 +29,6 @@ type TestStruct struct {
 
 type TestStruct2 struct {
 	ExpString string
-	Writer    io.Writer
 	*TestStruct3
 }
 
@@ -83,7 +80,6 @@ func newTestStruct() TestStruct {
 		uexpString:     "unexported string",
 		TestStruct2: TestStruct2{
 			ExpString: "struct2 string",
-			Writer:    os.Stdout,
 			TestStruct3: &TestStruct3{
 				ExpString: "struct3 string",
 				ExpInt:    -123,
@@ -91,7 +87,6 @@ func newTestStruct() TestStruct {
 		},
 		TestStruct2Ptr: &TestStruct2{
 			ExpString: "struct2 string ptr",
-			Writer:    os.Stderr,
 			TestStruct3: &TestStruct3{
 				ExpString: "struct3 string ptr",
 				ExpInt:    -456,
@@ -308,6 +303,7 @@ func TestGet(t *testing.T) {
 		args      args
 		want      interface{}
 		wantPanic bool
+		cmpopts   []cmp.Option
 	}{
 		{
 			name:      "name exists in accessor and it's type is string",
@@ -360,7 +356,7 @@ func TestGet(t *testing.T) {
 		{
 			name:      "name exists in accessor and it's type is struct ptr",
 			args:      args{name: "TestStruct2Ptr"},
-			want:      testStructPtr.TestStruct2Ptr,
+			want:      *testStructPtr.TestStruct2Ptr,
 			wantPanic: false,
 		},
 		{
@@ -378,7 +374,7 @@ func TestGet(t *testing.T) {
 		{
 			name:      "name exists in accessor and it's type is string and unexported field",
 			args:      args{name: "uexpString"},
-			want:      testStructPtr.uexpString,
+			want:      nil, // unexported field is nil
 			wantPanic: false,
 		},
 		{
@@ -393,13 +389,9 @@ func TestGet(t *testing.T) {
 			defer deferPanic(t, tt.wantPanic, false, tt.args)
 
 			got := a.Get(tt.args.name)
-			if d := cmp.Diff(got, tt.want); d != "" {
+			if d := cmp.Diff(got, tt.want, tt.cmpopts...); d != "" {
 				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
-			// if got != tt.want {
-			// if !reflect.DeepEqual(got, tt.want) {
-			// 	t.Errorf("unexpected mismatch: args: %+v, got: %+v, want: %+v", tt.args, got, tt.want)
-			// }
 		})
 	}
 }
