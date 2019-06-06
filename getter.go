@@ -9,7 +9,6 @@ import (
 	"unsafe"
 )
 
-// TODO: prettize error logging if error
 type Getter interface {
 	GetRT(name string) reflect.Type
 	Has(name string) bool
@@ -35,8 +34,6 @@ type Getter interface {
 	DumpRVs() error
 }
 
-// TODO: implement common panic handler
-// if non-exist name assigned, suggest nealy name and pretty error print
 type gImpl struct {
 	rv        reflect.Value // Value of input interface
 	cachedHas map[string]bool
@@ -53,7 +50,6 @@ func NewGetter(i interface{}) (Getter, error) {
 	rv := reflect.ValueOf(i)
 	kind := rv.Kind()
 
-	// Invalid kind is handled here too.
 	if kind != reflect.Ptr && kind != reflect.Struct {
 		return nil, fmt.Errorf("%v is not supported kind", kind)
 	}
@@ -62,6 +58,7 @@ func NewGetter(i interface{}) (Getter, error) {
 		if rv.IsNil() {
 			return nil, fmt.Errorf("value of passed argument %+v is nil", rv)
 		}
+
 		// indirect is required when kind is Ptr
 		rv = reflect.Indirect(rv)
 	}
@@ -85,7 +82,7 @@ func (g *gImpl) GetRT(name string) reflect.Type {
 }
 
 func (g *gImpl) cache(name string) {
-	frv := g.rv.FieldByName(name) // This is slow
+	frv := g.rv.FieldByName(name) // XXX: This code is slow
 	if frv.IsValid() {
 		g.cachedRT[name] = frv.Type()
 		g.cachedHas[name] = true
@@ -121,7 +118,6 @@ func (g *gImpl) Get(name string) interface{} {
 func (g *gImpl) getRV(name string) reflect.Value {
 	_, ok := g.cachedRV[name]
 	if !ok {
-		// TODO: non-indirectを取り扱うか決める
 		g.cache(name)
 	}
 
@@ -133,7 +129,8 @@ func (g *gImpl) GetBytes(name string) []byte {
 }
 
 func (g *gImpl) GetString(name string) string {
-	// TODO: reflect.Value has String() method because it implements the Stringer interface.
+	// Note:
+	// reflect.Value has String() method because it implements the Stringer interface.
 	// So this method does not occur panic.
 	return g.getRV(name).String()
 }
