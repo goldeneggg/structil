@@ -176,4 +176,9 @@ func exampleFinder() {
 		Struct("AaPtr", "AaaPtr").Find("Name", "Val").
 		ToMap()
 	log.Printf("Finder.ToMap res: %+v, err: %v", swRes, err)
+
+	finder.Reset()
+
+	swRes, err = finder.Find("XXX").ToMap()
+	log.Printf("Finder.ToMap res: %+v, err: %v", swRes, err)
 }

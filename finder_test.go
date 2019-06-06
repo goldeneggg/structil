@@ -95,7 +95,7 @@ func TestToMap(t *testing.T) {
 	var fs []Finder
 	var err error
 
-	for i := 0; i < 4; i++ {
+	for i := 0; i < 5; i++ {
 		f, err = NewFinder(newTestStructPtr())
 		if err != nil {
 			t.Errorf("NewFinder() error = %v", err)
@@ -204,6 +204,13 @@ func TestToMap(t *testing.T) {
 				"TestStruct2Ptr.TestStruct3.ExpString": "struct3 string ptr",
 				"TestStruct2Ptr.TestStruct3.ExpInt":    int(-456),
 			},
+		},
+		{
+			name: "ToMap with non-existed name",
+			args: args{
+				chain: fs[4].Find("NonExist"),
+			},
+			wantErr: false,
 		},
 	}
 
