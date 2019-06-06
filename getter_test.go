@@ -11,6 +11,7 @@ import (
 
 type (
 	TestStruct struct {
+		ExpBytes       []byte
 		ExpInt64       int64
 		ExpUint64      uint64
 		ExpFloat32     float32
@@ -70,6 +71,7 @@ var (
 
 func newTestStruct() TestStruct {
 	return TestStruct{
+		ExpBytes:       []byte{0x00, 0xFF},
 		ExpInt64:       int64(-1),
 		ExpUint64:      uint64(1),
 		ExpFloat32:     float32(-1.23),
@@ -198,6 +200,12 @@ func TestGetRT(t *testing.T) {
 		want      reflect.Type
 		wantPanic bool
 	}{
+		{
+			name:      "name exists in accessor and it's type is bytes",
+			args:      args{name: "ExpBytes"},
+			want:      reflect.TypeOf(testStructPtr.ExpBytes),
+			wantPanic: false,
+		},
 		{
 			name:      "name exists in accessor and it's type is string",
 			args:      args{name: "ExpString"},
@@ -374,6 +382,12 @@ func TestGet(t *testing.T) {
 		cmpopts   []cmp.Option
 	}{
 		{
+			name:      "name exists in accessor and it's type is bytes",
+			args:      args{name: "ExpBytes"},
+			want:      testStructPtr.ExpBytes,
+			wantPanic: false,
+		},
+		{
 			name:      "name exists in accessor and it's type is string",
 			args:      args{name: "ExpString"},
 			want:      testStructPtr.ExpString,
@@ -484,6 +498,130 @@ func TestGet(t *testing.T) {
 	}
 }
 
+func TestGetBytes(t *testing.T) {
+	t.Parallel()
+
+	testStructPtr := newTestStructPtr()
+
+	a, err := NewGetter(testStructPtr)
+	if err != nil {
+		t.Errorf("NewGetter() occurs unexpected error: %v", err)
+	}
+
+	type args struct {
+		name string
+	}
+	tests := []struct {
+		name      string
+		args      args
+		want      reflect.Value
+		wantPanic bool
+	}{
+		{
+			name:      "name exists in accessor and it's type is bytes",
+			args:      args{name: "ExpBytes"},
+			want:      reflect.ValueOf(testStructPtr.ExpBytes),
+			wantPanic: false,
+		},
+		{
+			name:      "name exists in accessor and it's type is string",
+			args:      args{name: "ExpString"},
+			want:      reflect.ValueOf(testStructPtr.ExpString),
+			wantPanic: true,
+		},
+		{
+			name:      "name exists in accessor and it's type is string (2nd)",
+			args:      args{name: "ExpString"},
+			want:      reflect.ValueOf(testStructPtr.ExpString),
+			wantPanic: true,
+		},
+		{
+			name:      "name exists in accessor and it's type is int64",
+			args:      args{name: "ExpInt64"},
+			want:      reflect.ValueOf(testStructPtr.ExpInt64),
+			wantPanic: true,
+		},
+		{
+			name:      "name exists in accessor and it's type is uint64",
+			args:      args{name: "ExpUint64"},
+			want:      reflect.ValueOf(testStructPtr.ExpUint64),
+			wantPanic: true,
+		},
+		{
+			name:      "name exists in accessor and it's type is float32",
+			args:      args{name: "ExpFloat32"},
+			want:      reflect.ValueOf(testStructPtr.ExpFloat32),
+			wantPanic: true,
+		},
+		{
+			name:      "name exists in accessor and it's type is float64",
+			args:      args{name: "ExpFloat64"},
+			want:      reflect.ValueOf(testStructPtr.ExpFloat64),
+			wantPanic: true,
+		},
+		{
+			name:      "name exists in accessor and it's type is bool",
+			args:      args{name: "ExpBool"},
+			want:      reflect.ValueOf(testStructPtr.ExpBool),
+			wantPanic: true,
+		},
+		{
+			name:      "name exists in accessor and it's type is map",
+			args:      args{name: "ExpMap"},
+			want:      reflect.ValueOf(testStructPtr.ExpMap),
+			wantPanic: true,
+		},
+		{
+			name:      "name exists in accessor and it's type is func",
+			args:      args{name: "ExpFunc"},
+			want:      reflect.ValueOf(testStructPtr.ExpFunc),
+			wantPanic: true,
+		},
+		{
+			name:      "name exists in accessor and it's type is chan int",
+			args:      args{name: "ExpChInt"},
+			want:      reflect.ValueOf(testStructPtr.ExpChInt),
+			wantPanic: true,
+		},
+		{
+			name:      "name exists in accessor and it's type is struct ptr",
+			args:      args{name: "TestStruct2"},
+			want:      reflect.Indirect(reflect.ValueOf(testStructPtr.TestStruct2)),
+			wantPanic: true,
+		},
+		{
+			name:      "name exists in accessor and it's type is struct ptr slice",
+			args:      args{name: "TestStructPtrSlice"},
+			want:      reflect.ValueOf(testStructPtr.TestStructPtrSlice),
+			wantPanic: true,
+		},
+		{
+			name:      "name exists in accessor and it's type is string and unexported field",
+			args:      args{name: "uexpString"},
+			want:      reflect.ValueOf(testStructPtr.uexpString),
+			wantPanic: true,
+		},
+		{
+			name:      "name does not exist",
+			args:      args{name: "XXX"},
+			want:      reflect.ValueOf(nil),
+			wantPanic: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			isXXX := a.IsBytes(tt.args.name)
+			defer deferPanic(t, tt.wantPanic, isXXX, tt.args)
+
+			got := a.GetBytes(tt.args.name)
+			if d := cmp.Diff(got, tt.want.Bytes()); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, IsInt64: %v, (-got +want)\n%s", tt.args, isXXX, d)
+			}
+		})
+	}
+}
+
 func TestGetString(t *testing.T) {
 	t.Parallel()
 
@@ -503,6 +641,12 @@ func TestGetString(t *testing.T) {
 		want      string
 		wantPanic bool
 	}{
+		{
+			name:      "name exists in accessor and it's type is bytes",
+			args:      args{name: "ExpBytes"},
+			want:      reflect.ValueOf(testStructPtr.ExpBytes).String(),
+			wantPanic: false,
+		},
 		{
 			name:      "name exists in accessor and it's type is string",
 			args:      args{name: "ExpString"},
@@ -622,6 +766,12 @@ func TestGetInt64(t *testing.T) {
 		wantPanic bool
 	}{
 		{
+			name:      "name exists in accessor and it's type is bytes",
+			args:      args{name: "ExpBytes"},
+			want:      reflect.ValueOf(testStructPtr.ExpBytes),
+			wantPanic: true,
+		},
+		{
 			name:      "name exists in accessor and it's type is string",
 			args:      args{name: "ExpString"},
 			want:      reflect.ValueOf(testStructPtr.ExpString),
@@ -739,6 +889,12 @@ func TestGetUint64(t *testing.T) {
 		want      reflect.Value
 		wantPanic bool
 	}{
+		{
+			name:      "name exists in accessor and it's type is bytes",
+			args:      args{name: "ExpBytes"},
+			want:      reflect.ValueOf(testStructPtr.ExpBytes),
+			wantPanic: true,
+		},
 		{
 			name:      "name exists in accessor and it's type is string",
 			args:      args{name: "ExpString"},
@@ -858,6 +1014,12 @@ func TestGetFloat64(t *testing.T) {
 		wantPanic bool
 	}{
 		{
+			name:      "name exists in accessor and it's type is bytes",
+			args:      args{name: "ExpBytes"},
+			want:      reflect.ValueOf(testStructPtr.ExpBytes),
+			wantPanic: true,
+		},
+		{
 			name:      "name exists in accessor and it's type is string",
 			args:      args{name: "ExpString"},
 			want:      reflect.ValueOf(testStructPtr.ExpString),
@@ -976,6 +1138,12 @@ func TestGetBool(t *testing.T) {
 		wantPanic bool
 	}{
 		{
+			name:      "name exists in accessor and it's type is bytes",
+			args:      args{name: "ExpBytes"},
+			want:      reflect.ValueOf(testStructPtr.ExpBytes),
+			wantPanic: true,
+		},
+		{
 			name:      "name exists in accessor and it's type is string",
 			args:      args{name: "ExpString"},
 			want:      reflect.ValueOf(testStructPtr.ExpString),
@@ -1074,6 +1242,111 @@ func TestGetBool(t *testing.T) {
 	}
 }
 
+func TestIsBytes(t *testing.T) {
+	t.Parallel()
+
+	testStructPtr := newTestStructPtr()
+
+	a, err := NewGetter(testStructPtr)
+	if err != nil {
+		t.Errorf("NewGetter() occurs unexpected error: %v", err)
+	}
+
+	type args struct {
+		name string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "name exists in accessor and it's type is bytes",
+			args: args{name: "ExpBytes"},
+			want: true,
+		},
+		{
+			name: "name exists in accessor and it's type is string",
+			args: args{name: "ExpString"},
+			want: false,
+		},
+		{
+			name: "name exists in accessor and it's type is string (2nd)",
+			args: args{name: "ExpString"},
+			want: false,
+		},
+		{
+			name: "name exists in accessor and it's type is int64",
+			args: args{name: "ExpInt64"},
+			want: false,
+		},
+		{
+			name: "name exists in accessor and it's type is uint64",
+			args: args{name: "ExpUint64"},
+			want: false,
+		},
+		{
+			name: "name exists in accessor and it's type is float32",
+			args: args{name: "ExpFloat32"},
+			want: false,
+		},
+		{
+			name: "name exists in accessor and it's type is float64",
+			args: args{name: "ExpFloat64"},
+			want: false,
+		},
+		{
+			name: "name exists in accessor and it's type is bool",
+			args: args{name: "ExpBool"},
+			want: false,
+		},
+		{
+			name: "name exists in accessor and it's type is map",
+			args: args{name: "ExpMap"},
+			want: false,
+		},
+		{
+			name: "name exists in accessor and it's type is func",
+			args: args{name: "ExpFunc"},
+			want: false,
+		},
+		{
+			name: "name exists in accessor and it's type is chan int",
+			args: args{name: "ExpChInt"},
+			want: false,
+		},
+		{
+			name: "name exists in accessor and it's type is struct ptr",
+			args: args{name: "TestStruct2"},
+			want: false,
+		},
+		{
+			name: "name exists in accessor and it's type is struct ptr slice",
+			args: args{name: "TestStructPtrSlice"},
+			want: false,
+		},
+		{
+			name: "name exists in accessor and it's type is string and unexported field",
+			args: args{name: "uexpString"},
+			want: false,
+		},
+		{
+			name: "name does not exist",
+			args: args{name: "XXX"},
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := a.IsBytes(tt.args.name)
+			if got != tt.want {
+				t.Errorf("unexpected mismatch: got: %v, want: %v. args: %+v", got, tt.want, tt.args)
+			}
+		})
+	}
+}
+
 func TestIsString(t *testing.T) {
 	t.Parallel()
 
@@ -1092,6 +1365,11 @@ func TestIsString(t *testing.T) {
 		args args
 		want bool
 	}{
+		{
+			name: "name exists in accessor and it's type is bytes",
+			args: args{name: "ExpBytes"},
+			want: false,
+		},
 		{
 			name: "name exists in accessor and it's type is string",
 			args: args{name: "ExpString"},
@@ -1193,6 +1471,11 @@ func TestIsInt64(t *testing.T) {
 		want bool
 	}{
 		{
+			name: "name exists in accessor and it's type is bytes",
+			args: args{name: "ExpBytes"},
+			want: false,
+		},
+		{
 			name: "name exists in accessor and it's type is string",
 			args: args{name: "ExpString"},
 			want: false,
@@ -1292,6 +1575,11 @@ func TestIsUint64(t *testing.T) {
 		args args
 		want bool
 	}{
+		{
+			name: "name exists in accessor and it's type is bytes",
+			args: args{name: "ExpBytes"},
+			want: false,
+		},
 		{
 			name: "name exists in accessor and it's type is string",
 			args: args{name: "ExpString"},
@@ -1393,6 +1681,11 @@ func TestIsFloat64(t *testing.T) {
 		want bool
 	}{
 		{
+			name: "name exists in accessor and it's type is bytes",
+			args: args{name: "ExpBytes"},
+			want: false,
+		},
+		{
 			name: "name exists in accessor and it's type is string",
 			args: args{name: "ExpString"},
 			want: false,
@@ -1492,6 +1785,11 @@ func TestIsBool(t *testing.T) {
 		args args
 		want bool
 	}{
+		{
+			name: "name exists in accessor and it's type is bytes",
+			args: args{name: "ExpBytes"},
+			want: false,
+		},
 		{
 			name: "name exists in accessor and it's type is string",
 			args: args{name: "ExpString"},
@@ -1593,6 +1891,11 @@ func TestIsMap(t *testing.T) {
 		want bool
 	}{
 		{
+			name: "name exists in accessor and it's type is bytes",
+			args: args{name: "ExpBytes"},
+			want: false,
+		},
+		{
 			name: "name exists in accessor and it's type is string",
 			args: args{name: "ExpString"},
 			want: false,
@@ -1692,6 +1995,11 @@ func TestIsFunc(t *testing.T) {
 		args args
 		want bool
 	}{
+		{
+			name: "name exists in accessor and it's type is bytes",
+			args: args{name: "ExpBytes"},
+			want: false,
+		},
 		{
 			name: "name exists in accessor and it's type is string",
 			args: args{name: "ExpString"},
@@ -1793,6 +2101,11 @@ func TestIsChan(t *testing.T) {
 		want bool
 	}{
 		{
+			name: "name exists in accessor and it's type is bytes",
+			args: args{name: "ExpBytes"},
+			want: false,
+		},
+		{
 			name: "name exists in accessor and it's type is string",
 			args: args{name: "ExpString"},
 			want: false,
@@ -1893,6 +2206,11 @@ func TestIsStruct(t *testing.T) {
 		want bool
 	}{
 		{
+			name: "name exists in accessor and it's type is bytes",
+			args: args{name: "ExpBytes"},
+			want: false,
+		},
+		{
 			name: "name exists in accessor and it's type is string",
 			args: args{name: "ExpString"},
 			want: false,
@@ -1992,6 +2310,11 @@ func TestIsSlice(t *testing.T) {
 		args args
 		want bool
 	}{
+		{
+			name: "name exists in accessor and it's type is bytes",
+			args: args{name: "ExpBytes"},
+			want: true,
+		},
 		{
 			name: "name exists in accessor and it's type is string",
 			args: args{name: "ExpString"},

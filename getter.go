@@ -14,11 +14,13 @@ type Getter interface {
 	GetRT(name string) reflect.Type
 	Has(name string) bool
 	Get(name string) interface{}
+	GetBytes(name string) []byte
 	GetString(name string) string
 	GetInt64(name string) int64
 	GetUint64(name string) uint64
 	GetFloat64(name string) float64
 	GetBool(name string) bool
+	IsBytes(name string) bool
 	IsString(name string) bool
 	IsInt64(name string) bool
 	IsUint64(name string) bool
@@ -60,7 +62,7 @@ func NewGetter(i interface{}) (Getter, error) {
 		if rv.IsNil() {
 			return nil, fmt.Errorf("value of passed argument %+v is nil", rv)
 		}
-		// TODO: maybe require syncrhonization control when i is pointer?
+		// indirect is required when kind is Ptr
 		rv = reflect.Indirect(rv)
 	}
 
@@ -126,6 +128,10 @@ func (g *gImpl) getRV(name string) reflect.Value {
 	return g.cachedRV[name]
 }
 
+func (g *gImpl) GetBytes(name string) []byte {
+	return g.getRV(name).Bytes()
+}
+
 func (g *gImpl) GetString(name string) string {
 	// TODO: reflect.Value has String() method because it implements the Stringer interface.
 	// So this method does not occur panic.
@@ -146,6 +152,10 @@ func (g *gImpl) GetFloat64(name string) float64 {
 
 func (g *gImpl) GetBool(name string) bool {
 	return g.getRV(name).Bool()
+}
+
+func (g *gImpl) IsBytes(name string) bool {
+	return g.IsSlice(name) && g.GetRT(name).Elem().Kind() == reflect.Uint8
 }
 
 func (g *gImpl) IsString(name string) bool {

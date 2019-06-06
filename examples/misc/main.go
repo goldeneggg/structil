@@ -11,6 +11,7 @@ import (
 
 type A struct {
 	ID       int64
+	By       []byte
 	Name     string
 	NamePtr  *string
 	IsMan    bool
@@ -42,6 +43,7 @@ var (
 	name = "ほげ　ふがお"
 
 	hoge = &A{
+		By:       []byte{0x00, 0x01, 0xFF},
 		ID:       1,
 		Name:     name,
 		NamePtr:  &name,
@@ -91,6 +93,15 @@ func exampleGetter() {
 	if err != nil {
 		log.Printf("!!! ERROR: %v", err)
 	}
+
+	by := g.Get("By")
+	log.Printf("Getter.Get(By): %v", by)
+	byy := g.GetBytes("By")
+	log.Printf("Getter.GetBytes(By): %v", byy)
+	vx := reflect.Indirect(reflect.ValueOf(hoge)).FieldByName("By")
+	log.Printf("ValueOf bytes: %+v", vx)
+	log.Printf("Kind bytes: %+v", vx.Kind())
+	log.Printf("Kind bytes elem: %+v", vx.Type().Elem().Kind())
 
 	name := g.Get("Name")
 	log.Printf("Getter.Get(Name): %s", name)
