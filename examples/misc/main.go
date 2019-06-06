@@ -7,6 +7,7 @@ import (
 	"reflect"
 
 	"github.com/goldeneggg/structil"
+	"github.com/goldeneggg/structil/dumper"
 )
 
 type A struct {
@@ -85,6 +86,7 @@ var (
 func main() {
 	exampleGetter()
 	exampleFinder()
+	exampleDumper()
 }
 
 func exampleGetter() {
@@ -190,4 +192,18 @@ func exampleFinder() {
 
 	swRes, err = finder.Find("XXX").ToMap()
 	log.Printf("Finder.ToMap res: %+v, err: %v", swRes, err)
+}
+
+func exampleDumper() {
+	log.Println("---------- exampleDumper")
+	g, err := structil.NewGetter(hoge)
+	if err != nil {
+		log.Printf("!!! ERROR: %v", err)
+	}
+
+	dw := dumper.New()
+	err = dw.Dump(g.GetRV("By"), g.GetRV("Name"))
+	if err != nil {
+		log.Printf("!!! ERROR: %v", err)
+	}
 }
