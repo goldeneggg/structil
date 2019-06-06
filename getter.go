@@ -12,6 +12,7 @@ import (
 // TODO: prettize error logging if error
 type Getter interface {
 	GetRT(name string) reflect.Type
+	Has(name string) bool
 	Get(name string) interface{}
 	GetString(name string) string
 	GetInt64(name string) int64
@@ -35,10 +36,11 @@ type Getter interface {
 // TODO: implement common panic handler
 // if non-exist name assigned, suggest nealy name and pretty error print
 type gImpl struct {
-	rv       reflect.Value            // Value of input interface
-	cachedRT map[string]reflect.Type  // Type map of struct fields
-	cachedRV map[string]reflect.Value // Value map of indirected struct fields
-	cachedI  map[string]interface{}   // interface map of struct fields
+	rv        reflect.Value // Value of input interface
+	cachedHas map[string]bool
+	cachedRT  map[string]reflect.Type  // Type map of struct fields
+	cachedRV  map[string]reflect.Value // Value map of indirected struct fields
+	cachedI   map[string]interface{}   // interface map of struct fields
 }
 
 func NewGetter(i interface{}) (Getter, error) {
@@ -63,10 +65,11 @@ func NewGetter(i interface{}) (Getter, error) {
 	}
 
 	return &gImpl{
-		rv:       rv,
-		cachedRV: map[string]reflect.Value{},
-		cachedRT: map[string]reflect.Type{},
-		cachedI:  map[string]interface{}{},
+		rv:        rv,
+		cachedHas: map[string]bool{},
+		cachedRV:  map[string]reflect.Value{},
+		cachedRT:  map[string]reflect.Type{},
+		cachedI:   map[string]interface{}{},
 	}, nil
 }
 
@@ -77,6 +80,31 @@ func (g *gImpl) GetRT(name string) reflect.Type {
 	}
 
 	return g.cachedRT[name]
+}
+
+func (g *gImpl) cache(name string) {
+	frv := g.rv.FieldByName(name) // This is slow
+	if frv.IsValid() {
+		g.cachedRT[name] = frv.Type()
+		g.cachedHas[name] = true
+	} else {
+		g.cachedRT[name] = nil
+		g.cachedHas[name] = false
+	}
+
+	frv = reflect.Indirect(frv)
+	g.cachedRV[name] = frv
+
+	g.cachedI[name] = toI(frv)
+}
+
+func (g *gImpl) Has(name string) bool {
+	_, ok := g.cachedHas[name]
+	if !ok {
+		g.cache(name)
+	}
+
+	return g.cachedHas[name]
 }
 
 func (g *gImpl) Get(name string) interface{} {
@@ -96,20 +124,6 @@ func (g *gImpl) getRV(name string) reflect.Value {
 	}
 
 	return g.cachedRV[name]
-}
-
-func (g *gImpl) cache(name string) {
-	frv := g.rv.FieldByName(name) // This is slow
-	if frv.IsValid() {
-		g.cachedRT[name] = frv.Type()
-	} else {
-		g.cachedRT[name] = nil
-	}
-
-	frv = reflect.Indirect(frv)
-	g.cachedRV[name] = frv
-
-	g.cachedI[name] = toI(frv)
 }
 
 func (g *gImpl) GetString(name string) string {

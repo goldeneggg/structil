@@ -308,6 +308,51 @@ func TestGetRT(t *testing.T) {
 	}
 }
 
+func TestHas(t *testing.T) {
+	t.Parallel()
+
+	testStructPtr := newTestStructPtr()
+
+	a, err := NewGetter(testStructPtr)
+	if err != nil {
+		t.Errorf("NewGetter() occurs unexpected error: %v", err)
+	}
+
+	type args struct {
+		name string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "name exists in accessor and it's type is string",
+			args: args{name: "ExpString"},
+			want: true,
+		},
+		{
+			name: "name exists in accessor and it's type is string (2nd)",
+			args: args{name: "ExpString"},
+			want: true,
+		},
+		{
+			name: "name does not exist in accessor",
+			args: args{name: "NonExist"},
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := a.Has(tt.args.name)
+			if got != tt.want {
+				t.Errorf("unexpected mismatch: got: %v, want: %v. args: %+v", got, tt.want, tt.args)
+			}
+		})
+	}
+}
+
 func TestGet(t *testing.T) {
 	t.Parallel()
 
