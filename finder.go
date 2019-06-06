@@ -77,7 +77,7 @@ func (f *fImpl) Struct(names ...string) Finder {
 
 	f.ck = rootKey
 
-	var nextG Getter
+	var nextGetter Getter
 	var ok bool
 	var err error
 	nextKey := ""
@@ -92,21 +92,20 @@ func (f *fImpl) Struct(names ...string) Finder {
 		} else {
 			nextKey = nextKey + f.sep + name
 		}
-
-		nextG, ok = f.gMap[nextKey]
-		if !ok {
-			nextG, err = NewGetter(f.gMap[f.ck].Get(name))
-		}
-
-		f.eMap[nextKey] = []error{}
-		if err != nil {
-			err = fmt.Errorf("Error in name: %s, key: %s. [%v]", name, nextKey, err)
-			f.eMap[nextKey] = append(f.eMap[f.ck], err)
-		}
-
-		f.gMap[nextKey] = nextG
-		f.ck = nextKey
 		err = nil
+		f.eMap[nextKey] = []error{}
+
+		nextGetter, ok = f.gMap[nextKey]
+		if !ok {
+			nextGetter, err = NewGetter(f.gMap[f.ck].Get(name))
+		}
+
+		if err != nil {
+			f.addError(nextKey, fmt.Errorf("Error in name: %s, key: %s. [%v]", name, nextKey, err))
+		}
+
+		f.gMap[nextKey] = nextGetter
+		f.ck = nextKey
 	}
 
 	if !f.HasError() {
@@ -116,7 +115,20 @@ func (f *fImpl) Struct(names ...string) Finder {
 	return f
 }
 
+func (f *fImpl) addError(key string, err error) Finder {
+	if _, ok := f.eMap[key]; !ok {
+		f.eMap[key] = []error{}
+	}
+	f.eMap[key] = append(f.eMap[key], err)
+
+	return f
+}
+
 func (f *fImpl) Find(names ...string) Finder {
+	if f.HasError() {
+		return f
+	}
+
 	f.fMap[f.ck] = append(f.fMap[f.ck], names...)
 
 	return f
@@ -138,8 +150,17 @@ func (f *fImpl) ToMap() (map[string]interface{}, error) {
 				key = kg + f.sep + name
 			}
 
+			if !getter.Has(name) {
+				f.addError(key, fmt.Errorf("field name %s does not exist", name))
+				break
+			}
+
 			res[key] = getter.Get(name)
 		}
+	}
+
+	if f.HasError() {
+		return nil, f
 	}
 
 	return res, nil

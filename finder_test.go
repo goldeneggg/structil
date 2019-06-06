@@ -95,7 +95,7 @@ func TestToMap(t *testing.T) {
 	var fs []Finder
 	var err error
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 9; i++ {
 		f, err = NewFinder(newTestStructPtr())
 		if err != nil {
 			t.Errorf("NewFinder() error = %v", err)
@@ -206,11 +206,41 @@ func TestToMap(t *testing.T) {
 			},
 		},
 		{
-			name: "ToMap with non-existed name",
+			name: "ToMap with Find with non-existed name",
 			args: args{
 				chain: fs[4].Find("NonExist"),
 			},
-			wantErr: false,
+			wantErr: true,
+		},
+		{
+			name: "ToMap with Find with existed and non-existed names",
+			args: args{
+				chain: fs[5].Find("ExpString", "NonExist"),
+			},
+			wantErr: true,
+		},
+		{
+			name: "ToMap with Struct with non-existed name",
+			args: args{
+				chain: fs[6].Struct("NonExist").Find("ExpString"),
+			},
+			wantErr: true,
+		},
+		{
+			name: "ToMap with Struct with existed name and Find with non-existed name",
+			args: args{
+				chain: fs[7].Struct("TestStruct2").Find("NonExist"),
+			},
+			wantErr: true,
+		},
+		{
+			name: "ToMap with Struct with existed and non-existed name and Find",
+			args: args{
+				chain: fs[8].
+					Struct("TestStruct2").Find("ExpString").
+					Struct("TestStruct2", "NonExist").Find("ExpString"),
+			},
+			wantErr: true,
 		},
 	}
 
@@ -219,6 +249,11 @@ func TestToMap(t *testing.T) {
 			got, err := tt.args.chain.ToMap()
 
 			if err == nil {
+				if tt.wantErr {
+					t.Errorf("ToMap() error does not occur. got: %v", got)
+					return
+				}
+
 				if got == nil {
 					t.Errorf("ToMap() result is nil %v", got)
 					return
