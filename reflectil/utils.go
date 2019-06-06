@@ -1,0 +1,60 @@
+package reflectil
+
+import (
+	"reflect"
+	"unsafe"
+)
+
+func ToI(rv reflect.Value) interface{} {
+	if rv.IsValid() && rv.CanInterface() {
+		return rv.Interface()
+	} else {
+		return nil
+	}
+}
+
+// Note: Publicize candidate
+func elemOf(i interface{}) reflect.Value {
+	v := reflect.Indirect(reflect.ValueOf(i))
+	k := v.Kind()
+
+	if k == reflect.Invalid {
+		return v
+	}
+
+	if k == reflect.Interface {
+		return v.Elem()
+	} else {
+		return v
+	}
+}
+
+// Note: Publicize candidate
+func settableOf(i interface{}) reflect.Value {
+	// i's Kind must be Interface or Ptr(if else, occur panic)
+	return reflect.ValueOf(i).Elem()
+}
+
+// Note: Publicize candidate
+func clone(i interface{}) interface{} {
+	return reflect.Indirect(reflect.ValueOf(i)).Interface()
+}
+
+// Note: Publicize candidate
+func newSettable(typ reflect.Type) reflect.Value {
+	return reflect.New(typ).Elem()
+}
+
+func genericsTypeOf() reflect.Type {
+	return reflect.TypeOf((*interface{})(nil)).Elem()
+}
+
+func newGenericsSettable() reflect.Value {
+	return newSettable(genericsTypeOf())
+}
+
+func privateFieldValueOf(i interface{}, name string) reflect.Value {
+	sv := settableOf(i)
+	f := sv.FieldByName(name)
+	return reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem()
+}

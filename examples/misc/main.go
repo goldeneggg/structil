@@ -168,8 +168,6 @@ func exampleGetter() {
 		log.Printf("!!! ERROR: %+v", err)
 	}
 	log.Printf("results XPtrArr: %v, err: %v", results, err)
-
-	g.DumpRVs()
 }
 
 func exampleFinder() {
