@@ -11,6 +11,7 @@ const (
 )
 
 type Finder interface {
+	Reset() Finder
 	Struct(names ...string) Finder
 	Find(names ...string) Finder
 	ToMap() (map[string]interface{}, error)
@@ -20,11 +21,12 @@ type Finder interface {
 }
 
 type fImpl struct {
-	gMap map[string]Getter
-	fMap map[string][]string
-	eMap map[string][]error
-	ck   string
-	sep  string
+	rootGetter Getter
+	gMap       map[string]Getter
+	fMap       map[string][]string
+	eMap       map[string][]error
+	ck         string
+	sep        string
 }
 
 func NewFinder(i interface{}) (Finder, error) {
@@ -45,16 +47,27 @@ func NewFinderWithGetterAndSep(g Getter, sep string) (Finder, error) {
 		return nil, fmt.Errorf("sep [%s] is invalid", sep)
 	}
 
+	f := &fImpl{rootGetter: g, sep: sep}
+
+	return f.Reset(), nil
+}
+
+func (f *fImpl) Reset() Finder {
 	gMap := map[string]Getter{}
-	gMap[rootKey] = g
+	gMap[rootKey] = f.rootGetter
+	f.gMap = gMap
 
 	fMap := map[string][]string{}
 	fMap[rootKey] = []string{}
+	f.fMap = fMap
 
 	eMap := map[string][]error{}
 	eMap[rootKey] = []error{}
+	f.eMap = eMap
 
-	return &fImpl{gMap: gMap, fMap: fMap, eMap: eMap, ck: rootKey, sep: sep}, nil
+	f.ck = rootKey
+
+	return f
 }
 
 func (f *fImpl) Struct(names ...string) Finder {
@@ -85,7 +98,9 @@ func (f *fImpl) Struct(names ...string) Finder {
 			err = fmt.Errorf("Error in name: %s, ck: %s. [%v]", name, f.ck, err)
 			f.eMap[f.ck] = append(f.eMap[f.ck], err)
 		}
+	}
 
+	if !f.HasError() {
 		f.gMap[f.ck] = g
 		f.fMap[f.ck] = []string{}
 	}

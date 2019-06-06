@@ -3,7 +3,9 @@ package structil_test
 import (
 	"testing"
 
-	"github.com/goldeneggg/structil"
+	"github.com/google/go-cmp/cmp"
+
+	. "github.com/goldeneggg/structil"
 )
 
 func TestNewFinder(t *testing.T) {
@@ -38,13 +40,13 @@ func TestNewFinder(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := structil.NewFinder(tt.args.i)
+			got, err := NewFinder(tt.args.i)
 			if err != nil {
 				if !tt.wantErr {
 					t.Errorf("NewFinder() error = %v, wantErr %v", err, tt.wantErr)
 					return
 				}
-			} else if _, ok := got.(structil.Finder); !ok {
+			} else if _, ok := got.(Finder); !ok {
 				t.Errorf("NewFinder() = %v, not Finder type", got)
 			}
 		})
@@ -52,13 +54,13 @@ func TestNewFinder(t *testing.T) {
 }
 
 func TestNewFinderWithGetterAndSep(t *testing.T) {
-	g, err := structil.NewGetter(newTestStructPtr())
+	g, err := NewGetter(newTestStructPtr())
 	if err != nil {
 		t.Errorf("NewGetter() error = %v", err)
 	}
 
 	type args struct {
-		g   structil.Getter
+		g   Getter
 		sep string
 	}
 	tests := []struct {
@@ -79,7 +81,7 @@ func TestNewFinderWithGetterAndSep(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := structil.NewFinderWithGetterAndSep(tt.args.g, tt.args.sep)
+			_, err := NewFinderWithGetterAndSep(tt.args.g, tt.args.sep)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewFinder() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -89,69 +91,93 @@ func TestNewFinderWithGetterAndSep(t *testing.T) {
 }
 
 func TestToMap(t *testing.T) {
-	f, err := structil.NewFinder(newTestStructPtr())
-	if err != nil {
-		t.Errorf("NewFinder() error = %v", err)
+	var f Finder
+	var fs []Finder
+	var err error
+
+	for i := 0; i < 3; i++ {
+		f, err = NewFinder(newTestStructPtr())
+		if err != nil {
+			t.Errorf("NewFinder() error = %v", err)
+			return
+		}
+
+		fs = append(fs, f)
 	}
 
 	type args struct {
-		chain structil.Finder
+		chain Finder
 	}
 	tests := []struct {
 		name    string
 		args    args
 		wantErr bool
 		wantMap map[string]interface{}
+		cmpopts []cmp.Option
 	}{
 		{
 			name: "ToMap with non-nest chain",
 			args: args{
-				chain: f.Find("ExpInt64", "ExpString"),
+				chain: fs[0].
+					Find("ExpInt64", "ExpFloat64", "ExpString", "ExpStringptr", "ExpStringslice", "ExpBool", "ExpMap"),
 			},
 			wantErr: false,
 			wantMap: map[string]interface{}{
-				"ExpInt64":  int64(-1),
-				"ExpString": testString,
+				"ExpInt64":       int64(-1),
+				"ExpFloat64":     float64(-3.45),
+				"ExpString":      testString,
+				"ExpStringptr":   testString2, // TODO: if pointer, test is fail
+				"ExpStringslice": []string{"strslice1", "strslice2"},
+				"ExpBool":        true,
+				"ExpMap":         map[string]interface{}{"k1": "v1", "k2": 2},
 			},
 		},
 		{
 			name: "ToMap with a nest chain",
 			args: args{
-				chain: f.Find("ExpInt64", "ExpString").
+				chain: fs[1].
 					Struct("TestStruct2").Find("ExpString"),
 			},
 			wantErr: false,
 			wantMap: map[string]interface{}{
-				"ExpInt64":              int64(-1),
-				"ExpString":             testString,
 				"TestStruct2.ExpString": "struct2 string",
 			},
 		},
+		{
+			name: "ToMap with multi nest chains",
+			args: args{
+				chain: fs[2].
+					Struct("TestStruct2Ptr").Find("ExpString").
+					Struct("TestStruct2Ptr", "TestStruct3").Find("ExpString", "ExpInt"),
+			},
+			wantErr: false,
+			wantMap: map[string]interface{}{
+				"TestStruct2Ptr.ExpString":             "struct2 string ptr",
+				"TestStruct2Ptr.TestStruct3.ExpString": "struct3 string ptr",
+				"TestStruct2Ptr.TestStruct3.ExpInt":    int(-456),
+			},
+		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			res, err := tt.args.chain.ToMap()
+			got, err := tt.args.chain.ToMap()
 
 			if err == nil {
-				if res == nil {
-					t.Errorf("ToMap() result is nil %v", res)
+				if got == nil {
+					t.Errorf("ToMap() result is nil %v", got)
 					return
 				}
 
-				for k, v := range tt.wantMap {
-					resV, ok := res[k]
+				for k, wv := range tt.wantMap {
+					gv, ok := got[k]
 					if ok {
-						// Note: reflectDeepEqual does not work
-						// if d := cmp.Diff(v, resV); d != "" {
-						// 	t.Errorf("ToMap() key: %s, want: [%v], resV: [%v], resmap: %+v, diff: \n%s ", k, v, resV, res, d)
-						// 	return
-						// }
-						if v != resV {
-							t.Errorf("ToMap() key: %s, want: [%v], resV: [%v], resmap: %+v", k, v, resV, res)
+						if d := cmp.Diff(gv, wv, tt.cmpopts...); d != "" {
+							t.Errorf("ToMap() key: %s, gotMap: %+v, (-got +want)\n%s", k, got, d)
 							return
 						}
 					} else {
-						t.Errorf("ToMap() ok: %v, key: %s, want: [%v], resV: [%v], resmap: %+v, ", ok, k, v, resV, res)
+						t.Errorf("ToMap() ok: %v, key: %s, gotValue: [%v], wantValue: [%v], gotMap: %+v, ", ok, k, gv, wv, got)
 						return
 					}
 				}
