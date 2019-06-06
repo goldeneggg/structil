@@ -11,6 +11,7 @@ import (
 
 type A struct {
 	ID       int64
+	By       []byte
 	Name     string
 	NamePtr  *string
 	IsMan    bool
@@ -42,6 +43,7 @@ var (
 	name = "ほげ　ふがお"
 
 	hoge = &A{
+		By:       []byte{0x00, 0x01, 0xFF},
 		ID:       1,
 		Name:     name,
 		NamePtr:  &name,
@@ -81,146 +83,113 @@ var (
 )
 
 func main() {
-	exampleAccessor()
-	exampleRetriever()
+	exampleGetter()
+	exampleFinder()
 }
 
-func exampleAccessor() {
-	log.Println("---------- exampleAccessor")
-	ac, err := structil.NewAccessor(hoge)
+func exampleGetter() {
+	log.Println("---------- exampleGetter")
+	g, err := structil.NewGetter(hoge)
 	if err != nil {
 		log.Printf("!!! ERROR: %v", err)
 	}
 
-	name, err := ac.Get("Name")
-	if err != nil {
-		log.Printf("!!! ERROR: %v", err)
-	}
-	log.Printf("Accessor.Get(Name): %s", name)
+	by := g.Get("By")
+	log.Printf("Getter.Get(By): %v", by)
+	byy := g.GetBytes("By")
+	log.Printf("Getter.GetBytes(By): %v", byy)
+	vx := reflect.Indirect(reflect.ValueOf(hoge)).FieldByName("By")
+	log.Printf("ValueOf bytes: %+v", vx)
+	log.Printf("Kind bytes: %+v", vx.Kind())
+	log.Printf("Kind bytes elem: %+v", vx.Type().Elem().Kind())
 
-	hoge.Name = "あほ　ぼけお"
-	name, err = ac.Get("Name")
-	if err != nil {
-		log.Printf("!!! ERROR: %v", err)
-	}
-	log.Printf("Accessor.Get(Name) AFTER: %s", name)
+	name := g.Get("Name")
+	log.Printf("Getter.Get(Name): %s", name)
 
-	name, err = ac.GetString("NamePtr")
-	if err != nil {
-		log.Printf("!!! ERROR: %v", err)
-	}
-	log.Printf("Accessor.GetString(NamePtr): %s", name)
+	name = g.GetString("NamePtr")
+	log.Printf("Getter.GetString(NamePtr): %s", name)
 
-	IsMan, err := ac.GetBool("IsMan")
-	if err != nil {
-		log.Printf("!!! ERROR: %v", err)
-	}
-	log.Printf("Accessor.GetBool(IsMan): %v", IsMan)
+	intVal := g.GetInt64("ID")
+	log.Printf("Getter.GetInt64(ID): %v", intVal)
 
-	floatVal, err := ac.GetFloat64("FloatVal")
-	if err != nil {
-		log.Printf("!!! ERROR: %v", err)
-	}
-	log.Printf("Accessor.GetFloat64(FloatVal): %v", floatVal)
+	floatVal := g.GetFloat64("FloatVal")
+	log.Printf("Getter.GetFloat64(FloatVal): %v", floatVal)
+
+	IsMan := g.GetBool("IsMan")
+	log.Printf("Getter.GetBool(IsMan): %v", IsMan)
 
 	// AaPtr
-	aaPtr, err := ac.Get("AaPtr")
-	if err != nil {
-		log.Printf("!!! ERROR: %+v", err)
-	}
-	log.Printf("Accessor.Get(AaPtr): %v", aaPtr)
-	log.Printf("Accessor.IsStruct(AaPtr): %v", ac.IsStruct("AaPtr"))
-	log.Printf("Accessor.IsInterface(AaPtr): %v", ac.IsInterface("AaPtr"))
+	aaPtr := g.Get("AaPtr")
+	log.Printf("Getter.Get(AaPtr): %v", aaPtr)
+	log.Printf("Getter.IsStruct(AaPtr): %v", g.IsStruct("AaPtr"))
 
-	aaAc, err := structil.NewAccessor(aaPtr)
+	aaAc, err := structil.NewGetter(aaPtr)
 	if err != nil {
 		log.Printf("!!! ERROR: %v", err)
 	}
 
-	it, err := aaAc.Get("Writer")
-	if err != nil {
-		log.Printf("!!! ERROR: %v", err)
-	}
+	it := aaAc.Get("Writer")
 	log.Printf("AaPtr.Get(Writer): %+v", it)
 	log.Printf("AaPtr.Get(Writer).ValueOf().Elem(): %+v", reflect.ValueOf(it).Elem())
 	log.Printf("AaPtr.IsStruct(Writer): %v", aaAc.IsStruct("Writer"))
-	log.Printf("AaPtr.IsInterface(Writer): %v", aaAc.IsInterface("Writer"))
 
 	// Nil
-	rvNil, err := ac.GetRV("Nil")
-	if err != nil {
-		log.Printf("!!! ERROR: %+v", err)
-	}
-	log.Printf("Accessor.GetRV(Nil): %v", rvNil)
-	aNil, err := ac.Get("Nil")
-	if err != nil {
-		log.Printf("!!! ERROR: %+v", err)
-	}
-	log.Printf("Accessor.Get(Nil): %v", aNil)
-	log.Printf("Accessor.IsStruct(Nil): %v", ac.IsStruct("Nil"))
-	log.Printf("Accessor.IsInterface(Nil): %v", ac.IsInterface("Nil"))
+	aNil := g.Get("Nil")
+	log.Printf("Getter.Get(Nil): %v", aNil)
+	log.Printf("Getter.IsStruct(Nil): %v", g.IsStruct("Nil"))
 
-	aNilAc, err := structil.NewAccessor(aNil)
+	aNilAc, err := structil.NewGetter(aNil)
 	if err != nil {
 		log.Printf("!!! ERROR: %v", err)
 	}
-	log.Printf("Accessor.Get(Nil).NewAccessor: %+v", aNilAc)
+	log.Printf("Getter.Get(Nil).NewGetter: %+v", aNilAc)
 
 	// XArr
-	xArr, err := ac.Get("XArr")
-	if err != nil {
-		log.Printf("!!! ERROR: %+v", err)
-	}
-	log.Printf("Accessor.Get(XArr): %v", xArr)
-	log.Printf("Accessor.IsStruct(XArr): %v", ac.IsStruct("XArr"))
-	log.Printf("Accessor.IsSlice(XArr): %v", ac.IsSlice("XArr"))
-	log.Printf("Accessor.IsInterface(XArr): %v", ac.IsInterface("XArr"))
+	xArr := g.Get("XArr")
+	log.Printf("Getter.Get(XArr): %v", xArr)
+	log.Printf("Getter.IsStruct(XArr): %v", g.IsStruct("XArr"))
+	log.Printf("Getter.IsSlice(XArr): %v", g.IsSlice("XArr"))
 
 	// Map
-	fa := func(i int, a structil.Accessor) interface{} {
-		s1, _ := a.GetString("Key")
-		s2, _ := a.GetString("Value")
+	fa := func(i int, a structil.Getter) interface{} {
+		s1 := a.GetString("Key")
+		s2 := a.GetString("Value")
 		return s1 + "=" + s2
 	}
 
-	results, err := ac.MapStructs("XArr", fa)
+	results, err := g.MapGet("XArr", fa)
 	if err != nil {
 		log.Printf("!!! ERROR: %+v", err)
 	}
 	log.Printf("results XArr: %v, err: %v", results, err)
 
-	results, err = ac.MapStructs("XPtrArr", fa)
+	results, err = g.MapGet("XPtrArr", fa)
 	if err != nil {
 		log.Printf("!!! ERROR: %+v", err)
 	}
 	log.Printf("results XPtrArr: %v, err: %v", results, err)
+
+	g.DumpRVs()
 }
 
-func exampleRetriever() {
-	log.Println("---------- exampleRetriever")
-	ac, err := structil.NewAccessor(hoge)
-	if err != nil {
-		log.Printf("error: %v", err)
-		return
-	}
+func exampleFinder() {
+	log.Println("---------- exampleFinder")
 
-	swRes, err := structil.NewRetriever().
-		Nest("AaPtr").Want("Name").
-		Nest("AaaPtr").Want("Name").Want("Val").
-		From(hoge)
+	finder, err := structil.NewFinder(hoge)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return
 	}
-	log.Printf("Retriever.From res: %#v", swRes)
+	log.Printf("Finder: %#v", finder)
 
-	swRes, err = structil.NewRetriever().
-		Nest("AaPtr").Want("Name").
-		Nest("AaaPtr").Want("Name").Want("Val").
-		FromAccessor(ac)
-	if err != nil {
-		log.Printf("error: %v", err)
-		return
-	}
-	log.Printf("Retriever.FromAccessor res: %#v", swRes)
+	swRes, err := finder.
+		Struct("AaPtr").Find("Name").
+		Struct("AaPtr", "AaaPtr").Find("Name", "Val").
+		ToMap()
+	log.Printf("Finder.ToMap res: %+v, err: %v", swRes, err)
+
+	finder.Reset()
+
+	swRes, err = finder.Find("XXX").ToMap()
+	log.Printf("Finder.ToMap res: %+v, err: %v", swRes, err)
 }
