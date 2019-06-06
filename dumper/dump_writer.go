@@ -11,7 +11,7 @@ import (
 type DumpWriter interface {
 	io.Writer
 	Flush() error
-	Dump(rvs []reflect.Value) error
+	Dump(rvs ...reflect.Value) error
 }
 
 type dwImpl struct {
@@ -61,7 +61,7 @@ func (dw *dwImpl) Flush() error {
 	return dw.tw.Flush()
 }
 
-func (dw *dwImpl) Dump(rvs []reflect.Value) error {
+func (dw *dwImpl) Dump(rvs ...reflect.Value) error {
 	var t interface{}
 
 	ds := make([][]interface{}, len(rvs))
