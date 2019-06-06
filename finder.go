@@ -11,13 +11,13 @@ const (
 )
 
 type Finder interface {
-	Reset() Finder
 	Struct(names ...string) Finder
 	Find(names ...string) Finder
 	ToMap() (map[string]interface{}, error)
 	HasError() bool
 	Error() string
 	GetNameSeparator() string
+	Reset() Finder
 }
 
 type fImpl struct {
@@ -30,12 +30,16 @@ type fImpl struct {
 }
 
 func NewFinder(i interface{}) (Finder, error) {
+	return NewFinderWithSep(i, defaultSep)
+}
+
+func NewFinderWithSep(i interface{}, sep string) (Finder, error) {
 	g, err := NewGetter(i)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewFinderWithGetterAndSep(g, defaultSep)
+	return NewFinderWithGetterAndSep(g, sep)
 }
 
 func NewFinderWithGetter(g Getter) (Finder, error) {
@@ -185,7 +189,7 @@ func (f *fImpl) Error() string {
 		}
 	}
 
-	// TODO: format prettize
+	// TODO: prettize
 	return strings.Join(tmp, "\n")
 }
 

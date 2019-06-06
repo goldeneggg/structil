@@ -105,6 +105,12 @@ func TestToMap(t *testing.T) {
 		fs = append(fs, f)
 	}
 
+	fsep, err := NewFinderWithSep(newTestStructPtr(), ":")
+	if err != nil {
+		t.Errorf("NewFinderWithSep() error = %v", err)
+		return
+	}
+
 	type args struct {
 		chain Finder
 	}
@@ -241,6 +247,22 @@ func TestToMap(t *testing.T) {
 					Struct("TestStruct2", "NonExist").Find("ExpString"),
 			},
 			wantErr: true,
+		},
+		{
+			name: "ToMap with multi nest chains separated by assigned sep",
+			args: args{
+				chain: fsep.
+					Struct("TestStruct2").Find("ExpString").
+					Struct("TestStruct2Ptr").Find("ExpString").
+					Struct("TestStruct2Ptr", "TestStruct3").Find("ExpString", "ExpInt"),
+			},
+			wantErr: false,
+			wantMap: map[string]interface{}{
+				"TestStruct2:ExpString":                "struct2 string",
+				"TestStruct2Ptr:ExpString":             "struct2 string ptr",
+				"TestStruct2Ptr:TestStruct3:ExpString": "struct3 string ptr",
+				"TestStruct2Ptr:TestStruct3:ExpInt":    int(-456),
+			},
 		},
 	}
 
