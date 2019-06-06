@@ -1,4 +1,4 @@
-package structil
+package dynamicstruct
 
 import "reflect"
 
@@ -34,10 +34,9 @@ type DynamicStruct interface {
 	AddMap(name string) DynamicStruct
 	AddFunc(name string) DynamicStruct
 	Remove(name string) DynamicStruct
-	Build() DynamicStruct
-	New() interface{}
-	NewPtr() interface{}
 	Exists(name string) bool
+	Build() interface{}
+	BuildNonPtr() interface{}
 }
 
 type dynImpl struct {
@@ -47,8 +46,8 @@ type dynImpl struct {
 	ptrSt      interface{}
 }
 
-func NewDynamicStruct() DynamicStruct {
-	return &dynImpl{}
+func New() DynamicStruct {
+	return &dynImpl{fields: map[string]reflect.Type{}}
 }
 
 func (ds *dynImpl) AddString(name string) DynamicStruct {
@@ -118,28 +117,26 @@ func (ds *dynImpl) Exists(name string) bool {
 	return ok
 }
 
-func (ds *dynImpl) Build() DynamicStruct {
+func (ds *dynImpl) Build() interface{} {
+	return ds.build(true)
+}
+
+func (ds *dynImpl) BuildNonPtr() interface{} {
+	return ds.build(true)
+}
+
+func (ds *dynImpl) build(isPtr bool) interface{} {
 	var fs []reflect.StructField
 
 	for name, typ := range ds.fields {
 		fs = append(fs, reflect.StructField{Name: name, Type: typ})
 	}
 	ds.structType = reflect.StructOf(fs)
+	n := reflect.New(ds.structType)
 
-	return ds
-}
-
-func (ds *dynImpl) New() interface{} {
-	n := ds.new()
-	return reflect.Indirect(n).Interface()
-}
-
-func (ds *dynImpl) NewPtr() interface{} {
-	n := ds.new()
-	return n.Interface()
-}
-
-func (ds *dynImpl) new() reflect.Value {
-	// return value ptr
-	return reflect.New(ds.structType)
+	if isPtr {
+		return n.Interface()
+	} else {
+		return reflect.Indirect(n).Interface()
+	}
 }
