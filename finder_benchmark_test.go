@@ -34,7 +34,7 @@ func BenchmarkToMap_1FindOnly(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err = f.Find("ExpString").ToMap()
+		_, err = f.Find("String").ToMap()
 		if err != nil {
 			b.Errorf("ToMap() occurs unexpected error: %v", err)
 			return
@@ -52,7 +52,7 @@ func BenchmarkToMap_2FindOnly(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err = f.Find("ExpString", "ExpInt64").ToMap()
+		_, err = f.Find("String", "Int64").ToMap()
 		if err != nil {
 			b.Errorf("ToMap() occurs unexpected error: %v", err)
 			return
@@ -70,7 +70,7 @@ func BenchmarkToMap_1Struct_1Find(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err = f.Struct("TestStruct2").Find("ExpString").ToMap()
+		_, err = f.Struct("TestStruct2").Find("String").ToMap()
 		if err != nil {
 			b.Errorf("ToMap() occurs unexpected error: %v", err)
 			return
@@ -88,7 +88,7 @@ func BenchmarkToMap_1Struct_1Find_2Pair(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err = f.Struct("TestStruct2").Find("ExpString").Struct("TestStruct2Ptr").Find("ExpString").ToMap()
+		_, err = f.Struct("TestStruct2").Find("String").Struct("TestStruct2Ptr").Find("String").ToMap()
 		if err != nil {
 			b.Errorf("ToMap() occurs unexpected error: %v", err)
 			return
@@ -106,7 +106,7 @@ func BenchmarkToMap_2Struct_1Find(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err = f.Struct("TestStruct2", "TestStruct3").Find("ExpString").ToMap()
+		_, err = f.Struct("TestStruct2", "TestStruct3").Find("String").ToMap()
 		if err != nil {
 			b.Errorf("ToMap() occurs unexpected error: %v", err)
 			return
@@ -124,7 +124,7 @@ func BenchmarkToMap_2Struct_2Find(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err = f.Struct("TestStruct2", "TestStruct3").Find("ExpString", "ExpInt").ToMap()
+		_, err = f.Struct("TestStruct2", "TestStruct3").Find("String", "Int").ToMap()
 		if err != nil {
 			b.Errorf("ToMap() occurs unexpected error: %v", err)
 			return
