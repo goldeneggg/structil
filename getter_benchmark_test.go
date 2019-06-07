@@ -76,6 +76,19 @@ func BenchmarkGetterGet_String(b *testing.B) {
 	}
 }
 
+func BenchmarkGetterEGet_String(b *testing.B) {
+	g, err := newTestGetter()
+	if err != nil {
+		b.Errorf("NewGetter() occurs unexpected error: %v", err)
+		return
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		g.EGet("String")
+	}
+}
+
 func BenchmarkGetterString(b *testing.B) {
 	g, err := newTestGetter()
 	if err != nil {
@@ -101,6 +114,6 @@ func BenchmarkGetterMapGet(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		g.MapGet("TestStructPtrSlice", fn)
+		g.MapGet("TestStruct4PtrSlice", fn)
 	}
 }
