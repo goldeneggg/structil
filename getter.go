@@ -53,11 +53,6 @@ func NewGetter(i interface{}) (Getter, error) {
 	}
 
 	if kind == reflect.Ptr {
-		if rv.IsNil() {
-			return nil, fmt.Errorf("value of passed argument %+v is nil", rv)
-		}
-
-		// indirect is required when kind is Ptr
 		rv = reflect.Indirect(rv)
 	}
 
