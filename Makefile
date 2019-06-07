@@ -11,7 +11,11 @@ run:
 
 .PHONY: test
 test:
-	@go test -race -cover $(PKGS)
+	@go test -race -cover -parallel 2 $(PKGS)
+
+.PHONY: test-v
+test-v:
+	@go test -v -race -cover -parallel 2 $(PKGS)
 
 .PHONY: bench
 bench:

@@ -24,27 +24,27 @@ func TestNewGetter(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "arg i is valid struct",
+			name:    "valid struct",
 			args:    args{i: testStructVal},
 			wantErr: false,
 		},
 		{
-			name:    "arg i is valid struct ptr",
+			name:    "valid struct ptr",
 			args:    args{i: testStructPtr},
 			wantErr: false,
 		},
 		{
-			name:    "arg i is invalid (nil)",
+			name:    "invalid (nil)",
 			args:    args{i: nil},
 			wantErr: true,
 		},
 		{
-			name:    "arg i is invalid (struct nil)",
+			name:    "invalid (struct nil)",
 			args:    args{i: (*TestStruct)(nil)},
 			wantErr: true,
 		},
 		{
-			name:    "arg i is invalid (string)",
+			name:    "invalid (string)",
 			args:    args{i: "abc"},
 			wantErr: true,
 		},
@@ -55,16 +55,16 @@ func TestNewGetter(t *testing.T) {
 
 			if err == nil {
 				if _, ok := got.(Getter); !ok {
-					t.Errorf("NewGetter() does not return Getter: %+v", got)
+					t.Errorf("NewGetter() want Getter but got %+v", got)
 				}
 			} else if !tt.wantErr {
-				t.Errorf("NewGetter() unexpected error %v occured. wantErr %v", err, tt.wantErr)
+				t.Errorf("NewGetter() unexpected error [%v] occured. wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestGetType(t *testing.T) {
+func TestHas(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
@@ -78,103 +78,148 @@ func TestGetType(t *testing.T) {
 		name string
 	}
 	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "valid name and it's type is string",
+			args: args{name: "String"},
+			want: true,
+		},
+		{
+			name: "valid name and it's type is string (2nd)",
+			args: args{name: "String"},
+			want: true,
+		},
+		{
+			name: "invalid name",
+			args: args{name: "NonExist"},
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := a.Has(tt.args.name)
+			if got != tt.want {
+				t.Errorf("unexpected mismatch: got: %v, want: %v. args: %+v", got, tt.want, tt.args)
+			}
+		})
+	}
+}
+
+func TestGetType(t *testing.T) {
+	t.Parallel()
+
+	testStructPtr := newTestStructPtr()
+
+	a, err := NewGetter(testStructPtr)
+	if err != nil {
+		t.Errorf("NewGetter() unexpected error [%v] occured.", err)
+	}
+
+	type args struct {
+		name string
+	}
+	tests := []struct {
 		name      string
 		args      args
 		want      reflect.Type
 		wantPanic bool
 	}{
 		{
-			name:      "name exists in accessor and it's type is bytes",
+			name:      "valid name and it's type is bytes",
 			args:      args{name: "Bytes"},
 			want:      reflect.TypeOf(testStructPtr.Bytes),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is string",
+			name:      "valid name and it's type is string",
 			args:      args{name: "String"},
 			want:      reflect.TypeOf(testStructPtr.String),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is string (2nd)",
+			name:      "valid name and it's type is string (2nd)",
 			args:      args{name: "String"},
 			want:      reflect.TypeOf(testStructPtr.String),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is int64",
+			name:      "valid name and it's type is int64",
 			args:      args{name: "Int64"},
 			want:      reflect.TypeOf(testStructPtr.Int64),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is uint64",
+			name:      "valid name and it's type is uint64",
 			args:      args{name: "Uint64"},
 			want:      reflect.TypeOf(testStructPtr.Uint64),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is float32",
+			name:      "valid name and it's type is float32",
 			args:      args{name: "Float32"},
 			want:      reflect.TypeOf(testStructPtr.Float32),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is float64",
+			name:      "valid name and it's type is float64",
 			args:      args{name: "Float64"},
 			want:      reflect.TypeOf(testStructPtr.Float64),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is bool",
+			name:      "valid name and it's type is bool",
 			args:      args{name: "Bool"},
 			want:      reflect.TypeOf(testStructPtr.Bool),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is map",
+			name:      "valid name and it's type is map",
 			args:      args{name: "Map"},
 			want:      reflect.TypeOf(testStructPtr.Map),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is func",
+			name:      "valid name and it's type is func",
 			args:      args{name: "Func"},
 			want:      reflect.TypeOf(testStructPtr.Func),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is chan int",
+			name:      "valid name and it's type is chan int",
 			args:      args{name: "ChInt"},
 			want:      reflect.TypeOf(testStructPtr.ChInt),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is struct",
+			name:      "valid name and it's type is struct",
 			args:      args{name: "TestStruct2"},
 			want:      reflect.TypeOf(testStructPtr.TestStruct2),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is struct ptr",
+			name:      "valid name and it's type is struct ptr",
 			args:      args{name: "TestStruct2Ptr"},
 			want:      reflect.TypeOf(testStructPtr.TestStruct2Ptr),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is struct slice",
+			name:      "valid name and it's type is struct slice",
 			args:      args{name: "TestStruct4Slice"},
 			want:      reflect.TypeOf(testStructPtr.TestStruct4Slice),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is struct ptr slice",
+			name:      "valid name and it's type is struct ptr slice",
 			args:      args{name: "TestStruct4PtrSlice"},
 			want:      reflect.TypeOf(testStructPtr.TestStruct4PtrSlice),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is string and unexported field",
+			name:      "valid name and it's type is string and unexported field",
 			args:      args{name: "privateString"},
 			want:      reflect.TypeOf(testStructPtr.privateString),
 			wantPanic: false,
@@ -219,97 +264,97 @@ func TestGetValue(t *testing.T) {
 		wantPanic bool
 	}{
 		{
-			name:      "name exists in accessor and it's type is bytes",
+			name:      "valid name and it's type is bytes",
 			args:      args{name: "Bytes"},
 			want:      reflect.ValueOf(testStructPtr.Bytes),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is string",
+			name:      "valid name and it's type is string",
 			args:      args{name: "String"},
 			want:      reflect.ValueOf(testStructPtr.String),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is string (2nd)",
+			name:      "valid name and it's type is string (2nd)",
 			args:      args{name: "String"},
 			want:      reflect.ValueOf(testStructPtr.String),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is int64",
+			name:      "valid name and it's type is int64",
 			args:      args{name: "Int64"},
 			want:      reflect.ValueOf(testStructPtr.Int64),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is uint64",
+			name:      "valid name and it's type is uint64",
 			args:      args{name: "Uint64"},
 			want:      reflect.ValueOf(testStructPtr.Uint64),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is float32",
+			name:      "valid name and it's type is float32",
 			args:      args{name: "Float32"},
 			want:      reflect.ValueOf(testStructPtr.Float32),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is float64",
+			name:      "valid name and it's type is float64",
 			args:      args{name: "Float64"},
 			want:      reflect.ValueOf(testStructPtr.Float64),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is bool",
+			name:      "valid name and it's type is bool",
 			args:      args{name: "Bool"},
 			want:      reflect.ValueOf(testStructPtr.Bool),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is map",
+			name:      "valid name and it's type is map",
 			args:      args{name: "Map"},
 			want:      reflect.ValueOf(testStructPtr.Map),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is func",
+			name:      "valid name and it's type is func",
 			args:      args{name: "Func"},
 			want:      reflect.ValueOf(testStructPtr.Func),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is chan int",
+			name:      "valid name and it's type is chan int",
 			args:      args{name: "ChInt"},
 			want:      reflect.ValueOf(testStructPtr.ChInt),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is struct",
+			name:      "valid name and it's type is struct",
 			args:      args{name: "TestStruct2"},
 			want:      reflect.ValueOf(testStructPtr.TestStruct2),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is struct ptr",
+			name:      "valid name and it's type is struct ptr",
 			args:      args{name: "TestStruct2Ptr"},
 			want:      reflect.ValueOf(testStructPtr.TestStruct2), // is not ptr
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is struct slice",
+			name:      "valid name and it's type is struct slice",
 			args:      args{name: "TestStruct4Slice"},
 			want:      reflect.ValueOf(testStructPtr.TestStruct4Slice),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is struct ptr slice",
+			name:      "valid name and it's type is struct ptr slice",
 			args:      args{name: "TestStruct4PtrSlice"},
 			want:      reflect.ValueOf(testStructPtr.TestStruct4PtrSlice),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is string and unexported field",
+			name:      "valid name and it's type is string and unexported field",
 			args:      args{name: "privateString"},
 			want:      reflect.ValueOf(testStructPtr.privateString),
 			wantPanic: false,
@@ -329,51 +374,6 @@ func TestGetValue(t *testing.T) {
 			got := a.GetValue(tt.args.name)
 			if d := cmp.Diff(got.String(), tt.want.String()); d != "" {
 				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
-			}
-		})
-	}
-}
-
-func TestHas(t *testing.T) {
-	t.Parallel()
-
-	testStructPtr := newTestStructPtr()
-
-	a, err := NewGetter(testStructPtr)
-	if err != nil {
-		t.Errorf("NewGetter() occurs unexpected error: %v", err)
-	}
-
-	type args struct {
-		name string
-	}
-	tests := []struct {
-		name string
-		args args
-		want bool
-	}{
-		{
-			name: "name exists in accessor and it's type is string",
-			args: args{name: "String"},
-			want: true,
-		},
-		{
-			name: "name exists in accessor and it's type is string (2nd)",
-			args: args{name: "String"},
-			want: true,
-		},
-		{
-			name: "name does not exist in accessor",
-			args: args{name: "NonExist"},
-			want: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := a.Has(tt.args.name)
-			if got != tt.want {
-				t.Errorf("unexpected mismatch: got: %v, want: %v. args: %+v", got, tt.want, tt.args)
 			}
 		})
 	}
@@ -400,98 +400,98 @@ func TestGet(t *testing.T) {
 		cmpopts   []cmp.Option
 	}{
 		{
-			name:      "name exists in accessor and it's type is bytes",
+			name:      "valid name and it's type is bytes",
 			args:      args{name: "Bytes"},
 			want:      testStructPtr.Bytes,
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is string",
+			name:      "valid name and it's type is string",
 			args:      args{name: "String"},
 			want:      testStructPtr.String,
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is string (2nd)",
+			name:      "valid name and it's type is string (2nd)",
 			args:      args{name: "String"},
 			want:      testStructPtr.String,
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is int64",
+			name:      "valid name and it's type is int64",
 			args:      args{name: "Int64"},
 			want:      testStructPtr.Int64,
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is uint64",
+			name:      "valid name and it's type is uint64",
 			args:      args{name: "Uint64"},
 			want:      testStructPtr.Uint64,
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is float32",
+			name:      "valid name and it's type is float32",
 			args:      args{name: "Float32"},
 			want:      testStructPtr.Float32,
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is float64",
+			name:      "valid name and it's type is float64",
 			args:      args{name: "Float64"},
 			want:      testStructPtr.Float64,
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is bool",
+			name:      "valid name and it's type is bool",
 			args:      args{name: "Bool"},
 			want:      testStructPtr.Bool,
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is map",
+			name:      "valid name and it's type is map",
 			args:      args{name: "Map"},
 			want:      testStructPtr.Map,
 			wantPanic: false,
 		},
 		// TODO: test fail when func
 		// {
-		// 	name:      "name exists in accessor and it's type is func",
+		// 	name:      "valid name and it's type is func",
 		// 	args:      args{name: "Func"},
 		// 	want:      testStructPtr.Func,
 		// 	wantPanic: false,
 		// },
 		{
-			name:      "name exists in accessor and it's type is chan int",
+			name:      "valid name and it's type is chan int",
 			args:      args{name: "ChInt"},
 			want:      testStructPtr.ChInt,
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is struct",
+			name:      "valid name and it's type is struct",
 			args:      args{name: "TestStruct2"},
 			want:      testStructPtr.TestStruct2,
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is struct ptr",
+			name:      "valid name and it's type is struct ptr",
 			args:      args{name: "TestStruct2Ptr"},
 			want:      *testStructPtr.TestStruct2Ptr,
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is struct slice",
+			name:      "valid name and it's type is struct slice",
 			args:      args{name: "TestStruct4Slice"},
 			want:      testStructPtr.TestStruct4Slice,
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is struct ptr slice",
+			name:      "valid name and it's type is struct ptr slice",
 			args:      args{name: "TestStruct4PtrSlice"},
 			want:      testStructPtr.TestStruct4PtrSlice,
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is string and unexported field",
+			name:      "valid name and it's type is string and unexported field",
 			args:      args{name: "privateString"},
 			want:      nil, // unexported field is nil
 			wantPanic: false,
@@ -536,85 +536,85 @@ func TestBytes(t *testing.T) {
 		wantPanic bool
 	}{
 		{
-			name:      "name exists in accessor and it's type is bytes",
+			name:      "valid name and it's type is bytes",
 			args:      args{name: "Bytes"},
 			want:      reflect.ValueOf(testStructPtr.Bytes),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is string",
+			name:      "valid name and it's type is string",
 			args:      args{name: "String"},
 			want:      reflect.ValueOf(testStructPtr.String),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is string (2nd)",
+			name:      "valid name and it's type is string (2nd)",
 			args:      args{name: "String"},
 			want:      reflect.ValueOf(testStructPtr.String),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is int64",
+			name:      "valid name and it's type is int64",
 			args:      args{name: "Int64"},
 			want:      reflect.ValueOf(testStructPtr.Int64),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is uint64",
+			name:      "valid name and it's type is uint64",
 			args:      args{name: "Uint64"},
 			want:      reflect.ValueOf(testStructPtr.Uint64),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is float32",
+			name:      "valid name and it's type is float32",
 			args:      args{name: "Float32"},
 			want:      reflect.ValueOf(testStructPtr.Float32),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is float64",
+			name:      "valid name and it's type is float64",
 			args:      args{name: "Float64"},
 			want:      reflect.ValueOf(testStructPtr.Float64),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is bool",
+			name:      "valid name and it's type is bool",
 			args:      args{name: "Bool"},
 			want:      reflect.ValueOf(testStructPtr.Bool),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is map",
+			name:      "valid name and it's type is map",
 			args:      args{name: "Map"},
 			want:      reflect.ValueOf(testStructPtr.Map),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is func",
+			name:      "valid name and it's type is func",
 			args:      args{name: "Func"},
 			want:      reflect.ValueOf(testStructPtr.Func),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is chan int",
+			name:      "valid name and it's type is chan int",
 			args:      args{name: "ChInt"},
 			want:      reflect.ValueOf(testStructPtr.ChInt),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is struct ptr",
+			name:      "valid name and it's type is struct ptr",
 			args:      args{name: "TestStruct2"},
 			want:      reflect.Indirect(reflect.ValueOf(testStructPtr.TestStruct2)),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is struct ptr slice",
+			name:      "valid name and it's type is struct ptr slice",
 			args:      args{name: "TestStruct4PtrSlice"},
 			want:      reflect.ValueOf(testStructPtr.TestStruct4PtrSlice),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is string and unexported field",
+			name:      "valid name and it's type is string and unexported field",
 			args:      args{name: "privateString"},
 			want:      reflect.ValueOf(testStructPtr.privateString),
 			wantPanic: true,
@@ -660,85 +660,85 @@ func TestString(t *testing.T) {
 		wantPanic bool
 	}{
 		{
-			name:      "name exists in accessor and it's type is bytes",
+			name:      "valid name and it's type is bytes",
 			args:      args{name: "Bytes"},
 			want:      reflect.ValueOf(testStructPtr.Bytes).String(),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is string",
+			name:      "valid name and it's type is string",
 			args:      args{name: "String"},
 			want:      reflect.ValueOf(testStructPtr.String).String(),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is string (2nd)",
+			name:      "valid name and it's type is string (2nd)",
 			args:      args{name: "String"},
 			want:      reflect.ValueOf(testStructPtr.String).String(),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is int64",
+			name:      "valid name and it's type is int64",
 			args:      args{name: "Int64"},
 			want:      reflect.ValueOf(testStructPtr.Int64).String(),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is uint64",
+			name:      "valid name and it's type is uint64",
 			args:      args{name: "Uint64"},
 			want:      reflect.ValueOf(testStructPtr.Uint64).String(),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is float32",
+			name:      "valid name and it's type is float32",
 			args:      args{name: "Float32"},
 			want:      reflect.ValueOf(testStructPtr.Float32).String(),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is float64",
+			name:      "valid name and it's type is float64",
 			args:      args{name: "Float64"},
 			want:      reflect.ValueOf(testStructPtr.Float64).String(),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is bool",
+			name:      "valid name and it's type is bool",
 			args:      args{name: "Bool"},
 			want:      reflect.ValueOf(testStructPtr.Bool).String(),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is map",
+			name:      "valid name and it's type is map",
 			args:      args{name: "Map"},
 			want:      reflect.ValueOf(testStructPtr.Map).String(),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is func",
+			name:      "valid name and it's type is func",
 			args:      args{name: "Func"},
 			want:      reflect.ValueOf(testStructPtr.Func).String(),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is chan int",
+			name:      "valid name and it's type is chan int",
 			args:      args{name: "ChInt"},
 			want:      reflect.ValueOf(testStructPtr.ChInt).String(),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is struct ptr",
+			name:      "valid name and it's type is struct ptr",
 			args:      args{name: "TestStruct2"},
 			want:      reflect.Indirect(reflect.ValueOf(testStructPtr.TestStruct2)).String(),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is struct ptr slice",
+			name:      "valid name and it's type is struct ptr slice",
 			args:      args{name: "TestStruct4PtrSlice"},
 			want:      reflect.ValueOf(testStructPtr.TestStruct4PtrSlice).String(),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is string and unexported field",
+			name:      "valid name and it's type is string and unexported field",
 			args:      args{name: "privateString"},
 			want:      reflect.ValueOf(testStructPtr.privateString).String(),
 			wantPanic: false,
@@ -784,85 +784,85 @@ func TestInt64(t *testing.T) {
 		wantPanic bool
 	}{
 		{
-			name:      "name exists in accessor and it's type is bytes",
+			name:      "valid name and it's type is bytes",
 			args:      args{name: "Bytes"},
 			want:      reflect.ValueOf(testStructPtr.Bytes),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is string",
+			name:      "valid name and it's type is string",
 			args:      args{name: "String"},
 			want:      reflect.ValueOf(testStructPtr.String),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is string (2nd)",
+			name:      "valid name and it's type is string (2nd)",
 			args:      args{name: "String"},
 			want:      reflect.ValueOf(testStructPtr.String),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is int64",
+			name:      "valid name and it's type is int64",
 			args:      args{name: "Int64"},
 			want:      reflect.ValueOf(testStructPtr.Int64),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is uint64",
+			name:      "valid name and it's type is uint64",
 			args:      args{name: "Uint64"},
 			want:      reflect.ValueOf(testStructPtr.Uint64),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is float32",
+			name:      "valid name and it's type is float32",
 			args:      args{name: "Float32"},
 			want:      reflect.ValueOf(testStructPtr.Float32),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is float64",
+			name:      "valid name and it's type is float64",
 			args:      args{name: "Float64"},
 			want:      reflect.ValueOf(testStructPtr.Float64),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is bool",
+			name:      "valid name and it's type is bool",
 			args:      args{name: "Bool"},
 			want:      reflect.ValueOf(testStructPtr.Bool),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is map",
+			name:      "valid name and it's type is map",
 			args:      args{name: "Map"},
 			want:      reflect.ValueOf(testStructPtr.Map),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is func",
+			name:      "valid name and it's type is func",
 			args:      args{name: "Func"},
 			want:      reflect.ValueOf(testStructPtr.Func),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is chan int",
+			name:      "valid name and it's type is chan int",
 			args:      args{name: "ChInt"},
 			want:      reflect.ValueOf(testStructPtr.ChInt),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is struct ptr",
+			name:      "valid name and it's type is struct ptr",
 			args:      args{name: "TestStruct2"},
 			want:      reflect.Indirect(reflect.ValueOf(testStructPtr.TestStruct2)),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is struct ptr slice",
+			name:      "valid name and it's type is struct ptr slice",
 			args:      args{name: "TestStruct4PtrSlice"},
 			want:      reflect.ValueOf(testStructPtr.TestStruct4PtrSlice),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is string and unexported field",
+			name:      "valid name and it's type is string and unexported field",
 			args:      args{name: "privateString"},
 			want:      reflect.ValueOf(testStructPtr.privateString),
 			wantPanic: true,
@@ -908,85 +908,85 @@ func TestUint64(t *testing.T) {
 		wantPanic bool
 	}{
 		{
-			name:      "name exists in accessor and it's type is bytes",
+			name:      "valid name and it's type is bytes",
 			args:      args{name: "Bytes"},
 			want:      reflect.ValueOf(testStructPtr.Bytes),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is string",
+			name:      "valid name and it's type is string",
 			args:      args{name: "String"},
 			want:      reflect.ValueOf(testStructPtr.String),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is string (2nd)",
+			name:      "valid name and it's type is string (2nd)",
 			args:      args{name: "String"},
 			want:      reflect.ValueOf(testStructPtr.String),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is int64",
+			name:      "valid name and it's type is int64",
 			args:      args{name: "Int64"},
 			want:      reflect.ValueOf(testStructPtr.Int64),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is uint64",
+			name:      "valid name and it's type is uint64",
 			args:      args{name: "Uint64"},
 			want:      reflect.ValueOf(testStructPtr.Uint64),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is float32",
+			name:      "valid name and it's type is float32",
 			args:      args{name: "Float32"},
 			want:      reflect.ValueOf(testStructPtr.Float32),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is float64",
+			name:      "valid name and it's type is float64",
 			args:      args{name: "Float64"},
 			want:      reflect.ValueOf(testStructPtr.Float64),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is bool",
+			name:      "valid name and it's type is bool",
 			args:      args{name: "Bool"},
 			want:      reflect.ValueOf(testStructPtr.Bool),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is map",
+			name:      "valid name and it's type is map",
 			args:      args{name: "Map"},
 			want:      reflect.ValueOf(testStructPtr.Map),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is func",
+			name:      "valid name and it's type is func",
 			args:      args{name: "Func"},
 			want:      reflect.ValueOf(testStructPtr.Func),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is chan int",
+			name:      "valid name and it's type is chan int",
 			args:      args{name: "ChInt"},
 			want:      reflect.ValueOf(testStructPtr.ChInt),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is struct ptr",
+			name:      "valid name and it's type is struct ptr",
 			args:      args{name: "TestStruct2"},
 			want:      reflect.Indirect(reflect.ValueOf(testStructPtr.TestStruct2)),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is struct ptr slice",
+			name:      "valid name and it's type is struct ptr slice",
 			args:      args{name: "TestStruct4PtrSlice"},
 			want:      reflect.ValueOf(testStructPtr.TestStruct4PtrSlice),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is string and unexported field",
+			name:      "valid name and it's type is string and unexported field",
 			args:      args{name: "privateString"},
 			want:      reflect.ValueOf(testStructPtr.privateString),
 			wantPanic: true,
@@ -1032,85 +1032,85 @@ func TestFloat64(t *testing.T) {
 		wantPanic bool
 	}{
 		{
-			name:      "name exists in accessor and it's type is bytes",
+			name:      "valid name and it's type is bytes",
 			args:      args{name: "Bytes"},
 			want:      reflect.ValueOf(testStructPtr.Bytes),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is string",
+			name:      "valid name and it's type is string",
 			args:      args{name: "String"},
 			want:      reflect.ValueOf(testStructPtr.String),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is string (2nd)",
+			name:      "valid name and it's type is string (2nd)",
 			args:      args{name: "String"},
 			want:      reflect.ValueOf(testStructPtr.String),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is int64",
+			name:      "valid name and it's type is int64",
 			args:      args{name: "Int64"},
 			want:      reflect.ValueOf(testStructPtr.Int64),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is uint64",
+			name:      "valid name and it's type is uint64",
 			args:      args{name: "Uint64"},
 			want:      reflect.ValueOf(testStructPtr.Uint64),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is float32",
+			name:      "valid name and it's type is float32",
 			args:      args{name: "Float32"},
 			want:      reflect.ValueOf(testStructPtr.Float32),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is float64",
+			name:      "valid name and it's type is float64",
 			args:      args{name: "Float64"},
 			want:      reflect.ValueOf(testStructPtr.Float64),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is bool",
+			name:      "valid name and it's type is bool",
 			args:      args{name: "Bool"},
 			want:      reflect.ValueOf(testStructPtr.Bool),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is map",
+			name:      "valid name and it's type is map",
 			args:      args{name: "Map"},
 			want:      reflect.ValueOf(testStructPtr.Map),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is func",
+			name:      "valid name and it's type is func",
 			args:      args{name: "Func"},
 			want:      reflect.ValueOf(testStructPtr.Func),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is chan int",
+			name:      "valid name and it's type is chan int",
 			args:      args{name: "ChInt"},
 			want:      reflect.ValueOf(testStructPtr.ChInt),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is struct ptr",
+			name:      "valid name and it's type is struct ptr",
 			args:      args{name: "TestStruct2"},
 			want:      reflect.Indirect(reflect.ValueOf(testStructPtr.TestStruct2)),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is struct ptr slice",
+			name:      "valid name and it's type is struct ptr slice",
 			args:      args{name: "TestStruct4PtrSlice"},
 			want:      reflect.ValueOf(testStructPtr.TestStruct4PtrSlice),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is string and unexported field",
+			name:      "valid name and it's type is string and unexported field",
 			args:      args{name: "privateString"},
 			want:      reflect.ValueOf(testStructPtr.privateString),
 			wantPanic: true,
@@ -1156,85 +1156,85 @@ func TestBool(t *testing.T) {
 		wantPanic bool
 	}{
 		{
-			name:      "name exists in accessor and it's type is bytes",
+			name:      "valid name and it's type is bytes",
 			args:      args{name: "Bytes"},
 			want:      reflect.ValueOf(testStructPtr.Bytes),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is string",
+			name:      "valid name and it's type is string",
 			args:      args{name: "String"},
 			want:      reflect.ValueOf(testStructPtr.String),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is string (2nd)",
+			name:      "valid name and it's type is string (2nd)",
 			args:      args{name: "String"},
 			want:      reflect.ValueOf(testStructPtr.String),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is int64",
+			name:      "valid name and it's type is int64",
 			args:      args{name: "Int64"},
 			want:      reflect.ValueOf(testStructPtr.Int64),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is uint64",
+			name:      "valid name and it's type is uint64",
 			args:      args{name: "Uint64"},
 			want:      reflect.ValueOf(testStructPtr.Uint64),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is float32",
+			name:      "valid name and it's type is float32",
 			args:      args{name: "Float32"},
 			want:      reflect.ValueOf(testStructPtr.Float32),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is float64",
+			name:      "valid name and it's type is float64",
 			args:      args{name: "Float64"},
 			want:      reflect.ValueOf(testStructPtr.Float64),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is bool",
+			name:      "valid name and it's type is bool",
 			args:      args{name: "Bool"},
 			want:      reflect.ValueOf(testStructPtr.Bool),
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is map",
+			name:      "valid name and it's type is map",
 			args:      args{name: "Map"},
 			want:      reflect.ValueOf(testStructPtr.Map),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is func",
+			name:      "valid name and it's type is func",
 			args:      args{name: "Func"},
 			want:      reflect.ValueOf(testStructPtr.Func),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is chan int",
+			name:      "valid name and it's type is chan int",
 			args:      args{name: "ChInt"},
 			want:      reflect.ValueOf(testStructPtr.ChInt),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is struct ptr",
+			name:      "valid name and it's type is struct ptr",
 			args:      args{name: "TestStruct2"},
 			want:      reflect.Indirect(reflect.ValueOf(testStructPtr.TestStruct2)),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is struct ptr slice",
+			name:      "valid name and it's type is struct ptr slice",
 			args:      args{name: "TestStruct4PtrSlice"},
 			want:      reflect.ValueOf(testStructPtr.TestStruct4PtrSlice),
 			wantPanic: true,
 		},
 		{
-			name:      "name exists in accessor and it's type is string and unexported field",
+			name:      "valid name and it's type is string and unexported field",
 			args:      args{name: "privateString"},
 			want:      reflect.ValueOf(testStructPtr.privateString),
 			wantPanic: true,
@@ -1279,72 +1279,72 @@ func TestIsBytes(t *testing.T) {
 		want bool
 	}{
 		{
-			name: "name exists in accessor and it's type is bytes",
+			name: "valid name and it's type is bytes",
 			args: args{name: "Bytes"},
 			want: true,
 		},
 		{
-			name: "name exists in accessor and it's type is string",
+			name: "valid name and it's type is string",
 			args: args{name: "String"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string (2nd)",
+			name: "valid name and it's type is string (2nd)",
 			args: args{name: "String"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is int64",
+			name: "valid name and it's type is int64",
 			args: args{name: "Int64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is uint64",
+			name: "valid name and it's type is uint64",
 			args: args{name: "Uint64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is float32",
+			name: "valid name and it's type is float32",
 			args: args{name: "Float32"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is float64",
+			name: "valid name and it's type is float64",
 			args: args{name: "Float64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is bool",
+			name: "valid name and it's type is bool",
 			args: args{name: "Bool"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is map",
+			name: "valid name and it's type is map",
 			args: args{name: "Map"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is func",
+			name: "valid name and it's type is func",
 			args: args{name: "Func"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is chan int",
+			name: "valid name and it's type is chan int",
 			args: args{name: "ChInt"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is struct ptr",
+			name: "valid name and it's type is struct ptr",
 			args: args{name: "TestStruct2"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is struct ptr slice",
+			name: "valid name and it's type is struct ptr slice",
 			args: args{name: "TestStruct4PtrSlice"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string and unexported field",
+			name: "valid name and it's type is string and unexported field",
 			args: args{name: "privateString"},
 			want: false,
 		},
@@ -1384,72 +1384,72 @@ func TestIsString(t *testing.T) {
 		want bool
 	}{
 		{
-			name: "name exists in accessor and it's type is bytes",
+			name: "valid name and it's type is bytes",
 			args: args{name: "Bytes"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string",
+			name: "valid name and it's type is string",
 			args: args{name: "String"},
 			want: true,
 		},
 		{
-			name: "name exists in accessor and it's type is string (2nd)",
+			name: "valid name and it's type is string (2nd)",
 			args: args{name: "String"},
 			want: true,
 		},
 		{
-			name: "name exists in accessor and it's type is int64",
+			name: "valid name and it's type is int64",
 			args: args{name: "Int64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is uint64",
+			name: "valid name and it's type is uint64",
 			args: args{name: "Uint64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is float32",
+			name: "valid name and it's type is float32",
 			args: args{name: "Float32"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is float64",
+			name: "valid name and it's type is float64",
 			args: args{name: "Float64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is bool",
+			name: "valid name and it's type is bool",
 			args: args{name: "Bool"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is map",
+			name: "valid name and it's type is map",
 			args: args{name: "Map"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is func",
+			name: "valid name and it's type is func",
 			args: args{name: "Func"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is chan int",
+			name: "valid name and it's type is chan int",
 			args: args{name: "ChInt"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is struct ptr",
+			name: "valid name and it's type is struct ptr",
 			args: args{name: "TestStruct2"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is struct ptr slice",
+			name: "valid name and it's type is struct ptr slice",
 			args: args{name: "TestStruct4PtrSlice"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string and unexported field",
+			name: "valid name and it's type is string and unexported field",
 			args: args{name: "privateString"},
 			want: true,
 		},
@@ -1489,72 +1489,72 @@ func TestIsInt64(t *testing.T) {
 		want bool
 	}{
 		{
-			name: "name exists in accessor and it's type is bytes",
+			name: "valid name and it's type is bytes",
 			args: args{name: "Bytes"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string",
+			name: "valid name and it's type is string",
 			args: args{name: "String"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string (2nd)",
+			name: "valid name and it's type is string (2nd)",
 			args: args{name: "String"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is int64",
+			name: "valid name and it's type is int64",
 			args: args{name: "Int64"},
 			want: true,
 		},
 		{
-			name: "name exists in accessor and it's type is uint64",
+			name: "valid name and it's type is uint64",
 			args: args{name: "Uint64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is float32",
+			name: "valid name and it's type is float32",
 			args: args{name: "Float32"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is float64",
+			name: "valid name and it's type is float64",
 			args: args{name: "Float64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is bool",
+			name: "valid name and it's type is bool",
 			args: args{name: "Bool"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is map",
+			name: "valid name and it's type is map",
 			args: args{name: "Map"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is func",
+			name: "valid name and it's type is func",
 			args: args{name: "Func"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is chan int",
+			name: "valid name and it's type is chan int",
 			args: args{name: "ChInt"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is struct ptr",
+			name: "valid name and it's type is struct ptr",
 			args: args{name: "TestStruct2"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is struct ptr slice",
+			name: "valid name and it's type is struct ptr slice",
 			args: args{name: "TestStruct4PtrSlice"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string and unexported field",
+			name: "valid name and it's type is string and unexported field",
 			args: args{name: "privateString"},
 			want: false,
 		},
@@ -1594,72 +1594,72 @@ func TestIsUint64(t *testing.T) {
 		want bool
 	}{
 		{
-			name: "name exists in accessor and it's type is bytes",
+			name: "valid name and it's type is bytes",
 			args: args{name: "Bytes"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string",
+			name: "valid name and it's type is string",
 			args: args{name: "String"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string (2nd)",
+			name: "valid name and it's type is string (2nd)",
 			args: args{name: "String"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is int64",
+			name: "valid name and it's type is int64",
 			args: args{name: "Int64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is uint64",
+			name: "valid name and it's type is uint64",
 			args: args{name: "Uint64"},
 			want: true,
 		},
 		{
-			name: "name exists in accessor and it's type is float32",
+			name: "valid name and it's type is float32",
 			args: args{name: "Float32"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is float64",
+			name: "valid name and it's type is float64",
 			args: args{name: "Float64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is bool",
+			name: "valid name and it's type is bool",
 			args: args{name: "Bool"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is map",
+			name: "valid name and it's type is map",
 			args: args{name: "Map"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is func",
+			name: "valid name and it's type is func",
 			args: args{name: "Func"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is chan int",
+			name: "valid name and it's type is chan int",
 			args: args{name: "ChInt"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is struct ptr",
+			name: "valid name and it's type is struct ptr",
 			args: args{name: "TestStruct2"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is struct ptr slice",
+			name: "valid name and it's type is struct ptr slice",
 			args: args{name: "TestStruct4PtrSlice"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string and unexported field",
+			name: "valid name and it's type is string and unexported field",
 			args: args{name: "privateString"},
 			want: false,
 		},
@@ -1699,72 +1699,72 @@ func TestIsFloat64(t *testing.T) {
 		want bool
 	}{
 		{
-			name: "name exists in accessor and it's type is bytes",
+			name: "valid name and it's type is bytes",
 			args: args{name: "Bytes"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string",
+			name: "valid name and it's type is string",
 			args: args{name: "String"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string (2nd)",
+			name: "valid name and it's type is string (2nd)",
 			args: args{name: "String"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is int64",
+			name: "valid name and it's type is int64",
 			args: args{name: "Int64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is uint64",
+			name: "valid name and it's type is uint64",
 			args: args{name: "Uint64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is float32",
+			name: "valid name and it's type is float32",
 			args: args{name: "Float32"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is float64",
+			name: "valid name and it's type is float64",
 			args: args{name: "Float64"},
 			want: true,
 		},
 		{
-			name: "name exists in accessor and it's type is bool",
+			name: "valid name and it's type is bool",
 			args: args{name: "Bool"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is map",
+			name: "valid name and it's type is map",
 			args: args{name: "Map"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is func",
+			name: "valid name and it's type is func",
 			args: args{name: "Func"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is chan int",
+			name: "valid name and it's type is chan int",
 			args: args{name: "ChInt"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is struct ptr",
+			name: "valid name and it's type is struct ptr",
 			args: args{name: "TestStruct2"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is struct ptr slice",
+			name: "valid name and it's type is struct ptr slice",
 			args: args{name: "TestStruct4PtrSlice"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string and unexported field",
+			name: "valid name and it's type is string and unexported field",
 			args: args{name: "privateString"},
 			want: false,
 		},
@@ -1804,72 +1804,72 @@ func TestIsBool(t *testing.T) {
 		want bool
 	}{
 		{
-			name: "name exists in accessor and it's type is bytes",
+			name: "valid name and it's type is bytes",
 			args: args{name: "Bytes"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string",
+			name: "valid name and it's type is string",
 			args: args{name: "String"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string (2nd)",
+			name: "valid name and it's type is string (2nd)",
 			args: args{name: "String"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is int64",
+			name: "valid name and it's type is int64",
 			args: args{name: "Int64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is uint64",
+			name: "valid name and it's type is uint64",
 			args: args{name: "Uint64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is float32",
+			name: "valid name and it's type is float32",
 			args: args{name: "Float32"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is float64",
+			name: "valid name and it's type is float64",
 			args: args{name: "Float64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is bool",
+			name: "valid name and it's type is bool",
 			args: args{name: "Bool"},
 			want: true,
 		},
 		{
-			name: "name exists in accessor and it's type is map",
+			name: "valid name and it's type is map",
 			args: args{name: "Map"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is func",
+			name: "valid name and it's type is func",
 			args: args{name: "Func"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is chan int",
+			name: "valid name and it's type is chan int",
 			args: args{name: "ChInt"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is struct ptr",
+			name: "valid name and it's type is struct ptr",
 			args: args{name: "TestStruct2"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is struct ptr slice",
+			name: "valid name and it's type is struct ptr slice",
 			args: args{name: "TestStruct4PtrSlice"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string and unexported field",
+			name: "valid name and it's type is string and unexported field",
 			args: args{name: "privateString"},
 			want: false,
 		},
@@ -1909,72 +1909,72 @@ func TestIsMap(t *testing.T) {
 		want bool
 	}{
 		{
-			name: "name exists in accessor and it's type is bytes",
+			name: "valid name and it's type is bytes",
 			args: args{name: "Bytes"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string",
+			name: "valid name and it's type is string",
 			args: args{name: "String"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string (2nd)",
+			name: "valid name and it's type is string (2nd)",
 			args: args{name: "String"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is int64",
+			name: "valid name and it's type is int64",
 			args: args{name: "Int64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is uint64",
+			name: "valid name and it's type is uint64",
 			args: args{name: "Uint64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is float32",
+			name: "valid name and it's type is float32",
 			args: args{name: "Float32"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is float64",
+			name: "valid name and it's type is float64",
 			args: args{name: "Float64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is bool",
+			name: "valid name and it's type is bool",
 			args: args{name: "Bool"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is map",
+			name: "valid name and it's type is map",
 			args: args{name: "Map"},
 			want: true,
 		},
 		{
-			name: "name exists in accessor and it's type is func",
+			name: "valid name and it's type is func",
 			args: args{name: "Func"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is chan int",
+			name: "valid name and it's type is chan int",
 			args: args{name: "ChInt"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is struct ptr",
+			name: "valid name and it's type is struct ptr",
 			args: args{name: "TestStruct2"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is struct ptr slice",
+			name: "valid name and it's type is struct ptr slice",
 			args: args{name: "TestStruct4PtrSlice"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string and unexported field",
+			name: "valid name and it's type is string and unexported field",
 			args: args{name: "privateString"},
 			want: false,
 		},
@@ -2014,72 +2014,72 @@ func TestIsFunc(t *testing.T) {
 		want bool
 	}{
 		{
-			name: "name exists in accessor and it's type is bytes",
+			name: "valid name and it's type is bytes",
 			args: args{name: "Bytes"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string",
+			name: "valid name and it's type is string",
 			args: args{name: "String"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string (2nd)",
+			name: "valid name and it's type is string (2nd)",
 			args: args{name: "String"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is int64",
+			name: "valid name and it's type is int64",
 			args: args{name: "Int64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is uint64",
+			name: "valid name and it's type is uint64",
 			args: args{name: "Uint64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is float32",
+			name: "valid name and it's type is float32",
 			args: args{name: "Float32"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is float64",
+			name: "valid name and it's type is float64",
 			args: args{name: "Float64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is bool",
+			name: "valid name and it's type is bool",
 			args: args{name: "Bool"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is map",
+			name: "valid name and it's type is map",
 			args: args{name: "Map"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is func",
+			name: "valid name and it's type is func",
 			args: args{name: "Func"},
 			want: true,
 		},
 		{
-			name: "name exists in accessor and it's type is chan int",
+			name: "valid name and it's type is chan int",
 			args: args{name: "ChInt"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is struct ptr",
+			name: "valid name and it's type is struct ptr",
 			args: args{name: "TestStruct2"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is struct ptr slice",
+			name: "valid name and it's type is struct ptr slice",
 			args: args{name: "TestStruct4PtrSlice"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string and unexported field",
+			name: "valid name and it's type is string and unexported field",
 			args: args{name: "privateString"},
 			want: false,
 		},
@@ -2119,72 +2119,72 @@ func TestIsChan(t *testing.T) {
 		want bool
 	}{
 		{
-			name: "name exists in accessor and it's type is bytes",
+			name: "valid name and it's type is bytes",
 			args: args{name: "Bytes"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string",
+			name: "valid name and it's type is string",
 			args: args{name: "String"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string (2nd)",
+			name: "valid name and it's type is string (2nd)",
 			args: args{name: "String"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is int64",
+			name: "valid name and it's type is int64",
 			args: args{name: "Int64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is uint64",
+			name: "valid name and it's type is uint64",
 			args: args{name: "Uint64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is float32",
+			name: "valid name and it's type is float32",
 			args: args{name: "Float32"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is float64",
+			name: "valid name and it's type is float64",
 			args: args{name: "Float64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is bool",
+			name: "valid name and it's type is bool",
 			args: args{name: "Bool"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is map",
+			name: "valid name and it's type is map",
 			args: args{name: "Map"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is func",
+			name: "valid name and it's type is func",
 			args: args{name: "Func"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is chan int",
+			name: "valid name and it's type is chan int",
 			args: args{name: "ChInt"},
 			want: true,
 		},
 		{
-			name: "name exists in accessor and it's type is struct ptr",
+			name: "valid name and it's type is struct ptr",
 			args: args{name: "TestStruct2"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is struct ptr slice",
+			name: "valid name and it's type is struct ptr slice",
 			args: args{name: "TestStruct4PtrSlice"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string and unexported field",
+			name: "valid name and it's type is string and unexported field",
 			args: args{name: "privateString"},
 			want: false,
 		},
@@ -2224,72 +2224,72 @@ func TestIsStruct(t *testing.T) {
 		want bool
 	}{
 		{
-			name: "name exists in accessor and it's type is bytes",
+			name: "valid name and it's type is bytes",
 			args: args{name: "Bytes"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string",
+			name: "valid name and it's type is string",
 			args: args{name: "String"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string (2nd)",
+			name: "valid name and it's type is string (2nd)",
 			args: args{name: "String"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is int64",
+			name: "valid name and it's type is int64",
 			args: args{name: "Int64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is uint64",
+			name: "valid name and it's type is uint64",
 			args: args{name: "Uint64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is float32",
+			name: "valid name and it's type is float32",
 			args: args{name: "Float32"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is float64",
+			name: "valid name and it's type is float64",
 			args: args{name: "Float64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is bool",
+			name: "valid name and it's type is bool",
 			args: args{name: "Bool"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is map",
+			name: "valid name and it's type is map",
 			args: args{name: "Map"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is func",
+			name: "valid name and it's type is func",
 			args: args{name: "Func"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is chan int",
+			name: "valid name and it's type is chan int",
 			args: args{name: "ChInt"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is struct ptr",
+			name: "valid name and it's type is struct ptr",
 			args: args{name: "TestStruct2"},
 			want: true,
 		},
 		{
-			name: "name exists in accessor and it's type is struct ptr slice",
+			name: "valid name and it's type is struct ptr slice",
 			args: args{name: "TestStruct4PtrSlice"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string and unexported field",
+			name: "valid name and it's type is string and unexported field",
 			args: args{name: "privateString"},
 			want: false,
 		},
@@ -2329,72 +2329,72 @@ func TestIsSlice(t *testing.T) {
 		want bool
 	}{
 		{
-			name: "name exists in accessor and it's type is bytes",
+			name: "valid name and it's type is bytes",
 			args: args{name: "Bytes"},
 			want: true,
 		},
 		{
-			name: "name exists in accessor and it's type is string",
+			name: "valid name and it's type is string",
 			args: args{name: "String"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is string (2nd)",
+			name: "valid name and it's type is string (2nd)",
 			args: args{name: "String"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is int64",
+			name: "valid name and it's type is int64",
 			args: args{name: "Int64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is uint64",
+			name: "valid name and it's type is uint64",
 			args: args{name: "Uint64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is float32",
+			name: "valid name and it's type is float32",
 			args: args{name: "Float32"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is float64",
+			name: "valid name and it's type is float64",
 			args: args{name: "Float64"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is bool",
+			name: "valid name and it's type is bool",
 			args: args{name: "Bool"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is map",
+			name: "valid name and it's type is map",
 			args: args{name: "Map"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is func",
+			name: "valid name and it's type is func",
 			args: args{name: "Func"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is chan int",
+			name: "valid name and it's type is chan int",
 			args: args{name: "ChInt"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is struct ptr",
+			name: "valid name and it's type is struct ptr",
 			args: args{name: "TestStruct2"},
 			want: false,
 		},
 		{
-			name: "name exists in accessor and it's type is struct ptr slice",
+			name: "valid name and it's type is struct ptr slice",
 			args: args{name: "TestStruct4PtrSlice"},
 			want: true,
 		},
 		{
-			name: "name exists in accessor and it's type is string and unexported field",
+			name: "valid name and it's type is string and unexported field",
 			args: args{name: "privateString"},
 			want: false,
 		},
@@ -2437,79 +2437,79 @@ func TestMapGet(t *testing.T) {
 		cmpopts   []cmp.Option
 	}{
 		{
-			name:      "name exists in accessor and it's type is string",
+			name:      "valid name and it's type is string",
 			args:      args{name: "String"},
 			wantErr:   true,
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is string (2nd)",
+			name:      "valid name and it's type is string (2nd)",
 			args:      args{name: "String"},
 			wantErr:   true,
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is int64",
+			name:      "valid name and it's type is int64",
 			args:      args{name: "Int64"},
 			wantErr:   true,
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is uint64",
+			name:      "valid name and it's type is uint64",
 			args:      args{name: "Uint64"},
 			wantErr:   true,
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is float32",
+			name:      "valid name and it's type is float32",
 			args:      args{name: "Float32"},
 			wantErr:   true,
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is float64",
+			name:      "valid name and it's type is float64",
 			args:      args{name: "Float64"},
 			wantErr:   true,
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is bool",
+			name:      "valid name and it's type is bool",
 			args:      args{name: "Bool"},
 			wantErr:   true,
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is map",
+			name:      "valid name and it's type is map",
 			args:      args{name: "Map"},
 			wantErr:   true,
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is func",
+			name:      "valid name and it's type is func",
 			args:      args{name: "Func"},
 			wantErr:   true,
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is chan int",
+			name:      "valid name and it's type is chan int",
 			args:      args{name: "ChInt"},
 			wantErr:   true,
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is struct",
+			name:      "valid name and it's type is struct",
 			args:      args{name: "TestStruct2"},
 			wantErr:   true,
 			wantPanic: false,
 		},
 		{
-			name:      "name exists in accessor and it's type is struct ptr",
+			name:      "valid name and it's type is struct ptr",
 			args:      args{name: "TestStruct2Ptr"},
 			wantErr:   true,
 			wantPanic: false,
 		},
 		{
-			name: "name exists in accessor and it's type is struct slice",
+			name: "valid name and it's type is struct slice",
 			args: args{
 				name: "TestStruct4Slice",
 				fn: func(i int, g Getter) interface{} {
@@ -2521,7 +2521,7 @@ func TestMapGet(t *testing.T) {
 			want:      []interface{}{string("key100=value100"), string("key200=value200")},
 		},
 		{
-			name: "name exists in accessor and it's type is struct ptr slice",
+			name: "valid name and it's type is struct ptr slice",
 			args: args{
 				name: "TestStruct4PtrSlice",
 				fn: func(i int, g Getter) interface{} {
@@ -2533,7 +2533,7 @@ func TestMapGet(t *testing.T) {
 			want:      []interface{}{string("key991:value991"), string("key992:value992")},
 		},
 		{
-			name:      "name exists in accessor and it's type is string and unexported field",
+			name:      "valid name and it's type is string and unexported field",
 			args:      args{name: "privateString"},
 			wantErr:   true,
 			wantPanic: false,
