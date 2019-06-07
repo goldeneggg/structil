@@ -205,46 +205,57 @@ func (g *gImpl) Bool(name string) bool {
 	}
 }
 
+// IsBytes reports whether type of the original struct field named "name" is []byte.
 func (g *gImpl) IsBytes(name string) bool {
 	return g.IsSlice(name) && g.GetType(name).Elem().Kind() == reflect.Uint8
 }
 
+// IsString reports whether type of the original struct field named "name" is string.
 func (g *gImpl) IsString(name string) bool {
 	return g.is(name, reflect.String)
 }
 
+// IsInt64 reports whether type of the original struct field named "name" is int64.
 func (g *gImpl) IsInt64(name string) bool {
 	return g.is(name, reflect.Int64)
 }
 
+// IsUint64 reports whether type of the original struct field named "name" is uint64.
 func (g *gImpl) IsUint64(name string) bool {
 	return g.is(name, reflect.Uint64)
 }
 
+// IsFloat64 reports whether type of the original struct field named "name" is float64.
 func (g *gImpl) IsFloat64(name string) bool {
 	return g.is(name, reflect.Float64)
 }
 
+// IsBool reports whether type of the original struct field named "name" is bool.
 func (g *gImpl) IsBool(name string) bool {
 	return g.is(name, reflect.Bool)
 }
 
+// IsMap reports whether type of the original struct field named "name" is map.
 func (g *gImpl) IsMap(name string) bool {
 	return g.is(name, reflect.Map)
 }
 
+// IsFunc reports whether type of the original struct field named "name" is func.
 func (g *gImpl) IsFunc(name string) bool {
 	return g.is(name, reflect.Func)
 }
 
+// IsChan reports whether type of the original struct field named "name" is chan.
 func (g *gImpl) IsChan(name string) bool {
 	return g.is(name, reflect.Chan)
 }
 
+// IsStruct reports whether type of the original struct field named "name" is struct.
 func (g *gImpl) IsStruct(name string) bool {
 	return g.is(name, reflect.Struct)
 }
 
+// IsSlice reports whether type of the original struct field named "name" is slice.
 func (g *gImpl) IsSlice(name string) bool {
 	return g.is(name, reflect.Slice)
 }
@@ -258,6 +269,7 @@ func (g *gImpl) is(name string, exp reflect.Kind) bool {
 	return frv.Kind() == exp
 }
 
+// MapGet returns the interface slice of mapped values of the original struct field named "name".
 func (g *gImpl) MapGet(name string, f func(int, Getter) interface{}) ([]interface{}, error) {
 	if !g.IsSlice(name) {
 		return nil, fmt.Errorf("field %s is not slice", name)

@@ -10,6 +10,7 @@ const (
 	rootKey    = "!"
 )
 
+// Finder is the interface that builds the nested struct finder.
 type Finder interface {
 	Struct(names ...string) Finder
 	Find(names ...string) Finder
@@ -29,10 +30,14 @@ type fImpl struct {
 	sep        string
 }
 
+// NewFinder returns a concrete Finder that uses and obtains from i.
+// i must be a struct or struct pointer.
 func NewFinder(i interface{}) (Finder, error) {
 	return NewFinderWithSep(i, defaultSep)
 }
 
+// NewFinderWithSep returns a concrete Finder that uses and obtains from i using the separator string.
+// i must be a struct or struct pointer.
 func NewFinderWithSep(i interface{}, sep string) (Finder, error) {
 	g, err := NewGetter(i)
 	if err != nil {
@@ -42,10 +47,14 @@ func NewFinderWithSep(i interface{}, sep string) (Finder, error) {
 	return NewFinderWithGetterAndSep(g, sep)
 }
 
+// NewFinderWithGetter returns a concrete Finder that uses and obtains from g.
+// g must be a Getter
 func NewFinderWithGetter(g Getter) (Finder, error) {
 	return NewFinderWithGetterAndSep(g, defaultSep)
 }
 
+// NewFinderWithGetterAndSep returns a concrete Finder that uses and obtains from g using the separator string.
+// g must be a Getter
 func NewFinderWithGetterAndSep(g Getter, sep string) (Finder, error) {
 	if sep == "" {
 		return nil, fmt.Errorf("sep [%s] is invalid", sep)
@@ -56,6 +65,7 @@ func NewFinderWithGetterAndSep(g Getter, sep string) (Finder, error) {
 	return f.Reset(), nil
 }
 
+// Reset resets the current build Finder.
 func (f *fImpl) Reset() Finder {
 	gMap := map[string]Getter{}
 	gMap[rootKey] = f.rootGetter

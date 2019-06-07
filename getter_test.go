@@ -13,6 +13,7 @@ type getterTestArgs struct {
 	name  string
 	mapfn func(int, Getter) interface{}
 }
+
 type getterTest struct {
 	name      string
 	args      *getterTestArgs
