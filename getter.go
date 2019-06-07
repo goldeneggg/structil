@@ -31,7 +31,7 @@ type Getter interface {
 	IsChan(name string) bool
 	IsStruct(name string) bool
 	IsSlice(name string) bool
-	MapGet(name string, f func(int, Getter) interface{}) ([]interface{}, error)
+	MapGet(name string, f func(int, Getter) (interface{}, error)) ([]interface{}, error)
 }
 
 type gImpl struct {
@@ -285,26 +285,31 @@ func (g *gImpl) is(name string, exp reflect.Kind) bool {
 }
 
 // MapGet returns the interface slice of mapped values of the original struct field named "name".
-func (g *gImpl) MapGet(name string, f func(int, Getter) interface{}) ([]interface{}, error) {
+func (g *gImpl) MapGet(name string, f func(int, Getter) (interface{}, error)) ([]interface{}, error) {
 	if !g.IsSlice(name) {
 		return nil, fmt.Errorf("field %s is not slice", name)
 	}
 
 	var vi reflect.Value
-	var ac Getter
+	var eg Getter
 	var err error
+	var r interface{}
 	var res []interface{}
 	srv := g.GetValue(name)
 
 	for i := 0; i < srv.Len(); i++ {
 		vi = srv.Index(i)
-		ac, err = NewGetter(reflectil.ToI(vi))
+		eg, err = NewGetter(reflectil.ToI(vi))
 		if err != nil {
-			res = append(res, nil)
-			continue
+			return nil, err
 		}
 
-		res = append(res, f(i, ac))
+		r, err = f(i, eg)
+		if err != nil {
+			return nil, err
+		}
+
+		res = append(res, r)
 	}
 
 	return res, nil

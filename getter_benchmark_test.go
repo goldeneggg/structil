@@ -108,8 +108,8 @@ func BenchmarkGetterMapGet(b *testing.B) {
 		b.Errorf("NewGetter() occurs unexpected error: %v", err)
 		return
 	}
-	fn := func(i int, g Getter) interface{} {
-		return g.String("String") + ":" + g.String("String2")
+	fn := func(i int, g Getter) (interface{}, error) {
+		return g.String("String") + ":" + g.String("String2"), nil
 	}
 
 	b.ResetTimer()

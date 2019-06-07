@@ -153,10 +153,10 @@ func exampleGetter() {
 	log.Printf("Getter.IsSlice(XArr): %v", g.IsSlice("XArr"))
 
 	// Map
-	fa := func(i int, a structil.Getter) interface{} {
+	fa := func(i int, a structil.Getter) (interface{}, error) {
 		s1 := a.String("Key")
 		s2 := a.String("Value")
-		return s1 + "=" + s2
+		return s1 + "=" + s2, nil
 	}
 
 	results, err := g.MapGet("XArr", fa)

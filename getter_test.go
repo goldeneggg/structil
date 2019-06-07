@@ -12,7 +12,7 @@ import (
 
 type getterTestArgs struct {
 	name  string
-	mapfn func(int, Getter) interface{}
+	mapfn func(int, Getter) (interface{}, error)
 }
 
 type getterTest struct {
@@ -909,16 +909,14 @@ func TestMapGet(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			switch tt.name {
-			case "Bytes":
-				tt.wantIntf = []interface{}{nil, nil}
 			case "TestStruct4Slice":
-				tt.args.mapfn = func(i int, g Getter) interface{} {
-					return g.String("String") + "=" + g.String("String2")
+				tt.args.mapfn = func(i int, g Getter) (interface{}, error) {
+					return g.String("String") + "=" + g.String("String2"), nil
 				}
 				tt.wantIntf = []interface{}{string("key100=value100"), string("key200=value200")}
 			case "TestStruct4PtrSlice":
-				tt.args.mapfn = func(i int, g Getter) interface{} {
-					return g.String("String") + ":" + g.String("String2")
+				tt.args.mapfn = func(i int, g Getter) (interface{}, error) {
+					return g.String("String") + ":" + g.String("String2"), nil
 				}
 				tt.wantIntf = []interface{}{string("key991:value991"), string("key992:value992")}
 			default:
