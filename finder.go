@@ -111,7 +111,11 @@ func (f *fImpl) Struct(names ...string) Finder {
 
 		nextGetter, ok = f.gMap[nextKey]
 		if !ok {
-			nextGetter, err = NewGetter(f.gMap[f.ck].Get(name))
+			if f.gMap[f.ck].Has(name) {
+				nextGetter, err = NewGetter(f.gMap[f.ck].Get(name))
+			} else {
+				err = fmt.Errorf("name %s does not exist", name)
+			}
 		}
 
 		if err != nil {

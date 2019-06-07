@@ -369,6 +369,84 @@ func TestGet(t *testing.T) {
 	}
 }
 
+func TestEGet(t *testing.T) {
+	t.Parallel()
+
+	testStructPtr := newTestStructPtr()
+	g, err := structil.NewGetter(testStructPtr)
+	if err != nil {
+		t.Errorf("NewGetter() occurs unexpected error: %v", err)
+	}
+
+	tests := newGetterTests()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch tt.name {
+			case "Bytes":
+				tt.wantIntf = testStructPtr.Bytes
+			case "String":
+				tt.wantIntf = testStructPtr.String
+			case "Int64":
+				tt.wantIntf = testStructPtr.Int64
+			case "Uint64":
+				tt.wantIntf = testStructPtr.Uint64
+			case "Float32":
+				tt.wantIntf = testStructPtr.Float32
+			case "Float64":
+				tt.wantIntf = testStructPtr.Float64
+			case "Bool":
+				tt.wantIntf = testStructPtr.Bool
+			case "Map":
+				tt.wantIntf = testStructPtr.Map
+			case "Func":
+				tt.wantIntf = testStructPtr.Func
+			case "ChInt":
+				tt.wantIntf = testStructPtr.ChInt
+			case "TestStruct2":
+				tt.wantIntf = testStructPtr.TestStruct2
+			case "TestStruct2Ptr":
+				tt.wantIntf = *testStructPtr.TestStruct2Ptr // Note: *NOT* testStructPtr.TestStruct2Ptr
+			case "TestStruct4Slice":
+				tt.wantIntf = testStructPtr.TestStruct4Slice
+			case "TestStruct4PtrSlice":
+				tt.wantIntf = testStructPtr.TestStruct4PtrSlice
+			case "privateString":
+				tt.wantIntf = nil // Note: unexported field is nil
+			case "NotExist":
+				tt.wantError = true
+			}
+
+			defer deferPanic(t, tt.wantPanic, tt.args)
+
+			got, err := g.EGet(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+				return
+			}
+
+			if err == nil {
+				if tt.wantError {
+					t.Errorf("error did not occur. got: %v", got)
+					return
+				}
+
+				if tt.args.name == "Func" {
+					// Note: cmp.Diff does not support comparing func and func
+					gp := reflect.ValueOf(got).Pointer()
+					wp := reflect.ValueOf(tt.wantIntf).Pointer()
+					if gp != wp {
+						t.Errorf("unexpected mismatch func type: gp: %v, wp: %v", gp, wp)
+					}
+				} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+					t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
+				}
+			} else if !tt.wantError {
+				t.Errorf("unexpected error occured. wantError %v, err: %v", tt.wantError, err)
+			}
+		})
+	}
+}
+
 func TestBytes(t *testing.T) {
 	t.Parallel()
 

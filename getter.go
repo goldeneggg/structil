@@ -13,6 +13,7 @@ type Getter interface {
 	GetType(name string) reflect.Type
 	GetValue(name string) reflect.Value
 	Get(name string) interface{}
+	EGet(name string) (interface{}, error)
 	Bytes(name string) []byte
 	String(name string) string
 	Int64(name string) int64
@@ -137,6 +138,20 @@ func (g *gImpl) Get(name string) interface{} {
 	}
 
 	return g.intfs[name]
+}
+
+// EGet returns the interface of the original struct field named "name".
+// It returns an error if the original struct does not have a field named "name".
+func (g *gImpl) EGet(name string) (intf interface{}, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = recoverToError(r)
+		}
+	}()
+
+	intf = g.Get(name)
+
+	return
 }
 
 // Bytes returns the []byte of the original struct field named "name".
