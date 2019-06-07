@@ -1,5 +1,6 @@
 package structil_test
 
+/*
 import (
 	"testing"
 
@@ -300,3 +301,4 @@ func TestToMap(t *testing.T) {
 		})
 	}
 }
+*/

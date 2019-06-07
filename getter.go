@@ -7,6 +7,7 @@ import (
 	"github.com/goldeneggg/structil/reflectil"
 )
 
+// Getter is the interface that wraps the basic Getter method.
 type Getter interface {
 	Has(name string) bool
 	GetType(name string) reflect.Type
@@ -40,16 +41,18 @@ type gImpl struct {
 	intfs  map[string]interface{}   // interface map of struct fields
 }
 
+// NewGetter returns a concrete Getter that uses and obtains from i.
+// i must be a struct or struct pointer.
 func NewGetter(i interface{}) (Getter, error) {
 	if i == nil {
-		return nil, fmt.Errorf("value of passed argument %+v is nil", i)
+		return nil, fmt.Errorf("value of passed argument %+v is nil.", i)
 	}
 
 	rv := reflect.ValueOf(i)
 	kind := rv.Kind()
 
 	if kind != reflect.Ptr && kind != reflect.Struct {
-		return nil, fmt.Errorf("%v is not supported kind", kind)
+		return nil, fmt.Errorf("%v is not supported kind.", kind)
 	}
 
 	if kind == reflect.Ptr {
@@ -65,6 +68,7 @@ func NewGetter(i interface{}) (Getter, error) {
 	}, nil
 }
 
+// Has tests whether the original struct has a field named "name" arg.
 func (g *gImpl) Has(name string) bool {
 	_, ok := g.hases[name]
 	if !ok {
@@ -74,17 +78,8 @@ func (g *gImpl) Has(name string) bool {
 	return g.hases[name]
 }
 
-func (g *gImpl) GetType(name string) reflect.Type {
-	_, ok := g.types[name]
-	if !ok {
-		g.cache(name)
-	}
-
-	return g.types[name]
-}
-
 func (g *gImpl) cache(name string) {
-	frv := g.rv.FieldByName(name) // XXX: This code is slow
+	frv := g.rv.FieldByName(name)
 	if frv.IsValid() {
 		g.types[name] = frv.Type()
 		g.hases[name] = true
@@ -99,7 +94,30 @@ func (g *gImpl) cache(name string) {
 	g.intfs[name] = reflectil.ToI(frv)
 }
 
+// GetType returns the reflect.Type object of the original struct field named "name".
+// It panics if the original struct does not have a field named "name".
+func (g *gImpl) GetType(name string) reflect.Type {
+	g.panicIfNotHave(name)
+
+	_, ok := g.types[name]
+	if !ok {
+		g.cache(name)
+	}
+
+	return g.types[name]
+}
+
+func (g *gImpl) panicIfNotHave(name string) {
+	if !g.Has(name) {
+		panic(fmt.Sprintf("field name %s does not exist in the original struct.", name))
+	}
+}
+
+// GetValue returns the reflect.Value object of the original struct field named "name".
+// It panics if the original struct does not have a field named "name".
 func (g *gImpl) GetValue(name string) reflect.Value {
+	g.panicIfNotHave(name)
+
 	_, ok := g.values[name]
 	if !ok {
 		g.cache(name)
@@ -108,7 +126,11 @@ func (g *gImpl) GetValue(name string) reflect.Value {
 	return g.values[name]
 }
 
+// Get returns the interface of the original struct field named "name".
+// It panics if the original struct does not have a field named "name".
 func (g *gImpl) Get(name string) interface{} {
+	g.panicIfNotHave(name)
+
 	_, ok := g.intfs[name]
 	if !ok {
 		g.cache(name)
@@ -117,31 +139,70 @@ func (g *gImpl) Get(name string) interface{} {
 	return g.intfs[name]
 }
 
+// Bytes returns the []byte of the original struct field named "name".
+// It panics if the original struct does not have a field named "name".
+// It panics if type of the original struct field named "name" is not []byte.
 func (g *gImpl) Bytes(name string) []byte {
-	return g.GetValue(name).Bytes()
+	if v, ok := g.Get(name).([]byte); ok {
+		return v
+	} else {
+		panic(fmt.Sprintf("field name %s is not []byte type.", name))
+	}
 }
 
+// String returns the string of the original struct field named "name".
+// It panics if the original struct does not have a field named "name".
+// It panics if type of the original struct field named "name" is not string.
 func (g *gImpl) String(name string) string {
-	// Note:
-	// reflect.Value has String() method because it implements the Stringer interface.
-	// So this method does not occur panic.
-	return g.GetValue(name).String()
+	if v, ok := g.Get(name).(string); ok {
+		return v
+	} else {
+		panic(fmt.Sprintf("field name %s is not string type.", name))
+	}
 }
 
+// Int64 returns the int64 of the original struct field named "name".
+// It panics if the original struct does not have a field named "name".
+// It panics if type of the original struct field named "name" is not int64.
 func (g *gImpl) Int64(name string) int64 {
-	return g.GetValue(name).Int()
+	if v, ok := g.Get(name).(int64); ok {
+		return v
+	} else {
+		panic(fmt.Sprintf("field name %s is not int64 type.", name))
+	}
 }
 
+// Uint64 returns the uint64 of the original struct field named "name".
+// It panics if the original struct does not have a field named "name".
+// It panics if type of the original struct field named "name" is not uint64.
 func (g *gImpl) Uint64(name string) uint64 {
-	return g.GetValue(name).Uint()
+	if v, ok := g.Get(name).(uint64); ok {
+		return v
+	} else {
+		panic(fmt.Sprintf("field name %s is not uint64 type.", name))
+	}
 }
 
+// Float64 returns the float64 of the original struct field named "name".
+// It panics if the original struct does not have a field named "name".
+// It panics if type of the original struct field named "name" is not float64.
 func (g *gImpl) Float64(name string) float64 {
-	return g.GetValue(name).Float()
+	if v, ok := g.Get(name).(float64); ok {
+		return v
+	} else {
+		panic(fmt.Sprintf("field name %s is not float64 type.", name))
+	}
 }
 
+// Bool returns the bool of the original struct field named "name".
+// It panics if the original struct does not have a field named "name".
+// It panics if type of the original struct field named "name" is not bool.
 func (g *gImpl) Bool(name string) bool {
-	return g.GetValue(name).Bool()
+	if v, ok := g.Get(name).(bool); ok {
+		return v
+	} else {
+		panic(fmt.Sprintf("field name %s is not bool type.", name))
+	}
 }
 
 func (g *gImpl) IsBytes(name string) bool {
@@ -189,6 +250,10 @@ func (g *gImpl) IsSlice(name string) bool {
 }
 
 func (g *gImpl) is(name string, exp reflect.Kind) bool {
+	if !g.Has(name) {
+		return false
+	}
+
 	frv := g.GetValue(name)
 	return frv.Kind() == exp
 }
