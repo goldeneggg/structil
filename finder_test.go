@@ -54,11 +54,15 @@ func TestNewFinder(t *testing.T) {
 					return
 				}
 
-				if _, ok := got.(Finder); !ok {
+				if f, ok := got.(Finder); ok {
+					if f.GetNameSeparator() != "." {
+						t.Errorf("NewFinder() unexpected separator got: %s, want: '.'", f.GetNameSeparator())
+					}
+				} else {
 					t.Errorf("NewFinder() want Finder but got %+v", got)
 				}
 			} else if !tt.wantError {
-				t.Errorf("NewFinder() unexpected error [%v] occured. wantError %v", err, tt.wantError)
+				t.Errorf("NewFinder() unexpected error [%v] occured. wantError: %v", err, tt.wantError)
 			}
 		})
 	}
@@ -100,7 +104,11 @@ func TestNewFinderWithGetterAndSep(t *testing.T) {
 					return
 				}
 
-				if _, ok := got.(Finder); !ok {
+				if f, ok := got.(Finder); ok {
+					if f.GetNameSeparator() != tt.args.sep {
+						t.Errorf("NewFinderWithGetterAndSep() unexpected separator got: %s, want: %s", f.GetNameSeparator(), tt.args.sep)
+					}
+				} else {
 					t.Errorf("NewFinderWithGetterAndSep() want Finder but got %+v", got)
 				}
 			} else if !tt.wantError {
@@ -135,12 +143,13 @@ func TestToMap(t *testing.T) {
 		chain Finder
 	}
 	tests := []struct {
-		name      string
-		args      args
-		wantError bool
-		wantPanic bool
-		wantMap   map[string]interface{}
-		cmpopts   []cmp.Option
+		name            string
+		args            args
+		wantError       bool
+		wantErrorString string
+		wantPanic       bool
+		wantMap         map[string]interface{}
+		cmpopts         []cmp.Option
 	}{
 		{
 			name: "with non-nest chain",
@@ -233,28 +242,32 @@ func TestToMap(t *testing.T) {
 			args: args{
 				chain: fs[4].Find("NonExist"),
 			},
-			wantError: true,
+			wantError:       true,
+			wantErrorString: "field name NonExist does not exist",
 		},
 		{
 			name: "with Find with existed and non-existed names",
 			args: args{
 				chain: fs[5].Find("String", "NonExist"),
 			},
-			wantError: true,
+			wantError:       true,
+			wantErrorString: "field name NonExist does not exist",
 		},
 		{
 			name: "with Struct with non-existed name",
 			args: args{
 				chain: fs[6].Struct("NonExist").Find("String"),
 			},
-			wantError: true,
+			wantError:       true,
+			wantErrorString: "Error in name: NonExist, key: NonExist. [name NonExist does not exist]",
 		},
 		{
 			name: "with Struct with existed name and Find with non-existed name",
 			args: args{
 				chain: fs[7].Struct("TestStruct2").Find("NonExist"),
 			},
-			wantError: true,
+			wantError:       true,
+			wantErrorString: "field name NonExist does not exist",
 		},
 		{
 			name: "with Struct with existed and non-existed name and Find",
@@ -263,7 +276,8 @@ func TestToMap(t *testing.T) {
 					Struct("TestStruct2").Find("String").
 					Struct("TestStruct2", "NonExist").Find("String"),
 			},
-			wantError: true,
+			wantError:       true,
+			wantErrorString: "Error in name: NonExist, key: TestStruct2.NonExist. [name NonExist does not exist]",
 		},
 		{
 			name: "with multi nest chains separated by assigned sep",
@@ -290,12 +304,12 @@ func TestToMap(t *testing.T) {
 
 			if err == nil {
 				if tt.wantError {
-					t.Errorf("ToMap() error does not occur. got: %v", got)
+					t.Errorf("error does not occur. got: %v", got)
 					return
 				}
 
 				if got == nil {
-					t.Errorf("ToMap() result is nil %v", got)
+					t.Errorf("result is nil %v", got)
 					return
 				}
 
@@ -303,17 +317,28 @@ func TestToMap(t *testing.T) {
 					gv, ok := got[k]
 					if ok {
 						if d := cmp.Diff(gv, wv, tt.cmpopts...); d != "" {
-							t.Errorf("ToMap() key: %s, gotMap: %+v, (-got +want)\n%s", k, got, d)
+							t.Errorf("key: %s, gotMap: %+v, (-got +want)\n%s", k, got, d)
 							return
 						}
 					} else {
-						t.Errorf("ToMap() ok: %v, key: %s, gotValue: [%v], wantValue: [%v], gotMap: %+v, ", ok, k, gv, wv, got)
+						t.Errorf("ok: %v, key: %s, gotValue: [%v], wantValue: [%v], gotMap: %+v, ", ok, k, gv, wv, got)
 						return
 					}
 				}
-			} else if !tt.wantError {
-				t.Errorf("ToMap() error = %v, wantError %v", err, tt.wantError)
-				return
+			} else {
+				if tt.args.chain.HasError() && tt.wantError {
+					if d := cmp.Diff(err.Error(), tt.wantErrorString); d != "" {
+						t.Errorf("error string is unmatch. (-got +want)\n%s", d)
+						return
+					}
+
+					tt.args.chain.Reset()
+					if tt.args.chain.HasError() {
+						t.Errorf("Reset() does not work expectedly. Errors still remain.")
+					}
+				} else {
+					t.Errorf("unexpected error = %v, HasError: %v, wantError: %v", err, tt.args.chain.HasError(), tt.wantError)
+				}
 			}
 		})
 	}
