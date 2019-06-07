@@ -84,6 +84,7 @@ func (f *fImpl) Reset() Finder {
 	return f
 }
 
+// Struct returns a Finder that nested struct fields are looked up and held named "names".
 func (f *fImpl) Struct(names ...string) Finder {
 	if f.HasError() {
 		return f
@@ -142,6 +143,7 @@ func (f *fImpl) addError(key string, err error) Finder {
 	return f
 }
 
+// Find returns a Finder that fields in struct are looked up and held named "names".
 func (f *fImpl) Find(names ...string) Finder {
 	if f.HasError() {
 		return f
@@ -152,6 +154,9 @@ func (f *fImpl) Find(names ...string) Finder {
 	return f
 }
 
+// ToMap returns a map converted from struct.
+// Map keys are lookup field names by "Struct" method and "Find".
+// Map values are lookup field values by "Struct" method and "Find".
 func (f *fImpl) ToMap() (map[string]interface{}, error) {
 	if f.HasError() {
 		return nil, f
@@ -184,6 +189,7 @@ func (f *fImpl) ToMap() (map[string]interface{}, error) {
 	return res, nil
 }
 
+// HasError tests whether this Finder have any errors.
 func (f *fImpl) HasError() bool {
 	for _, errs := range f.eMap {
 		if len(errs) > 0 {
@@ -194,6 +200,7 @@ func (f *fImpl) HasError() bool {
 	return false
 }
 
+// Error returns error string.
 func (f *fImpl) Error() string {
 	tmp := []string{}
 
@@ -207,6 +214,8 @@ func (f *fImpl) Error() string {
 	return strings.Join(tmp, "\n")
 }
 
+// GetNameSeparator returns the separator string for nested struct name separating.
+// Default is "." (dot).
 func (f *fImpl) GetNameSeparator() string {
 	return f.sep
 }
