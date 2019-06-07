@@ -146,7 +146,7 @@ func TestToMap(t *testing.T) {
 			wantMap: map[string]interface{}{
 				"ExpInt64":       int64(-1),
 				"ExpFloat64":     float64(-3.45),
-				"ExpString":      testString,
+				"ExpString":      "test name",
 				"ExpStringptr":   testString2, // TODO: if pointer, test is fail
 				"ExpStringslice": []string{"strslice1", "strslice2"},
 				"ExpBool":        true,
