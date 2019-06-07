@@ -59,16 +59,19 @@ var (
 	deferPanic = func(t *testing.T, wantPanic bool, args interface{}) {
 		r := recover()
 		if r != nil {
-			if !wantPanic {
-				msg := fmt.Sprintf("\n%v\n", r)
-				for d := 0; ; d++ {
-					pc, file, line, ok := runtime.Caller(d)
-					if !ok {
-						break
-					}
-
-					msg = msg + fmt.Sprintf(" -> %d: %s: %s:%d\n", d, runtime.FuncForPC(pc).Name(), file, line)
+			msg := fmt.Sprintf("\n%v\n", r)
+			for d := 0; ; d++ {
+				pc, file, line, ok := runtime.Caller(d)
+				if !ok {
+					break
 				}
+
+				msg = msg + fmt.Sprintf(" -> %d: %s: %s:%d\n", d, runtime.FuncForPC(pc).Name(), file, line)
+			}
+
+			if wantPanic {
+				t.Logf("OK panic is expected: args: %+v, %s", args, msg)
+			} else {
 				t.Errorf("unexpected panic occured: args: %+v, %s", args, msg)
 			}
 		} else {

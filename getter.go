@@ -146,7 +146,7 @@ func (g *gImpl) Bytes(name string) []byte {
 	if v, ok := g.Get(name).([]byte); ok {
 		return v
 	} else {
-		panic(fmt.Sprintf("field name %s is not []byte type.", name))
+		panic(fmt.Sprintf("field name %s is not []byte type. value: %v", name, g.GetValue(name)))
 	}
 }
 
@@ -157,7 +157,7 @@ func (g *gImpl) String(name string) string {
 	if v, ok := g.Get(name).(string); ok {
 		return v
 	} else {
-		panic(fmt.Sprintf("field name %s is not string type.", name))
+		panic(fmt.Sprintf("field name %s is not string type. value: %v", name, g.GetValue(name)))
 	}
 }
 
@@ -168,7 +168,7 @@ func (g *gImpl) Int64(name string) int64 {
 	if v, ok := g.Get(name).(int64); ok {
 		return v
 	} else {
-		panic(fmt.Sprintf("field name %s is not int64 type.", name))
+		panic(fmt.Sprintf("field name %s is not int64 type. value: %v", name, g.GetValue(name)))
 	}
 }
 
@@ -179,7 +179,7 @@ func (g *gImpl) Uint64(name string) uint64 {
 	if v, ok := g.Get(name).(uint64); ok {
 		return v
 	} else {
-		panic(fmt.Sprintf("field name %s is not uint64 type.", name))
+		panic(fmt.Sprintf("field name %s is not uint64 type. value: %v", name, g.GetValue(name)))
 	}
 }
 
@@ -190,7 +190,7 @@ func (g *gImpl) Float64(name string) float64 {
 	if v, ok := g.Get(name).(float64); ok {
 		return v
 	} else {
-		panic(fmt.Sprintf("field name %s is not float64 type.", name))
+		panic(fmt.Sprintf("field name %s is not float64 type. value: %v", name, g.GetValue(name)))
 	}
 }
 
@@ -201,7 +201,7 @@ func (g *gImpl) Bool(name string) bool {
 	if v, ok := g.Get(name).(bool); ok {
 		return v
 	} else {
-		panic(fmt.Sprintf("field name %s is not bool type.", name))
+		panic(fmt.Sprintf("field name %s is not bool type. value: %v", name, g.GetValue(name)))
 	}
 }
 
