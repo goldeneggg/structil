@@ -3,7 +3,11 @@
 package structil_test
 
 import (
+	"fmt"
+	"runtime"
 	"testing"
+
+	"github.com/goldeneggg/structil"
 )
 
 type (
@@ -52,15 +56,27 @@ var (
 	testFunc    = func(s string) interface{} { return s + "-func" }
 	testChan    = make(chan int)
 
-	deferPanic = func(t *testing.T, wantPanic bool, isXXX bool, args interface{}) {
+	deferPanic = func(t *testing.T, wantPanic bool, args interface{}) {
 		r := recover()
 		if r != nil {
-			if !wantPanic {
-				t.Errorf("unexpected panic occured: isXXX: %v, args: %+v, %+v", isXXX, args, r)
+			msg := fmt.Sprintf("\n%v\n", r)
+			for d := 0; ; d++ {
+				pc, file, line, ok := runtime.Caller(d)
+				if !ok {
+					break
+				}
+
+				msg = msg + fmt.Sprintf(" -> %d: %s: %s:%d\n", d, runtime.FuncForPC(pc).Name(), file, line)
+			}
+
+			if wantPanic {
+				t.Logf("OK panic is expected: args: %+v, %s", args, msg)
+			} else {
+				t.Errorf("unexpected panic occured: args: %+v, %s", args, msg)
 			}
 		} else {
 			if wantPanic {
-				t.Errorf("expect to occur panic but does not: isXXX: %v, args: %+v, %+v", isXXX, args, r)
+				t.Errorf("expect to occur panic but does not: args: %+v, %+v", args, r)
 			}
 		}
 	}
@@ -121,4 +137,8 @@ func newTestStruct() TestStruct {
 func newTestStructPtr() *TestStruct {
 	ts := newTestStruct()
 	return &ts
+}
+
+func newTestGetter() (structil.Getter, error) {
+	return structil.NewGetter(newTestStructPtr())
 }

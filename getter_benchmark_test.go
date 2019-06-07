@@ -24,9 +24,8 @@ func BenchmarkNewGetter_Ptr(b *testing.B) {
 	}
 }
 
-func BenchmarkGetType_String(b *testing.B) {
-	testStructPtr := newTestStructPtr()
-	g, err := NewGetter(testStructPtr)
+func BenchmarkGetterGetType_String(b *testing.B) {
+	g, err := newTestGetter()
 	if err != nil {
 		b.Errorf("NewGetter() occurs unexpected error: %v", err)
 		return
@@ -34,13 +33,12 @@ func BenchmarkGetType_String(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		g.GetType("ExpString")
+		g.GetType("String")
 	}
 }
 
-func BenchmarkGetValue_String(b *testing.B) {
-	testStructPtr := newTestStructPtr()
-	g, err := NewGetter(testStructPtr)
+func BenchmarkGetterGetValue_String(b *testing.B) {
+	g, err := newTestGetter()
 	if err != nil {
 		b.Errorf("NewGetter() occurs unexpected error: %v", err)
 		return
@@ -48,13 +46,12 @@ func BenchmarkGetValue_String(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		g.GetValue("ExpString")
+		g.GetValue("String")
 	}
 }
 
-func BenchmarkHas_String(b *testing.B) {
-	testStructPtr := newTestStructPtr()
-	g, err := NewGetter(testStructPtr)
+func BenchmarkGetterHas_String(b *testing.B) {
+	g, err := newTestGetter()
 	if err != nil {
 		b.Errorf("NewGetter() occurs unexpected error: %v", err)
 		return
@@ -62,13 +59,12 @@ func BenchmarkHas_String(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		g.Has("ExpString")
+		g.Has("String")
 	}
 }
 
-func BenchmarkGet_String(b *testing.B) {
-	testStructPtr := newTestStructPtr()
-	g, err := NewGetter(testStructPtr)
+func BenchmarkGetterGet_String(b *testing.B) {
+	g, err := newTestGetter()
 	if err != nil {
 		b.Errorf("NewGetter() occurs unexpected error: %v", err)
 		return
@@ -76,13 +72,12 @@ func BenchmarkGet_String(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		g.Get("ExpString")
+		g.Get("String")
 	}
 }
 
-func BenchmarkString(b *testing.B) {
-	testStructPtr := newTestStructPtr()
-	g, err := NewGetter(testStructPtr)
+func BenchmarkGetterEGet_String(b *testing.B) {
+	g, err := newTestGetter()
 	if err != nil {
 		b.Errorf("NewGetter() occurs unexpected error: %v", err)
 		return
@@ -90,23 +85,35 @@ func BenchmarkString(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		g.String("ExpString")
+		g.EGet("String")
 	}
 }
 
-func BenchmarkMapGet(b *testing.B) {
-	testStructPtr := newTestStructPtr()
-	g, err := NewGetter(testStructPtr)
+func BenchmarkGetterString(b *testing.B) {
+	g, err := newTestGetter()
+	if err != nil {
+		b.Errorf("NewGetter() occurs unexpected error: %v", err)
+		return
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		g.String("String")
+	}
+}
+
+func BenchmarkGetterMapGet(b *testing.B) {
+	g, err := newTestGetter()
 	if err != nil {
 		b.Errorf("NewGetter() occurs unexpected error: %v", err)
 		return
 	}
 	fn := func(i int, g Getter) interface{} {
-		return g.String("ExpString") + ":" + g.String("ExpString2")
+		return g.String("String") + ":" + g.String("String2")
 	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		g.MapGet("TestStructPtrSlice", fn)
+		g.MapGet("TestStruct4PtrSlice", fn)
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"unsafe"
 )
 
+// ToI returns a converted interface from rv.
 func ToI(rv reflect.Value) interface{} {
 	if rv.IsValid() && rv.CanInterface() {
 		return rv.Interface()

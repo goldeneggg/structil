@@ -10,6 +10,7 @@ const (
 	rootKey    = "!"
 )
 
+// Finder is the interface that builds the nested struct finder.
 type Finder interface {
 	Struct(names ...string) Finder
 	Find(names ...string) Finder
@@ -29,10 +30,14 @@ type fImpl struct {
 	sep        string
 }
 
+// NewFinder returns a concrete Finder that uses and obtains from i.
+// i must be a struct or struct pointer.
 func NewFinder(i interface{}) (Finder, error) {
 	return NewFinderWithSep(i, defaultSep)
 }
 
+// NewFinderWithSep returns a concrete Finder that uses and obtains from i using the separator string.
+// i must be a struct or struct pointer.
 func NewFinderWithSep(i interface{}, sep string) (Finder, error) {
 	g, err := NewGetter(i)
 	if err != nil {
@@ -42,10 +47,14 @@ func NewFinderWithSep(i interface{}, sep string) (Finder, error) {
 	return NewFinderWithGetterAndSep(g, sep)
 }
 
+// NewFinderWithGetter returns a concrete Finder that uses and obtains from g.
+// g must be a Getter
 func NewFinderWithGetter(g Getter) (Finder, error) {
 	return NewFinderWithGetterAndSep(g, defaultSep)
 }
 
+// NewFinderWithGetterAndSep returns a concrete Finder that uses and obtains from g using the separator string.
+// g must be a Getter
 func NewFinderWithGetterAndSep(g Getter, sep string) (Finder, error) {
 	if sep == "" {
 		return nil, fmt.Errorf("sep [%s] is invalid", sep)
@@ -56,6 +65,7 @@ func NewFinderWithGetterAndSep(g Getter, sep string) (Finder, error) {
 	return f.Reset(), nil
 }
 
+// Reset resets the current build Finder.
 func (f *fImpl) Reset() Finder {
 	gMap := map[string]Getter{}
 	gMap[rootKey] = f.rootGetter
@@ -74,6 +84,7 @@ func (f *fImpl) Reset() Finder {
 	return f
 }
 
+// Struct returns a Finder that nested struct fields are looked up and held named "names".
 func (f *fImpl) Struct(names ...string) Finder {
 	if f.HasError() {
 		return f
@@ -101,7 +112,11 @@ func (f *fImpl) Struct(names ...string) Finder {
 
 		nextGetter, ok = f.gMap[nextKey]
 		if !ok {
-			nextGetter, err = NewGetter(f.gMap[f.ck].Get(name))
+			if f.gMap[f.ck].Has(name) {
+				nextGetter, err = NewGetter(f.gMap[f.ck].Get(name))
+			} else {
+				err = fmt.Errorf("name %s does not exist", name)
+			}
 		}
 
 		if err != nil {
@@ -128,6 +143,7 @@ func (f *fImpl) addError(key string, err error) Finder {
 	return f
 }
 
+// Find returns a Finder that fields in struct are looked up and held named "names".
 func (f *fImpl) Find(names ...string) Finder {
 	if f.HasError() {
 		return f
@@ -138,6 +154,9 @@ func (f *fImpl) Find(names ...string) Finder {
 	return f
 }
 
+// ToMap returns a map converted from struct.
+// Map keys are lookup field names by "Struct" method and "Find".
+// Map values are lookup field values by "Struct" method and "Find".
 func (f *fImpl) ToMap() (map[string]interface{}, error) {
 	if f.HasError() {
 		return nil, f
@@ -170,6 +189,7 @@ func (f *fImpl) ToMap() (map[string]interface{}, error) {
 	return res, nil
 }
 
+// HasError tests whether this Finder have any errors.
 func (f *fImpl) HasError() bool {
 	for _, errs := range f.eMap {
 		if len(errs) > 0 {
@@ -180,6 +200,7 @@ func (f *fImpl) HasError() bool {
 	return false
 }
 
+// Error returns error string.
 func (f *fImpl) Error() string {
 	tmp := []string{}
 
@@ -193,6 +214,8 @@ func (f *fImpl) Error() string {
 	return strings.Join(tmp, "\n")
 }
 
+// GetNameSeparator returns the separator string for nested struct name separating.
+// Default is "." (dot).
 func (f *fImpl) GetNameSeparator() string {
 	return f.sep
 }

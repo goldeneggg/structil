@@ -25,8 +25,7 @@ func BenchmarkNewFinder_Ptr(b *testing.B) {
 }
 
 func BenchmarkToMap_1FindOnly(b *testing.B) {
-	testStructPtr := newTestStructPtr()
-	f, err := NewFinder(testStructPtr)
+	f, err := NewFinder(newTestStructPtr())
 	if err != nil {
 		b.Errorf("NewFinder() occurs unexpected error: %v", err)
 		return
@@ -43,8 +42,7 @@ func BenchmarkToMap_1FindOnly(b *testing.B) {
 }
 
 func BenchmarkToMap_2FindOnly(b *testing.B) {
-	testStructPtr := newTestStructPtr()
-	f, err := NewFinder(testStructPtr)
+	f, err := NewFinder(newTestStructPtr())
 	if err != nil {
 		b.Errorf("NewFinder() occurs unexpected error: %v", err)
 		return
@@ -61,8 +59,7 @@ func BenchmarkToMap_2FindOnly(b *testing.B) {
 }
 
 func BenchmarkToMap_1Struct_1Find(b *testing.B) {
-	testStructPtr := newTestStructPtr()
-	f, err := NewFinder(testStructPtr)
+	f, err := NewFinder(newTestStructPtr())
 	if err != nil {
 		b.Errorf("NewFinder() occurs unexpected error: %v", err)
 		return
@@ -79,8 +76,7 @@ func BenchmarkToMap_1Struct_1Find(b *testing.B) {
 }
 
 func BenchmarkToMap_1Struct_1Find_2Pair(b *testing.B) {
-	testStructPtr := newTestStructPtr()
-	f, err := NewFinder(testStructPtr)
+	f, err := NewFinder(newTestStructPtr())
 	if err != nil {
 		b.Errorf("NewFinder() occurs unexpected error: %v", err)
 		return
@@ -97,8 +93,7 @@ func BenchmarkToMap_1Struct_1Find_2Pair(b *testing.B) {
 }
 
 func BenchmarkToMap_2Struct_1Find(b *testing.B) {
-	testStructPtr := newTestStructPtr()
-	f, err := NewFinder(testStructPtr)
+	f, err := NewFinder(newTestStructPtr())
 	if err != nil {
 		b.Errorf("NewFinder() occurs unexpected error: %v", err)
 		return
@@ -115,8 +110,7 @@ func BenchmarkToMap_2Struct_1Find(b *testing.B) {
 }
 
 func BenchmarkToMap_2Struct_2Find(b *testing.B) {
-	testStructPtr := newTestStructPtr()
-	f, err := NewFinder(testStructPtr)
+	f, err := NewFinder(newTestStructPtr())
 	if err != nil {
 		b.Errorf("NewFinder() occurs unexpected error: %v", err)
 		return
