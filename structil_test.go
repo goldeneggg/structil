@@ -60,14 +60,14 @@ var (
 		r := recover()
 		if r != nil {
 			if !wantPanic {
-				msg := "\n"
+				msg := fmt.Sprintf("\n%v\n", r)
 				for d := 0; ; d++ {
 					pc, file, line, ok := runtime.Caller(d)
 					if !ok {
 						break
 					}
 
-					msg = msg + fmt.Sprintf(" -> %d: %s: %s(%d)\n", d, runtime.FuncForPC(pc).Name(), file, line)
+					msg = msg + fmt.Sprintf(" -> %d: %s: %s:%d\n", d, runtime.FuncForPC(pc).Name(), file, line)
 				}
 				t.Errorf("unexpected panic occured: args: %+v, %s", args, msg)
 			}

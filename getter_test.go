@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
+	"github.com/goldeneggg/structil"
 	. "github.com/goldeneggg/structil"
 )
 
@@ -186,7 +187,7 @@ func TestGetType(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := newTestGetter()
+	g, err := structil.NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() unexpected error [%v] occured.", err)
 		return
@@ -246,7 +247,7 @@ func TestGetValue(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := newTestGetter()
+	g, err := structil.NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
 		return
@@ -306,7 +307,7 @@ func TestGet(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := newTestGetter()
+	g, err := structil.NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
 	}
@@ -354,8 +355,14 @@ func TestGet(t *testing.T) {
 			got := g.Get(tt.args.name)
 			if tt.wantPanic {
 				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if tt.args.name == "Func" {
+				// Note: cmp.Diff does not support comparing func and func
+				gp := reflect.ValueOf(got).Pointer()
+				wp := reflect.ValueOf(tt.wantIntf).Pointer()
+				if gp != wp {
+					t.Errorf("unexpected mismatch func type: gp: %v, wp: %v", gp, wp)
+				}
 			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
-				// FIXME: Func is fail
 				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
 		})
@@ -366,7 +373,7 @@ func TestBytes(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := newTestGetter()
+	g, err := structil.NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
 	}
@@ -397,7 +404,7 @@ func TestString(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := newTestGetter()
+	g, err := structil.NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
 	}
@@ -428,7 +435,7 @@ func TestInt64(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := newTestGetter()
+	g, err := structil.NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
 	}
@@ -459,7 +466,7 @@ func TestUint64(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := newTestGetter()
+	g, err := structil.NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
 	}
@@ -490,7 +497,7 @@ func TestFloat64(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := newTestGetter()
+	g, err := structil.NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
 	}
@@ -521,7 +528,7 @@ func TestBool(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := newTestGetter()
+	g, err := structil.NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
 	}
