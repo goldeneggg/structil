@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	. "github.com/goldeneggg/structil"
+	"github.com/google/go-cmp/cmp"
 )
 
 type toMapTest struct {
@@ -109,12 +110,8 @@ func TestNewFinderWithGetterAndSep(t *testing.T) {
 	}
 }
 
-/*
 func TestToMap_ValidFindOnly(t *testing.T) {
-	var f Finder
-	var err error
-
-	f, err = NewFinder(newTestStructPtr())
+	f, err := NewFinder(newTestStructPtr())
 	if err != nil {
 		t.Errorf("NewFinder() error = %v", err)
 		return
@@ -178,15 +175,15 @@ func TestToMap_ValidFindOnly(t *testing.T) {
 				return
 			}
 
-			for k, wv := range tst.wantMap {
-				gv, ok := got[k]
+			for k, wi := range tst.wantMap {
+				gi, ok := got[k]
 				if ok {
-					if d := cmp.Diff(gv, wv); d != "" {
+					if d := cmp.Diff(gi, wi); d != "" {
 						t.Errorf("ToMap() key: %s, gotMap: %+v, (-got +want)\n%s", k, got, d)
 						return
 					}
 				} else {
-					t.Errorf("ToMap() ok: %v, key: %s, gotValue: [%v], wantValue: [%v], gotMap: %+v, ", ok, k, gv, wv, got)
+					t.Errorf("ToMap() ok: %v, key: %s, gotValue: [%v], wantValue: [%v], gotMap: %+v, ", ok, k, gi, wi, got)
 					return
 				}
 			}
@@ -198,10 +195,7 @@ func TestToMap_ValidFindOnly(t *testing.T) {
 }
 
 func TestToMap_1Struct1Find(t *testing.T) {
-	var f Finder
-	var err error
-
-	f, err = NewFinder(newTestStructPtr())
+	f, err := NewFinder(newTestStructPtr())
 	if err != nil {
 		t.Errorf("NewFinder() error = %v", err)
 		return
@@ -225,15 +219,15 @@ func TestToMap_1Struct1Find(t *testing.T) {
 				return
 			}
 
-			for k, wv := range tst.wantMap {
-				gv, ok := got[k]
+			for k, wi := range tst.wantMap {
+				gi, ok := got[k]
 				if ok {
-					if d := cmp.Diff(gv, wv); d != "" {
+					if d := cmp.Diff(gi, wi); d != "" {
 						t.Errorf("ToMap() key: %s, gotMap: %+v, (-got +want)\n%s", k, got, d)
 						return
 					}
 				} else {
-					t.Errorf("ToMap() ok: %v, key: %s, gotValue: [%v], wantValue: [%v], gotMap: %+v, ", ok, k, gv, wv, got)
+					t.Errorf("ToMap() ok: %v, key: %s, gotValue: [%v], wantValue: [%v], gotMap: %+v, ", ok, k, gi, wi, got)
 					return
 				}
 			}
@@ -245,10 +239,7 @@ func TestToMap_1Struct1Find(t *testing.T) {
 }
 
 func TestToMap_2Struct2Find(t *testing.T) {
-	var f Finder
-	var err error
-
-	f, err = NewFinder(newTestStructPtr())
+	f, err := NewFinder(newTestStructPtr())
 	if err != nil {
 		t.Errorf("NewFinder() error = %v", err)
 		return
@@ -273,15 +264,15 @@ func TestToMap_2Struct2Find(t *testing.T) {
 				return
 			}
 
-			for k, wv := range tst.wantMap {
-				gv, ok := got[k]
+			for k, wi := range tst.wantMap {
+				gi, ok := got[k]
 				if ok {
-					if d := cmp.Diff(gv, wv); d != "" {
+					if d := cmp.Diff(gi, wi); d != "" {
 						t.Errorf("ToMap() key: %s, gotMap: %+v, (-got +want)\n%s", k, got, d)
 						return
 					}
 				} else {
-					t.Errorf("ToMap() ok: %v, key: %s, gotValue: [%v], wantValue: [%v], gotMap: %+v, ", ok, k, gv, wv, got)
+					t.Errorf("ToMap() ok: %v, key: %s, gotValue: [%v], wantValue: [%v], gotMap: %+v, ", ok, k, gi, wi, got)
 					return
 				}
 			}
@@ -293,10 +284,7 @@ func TestToMap_2Struct2Find(t *testing.T) {
 }
 
 func TestToMap_MultiStructMultiFind(t *testing.T) {
-	var f Finder
-	var err error
-
-	f, err = NewFinder(newTestStructPtr())
+	f, err := NewFinder(newTestStructPtr())
 	if err != nil {
 		t.Errorf("NewFinder() error = %v", err)
 		return
@@ -327,15 +315,15 @@ func TestToMap_MultiStructMultiFind(t *testing.T) {
 				return
 			}
 
-			for k, wv := range tst.wantMap {
-				gv, ok := got[k]
+			for k, wi := range tst.wantMap {
+				gi, ok := got[k]
 				if ok {
-					if d := cmp.Diff(gv, wv); d != "" {
+					if d := cmp.Diff(gi, wi); d != "" {
 						t.Errorf("ToMap() key: %s, gotMap: %+v, (-got +want)\n%s", k, got, d)
 						return
 					}
 				} else {
-					t.Errorf("ToMap() ok: %v, key: %s, gotValue: [%v], wantValue: [%v], gotMap: %+v, ", ok, k, gv, wv, got)
+					t.Errorf("ToMap() ok: %v, key: %s, gotValue: [%v], wantValue: [%v], gotMap: %+v, ", ok, k, gi, wi, got)
 					return
 				}
 			}
@@ -346,6 +334,7 @@ func TestToMap_MultiStructMultiFind(t *testing.T) {
 	})
 }
 
+/*
 func TestToMap_ErrorFindByInvalidName(t *testing.T) {
 	var f Finder
 	var err error
