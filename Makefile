@@ -21,6 +21,10 @@ test-v:
 bench:
 	@go test -bench . $(PKGS)
 
+.PHONY: lint
+lint:
+	@golint -set_exit_status $(PKGS)
+
 .PHONY: vet
 vet:
 	@go vet $(PKGS)
