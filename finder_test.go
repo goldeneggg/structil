@@ -126,49 +126,49 @@ func TestToMap(t *testing.T) {
 			args: args{
 				chain: fs[0].
 					Find(
-						"ExpInt64",
-						"ExpFloat64",
-						"ExpString",
-						"ExpStringptr",
-						"ExpStringslice",
-						"ExpBool",
-						"ExpMap",
-						//"ExpFunc",
-						"ExpChInt",
-						"uexpString",
+						"Int64",
+						"Float64",
+						"String",
+						"Stringptr",
+						"Stringslice",
+						"Bool",
+						"Map",
+						//"Func",
+						"ChInt",
+						"privateString",
 						"TestStruct2",
 						"TestStruct2Ptr",
-						"TestStructSlice",
-						"TestStructPtrSlice",
+						"TestStruct4Slice",
+						"TestStruct4PtrSlice",
 					),
 			},
 			wantErr: false,
 			wantMap: map[string]interface{}{
-				"ExpInt64":       int64(-1),
-				"ExpFloat64":     float64(-3.45),
-				"ExpString":      "test name",
-				"ExpStringptr":   testString2, // TODO: if pointer, test is fail
-				"ExpStringslice": []string{"strslice1", "strslice2"},
-				"ExpBool":        true,
-				"ExpMap":         map[string]interface{}{"k1": "v1", "k2": 2},
-				//"ExpFunc":        testFunc,  // TODO: func is fail
-				"ExpChInt":   testChan,
-				"uexpString": nil, // unexported field is nil
+				"Int64":       int64(-1),
+				"Float64":     float64(-3.45),
+				"String":      "test name",
+				"Stringptr":   testString2, // TODO: if pointer, test is fail
+				"Stringslice": []string{"strslice1", "strslice2"},
+				"Bool":        true,
+				"Map":         map[string]interface{}{"k1": "v1", "k2": 2},
+				//"Func":        testFunc,  // TODO: func is fail
+				"ChInt":         testChan,
+				"privateString": nil, // unexported field is nil
 				"TestStruct2": TestStruct2{
-					ExpString:   "struct2 string",
-					TestStruct3: &TestStruct3{ExpString: "struct3 string", ExpInt: -123},
+					String:      "struct2 string",
+					TestStruct3: &TestStruct3{String: "struct3 string", Int: -123},
 				},
 				"TestStruct2Ptr": TestStruct2{ // not ptr
-					ExpString:   "struct2 string ptr",
-					TestStruct3: &TestStruct3{ExpString: "struct3 string ptr", ExpInt: -456},
+					String:      "struct2 string ptr",
+					TestStruct3: &TestStruct3{String: "struct3 string ptr", Int: -456},
 				},
-				"TestStructSlice": []TestStruct4{
-					{ExpString: "key100", ExpString2: "value100"},
-					{ExpString: "key200", ExpString2: "value200"},
+				"TestStruct4Slice": []TestStruct4{
+					{String: "key100", String2: "value100"},
+					{String: "key200", String2: "value200"},
 				},
-				"TestStructPtrSlice": []*TestStruct4{
-					{ExpString: "key991", ExpString2: "value991"},
-					{ExpString: "key992", ExpString2: "value992"},
+				"TestStruct4PtrSlice": []*TestStruct4{
+					{String: "key991", String2: "value991"},
+					{String: "key992", String2: "value992"},
 				},
 			},
 		},
@@ -176,39 +176,39 @@ func TestToMap(t *testing.T) {
 			name: "ToMap with single-nest chain",
 			args: args{
 				chain: fs[1].
-					Struct("TestStruct2").Find("ExpString"),
+					Struct("TestStruct2").Find("String"),
 			},
 			wantErr: false,
 			wantMap: map[string]interface{}{
-				"TestStruct2.ExpString": "struct2 string",
+				"TestStruct2.String": "struct2 string",
 			},
 		},
 		{
 			name: "ToMap with two-nest chain",
 			args: args{
 				chain: fs[2].
-					Struct("TestStruct2Ptr", "TestStruct3").Find("ExpString", "ExpInt"),
+					Struct("TestStruct2Ptr", "TestStruct3").Find("String", "Int"),
 			},
 			wantErr: false,
 			wantMap: map[string]interface{}{
-				"TestStruct2Ptr.TestStruct3.ExpString": "struct3 string ptr",
-				"TestStruct2Ptr.TestStruct3.ExpInt":    int(-456),
+				"TestStruct2Ptr.TestStruct3.String": "struct3 string ptr",
+				"TestStruct2Ptr.TestStruct3.Int":    int(-456),
 			},
 		},
 		{
 			name: "ToMap with multi nest chains",
 			args: args{
 				chain: fs[3].
-					Struct("TestStruct2").Find("ExpString").
-					Struct("TestStruct2Ptr").Find("ExpString").
-					Struct("TestStruct2Ptr", "TestStruct3").Find("ExpString", "ExpInt"),
+					Struct("TestStruct2").Find("String").
+					Struct("TestStruct2Ptr").Find("String").
+					Struct("TestStruct2Ptr", "TestStruct3").Find("String", "Int"),
 			},
 			wantErr: false,
 			wantMap: map[string]interface{}{
-				"TestStruct2.ExpString":                "struct2 string",
-				"TestStruct2Ptr.ExpString":             "struct2 string ptr",
-				"TestStruct2Ptr.TestStruct3.ExpString": "struct3 string ptr",
-				"TestStruct2Ptr.TestStruct3.ExpInt":    int(-456),
+				"TestStruct2.String":                "struct2 string",
+				"TestStruct2Ptr.String":             "struct2 string ptr",
+				"TestStruct2Ptr.TestStruct3.String": "struct3 string ptr",
+				"TestStruct2Ptr.TestStruct3.Int":    int(-456),
 			},
 		},
 		{
@@ -221,14 +221,14 @@ func TestToMap(t *testing.T) {
 		{
 			name: "ToMap with Find with existed and non-existed names",
 			args: args{
-				chain: fs[5].Find("ExpString", "NonExist"),
+				chain: fs[5].Find("String", "NonExist"),
 			},
 			wantErr: true,
 		},
 		{
 			name: "ToMap with Struct with non-existed name",
 			args: args{
-				chain: fs[6].Struct("NonExist").Find("ExpString"),
+				chain: fs[6].Struct("NonExist").Find("String"),
 			},
 			wantErr: true,
 		},
@@ -243,8 +243,8 @@ func TestToMap(t *testing.T) {
 			name: "ToMap with Struct with existed and non-existed name and Find",
 			args: args{
 				chain: fs[8].
-					Struct("TestStruct2").Find("ExpString").
-					Struct("TestStruct2", "NonExist").Find("ExpString"),
+					Struct("TestStruct2").Find("String").
+					Struct("TestStruct2", "NonExist").Find("String"),
 			},
 			wantErr: true,
 		},
@@ -252,16 +252,16 @@ func TestToMap(t *testing.T) {
 			name: "ToMap with multi nest chains separated by assigned sep",
 			args: args{
 				chain: fsep.
-					Struct("TestStruct2").Find("ExpString").
-					Struct("TestStruct2Ptr").Find("ExpString").
-					Struct("TestStruct2Ptr", "TestStruct3").Find("ExpString", "ExpInt"),
+					Struct("TestStruct2").Find("String").
+					Struct("TestStruct2Ptr").Find("String").
+					Struct("TestStruct2Ptr", "TestStruct3").Find("String", "Int"),
 			},
 			wantErr: false,
 			wantMap: map[string]interface{}{
-				"TestStruct2:ExpString":                "struct2 string",
-				"TestStruct2Ptr:ExpString":             "struct2 string ptr",
-				"TestStruct2Ptr:TestStruct3:ExpString": "struct3 string ptr",
-				"TestStruct2Ptr:TestStruct3:ExpInt":    int(-456),
+				"TestStruct2:String":                "struct2 string",
+				"TestStruct2Ptr:String":             "struct2 string ptr",
+				"TestStruct2Ptr:TestStruct3:String": "struct3 string ptr",
+				"TestStruct2Ptr:TestStruct3:Int":    int(-456),
 			},
 		},
 	}

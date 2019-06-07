@@ -8,39 +8,43 @@ import (
 
 type (
 	TestStruct struct {
-		ExpBytes       []byte
-		ExpInt64       int64
-		ExpUint64      uint64
-		ExpFloat32     float32
-		ExpFloat64     float64
-		ExpString      string
-		ExpStringptr   *string
-		ExpStringslice []string
-		ExpBool        bool
-		ExpMap         map[string]interface{}
-		ExpFunc        func(string) interface{}
-		ExpChInt       chan int
-		uexpString     string
+		Bytes         []byte
+		Int64         int64
+		Uint64        uint64
+		Float32       float32
+		Float64       float64
+		String        string
+		Stringptr     *string
+		Stringslice   []string
+		Bool          bool
+		Map           map[string]interface{}
+		Func          func(string) interface{}
+		ChInt         chan int
+		privateString string
 		TestStruct2
-		TestStruct2Ptr     *TestStruct2
-		TestStructSlice    []TestStruct4
-		TestStructPtrSlice []*TestStruct4
+		TestStruct2Ptr      *TestStruct2
+		TestStruct4Slice    []TestStruct4
+		TestStruct4PtrSlice []*TestStruct4
 	}
 
 	TestStruct2 struct {
-		ExpString string
+		String string
 		*TestStruct3
 	}
 
 	TestStruct3 struct {
-		ExpString string
-		ExpInt    int
+		String string
+		Int    int
 	}
 
 	TestStruct4 struct {
-		ExpString  string
-		ExpString2 string
+		String  string
+		String2 string
 	}
+)
+
+var (
+	testIntf interface{}
 )
 
 var (
@@ -64,51 +68,51 @@ var (
 
 func newTestStruct() TestStruct {
 	return TestStruct{
-		ExpBytes:       []byte{0x00, 0xFF},
-		ExpInt64:       int64(-1),
-		ExpUint64:      uint64(1),
-		ExpFloat32:     float32(-1.23),
-		ExpFloat64:     float64(-3.45),
-		ExpString:      "test name",
-		ExpStringptr:   &testString2,
-		ExpStringslice: []string{"strslice1", "strslice2"},
-		ExpBool:        true,
-		ExpMap:         map[string]interface{}{"k1": "v1", "k2": 2},
-		ExpFunc:        testFunc,
-		ExpChInt:       testChan,
-		uexpString:     "unexported string",
+		Bytes:         []byte{0x00, 0xFF},
+		Int64:         int64(-1),
+		Uint64:        uint64(1),
+		Float32:       float32(-1.23),
+		Float64:       float64(-3.45),
+		String:        "test name",
+		Stringptr:     &testString2,
+		Stringslice:   []string{"strslice1", "strslice2"},
+		Bool:          true,
+		Map:           map[string]interface{}{"k1": "v1", "k2": 2},
+		Func:          testFunc,
+		ChInt:         testChan,
+		privateString: "unexported string",
 		TestStruct2: TestStruct2{
-			ExpString: "struct2 string",
+			String: "struct2 string",
 			TestStruct3: &TestStruct3{
-				ExpString: "struct3 string",
-				ExpInt:    -123,
+				String: "struct3 string",
+				Int:    -123,
 			},
 		},
 		TestStruct2Ptr: &TestStruct2{
-			ExpString: "struct2 string ptr",
+			String: "struct2 string ptr",
 			TestStruct3: &TestStruct3{
-				ExpString: "struct3 string ptr",
-				ExpInt:    -456,
+				String: "struct3 string ptr",
+				Int:    -456,
 			},
 		},
-		TestStructSlice: []TestStruct4{
+		TestStruct4Slice: []TestStruct4{
 			{
-				ExpString:  "key100",
-				ExpString2: "value100",
+				String:  "key100",
+				String2: "value100",
 			},
 			{
-				ExpString:  "key200",
-				ExpString2: "value200",
+				String:  "key200",
+				String2: "value200",
 			},
 		},
-		TestStructPtrSlice: []*TestStruct4{
+		TestStruct4PtrSlice: []*TestStruct4{
 			{
-				ExpString:  "key991",
-				ExpString2: "value991",
+				String:  "key991",
+				String2: "value991",
 			},
 			{
-				ExpString:  "key992",
-				ExpString2: "value992",
+				String:  "key992",
+				String2: "value992",
 			},
 		},
 	}
