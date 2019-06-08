@@ -43,7 +43,7 @@ func ExampleGetter_MapGet_joinElements() {
 
 	fn := func(i int, g Getter) (interface{}, error) {
 		return fmt.Sprintf(
-			"You worked for %d yeards since you joined the company %s",
+			"You worked for %d years since you joined the company %s",
 			g.Int("Period"),
 			g.String("Name"),
 		), nil
@@ -56,5 +56,5 @@ func ExampleGetter_MapGet_joinElements() {
 
 	fmt.Printf("%#v", intfs)
 	// Output:
-	// []interface {}{"You worked for 3 yeards since you joined the company Tiger inc.", "You worked for 4 yeards since you joined the company Dragon inc."}
+	// []interface {}{"You worked for 3 years since you joined the company Tiger inc.", "You worked for 4 years since you joined the company Dragon inc."}
 }
