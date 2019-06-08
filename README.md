@@ -5,7 +5,7 @@
 [![GolangCI](https://golangci.com/badges/github.com/goldeneggg/gat.svg)](https://golangci.com/r/github.com/goldeneggg/structil)
 [![Codecov](https://codecov.io/github/goldeneggg/structil/coverage.svg?branch=master)](https://codecov.io/github/goldeneggg/structil?branch=master)
 
-Struct utilities in Go.
+Struct Utilities for runtime and dynamic environment in Go.
 
 ___WIP___
 
