@@ -12,8 +12,11 @@ import (
 
 type (
 	TestStruct struct {
+		Byte          byte
 		Bytes         []byte
+		Int           int
 		Int64         int64
+		Uint          uint
 		Uint64        uint64
 		Float32       float32
 		Float64       float64
@@ -84,8 +87,11 @@ var (
 
 func newTestStruct() TestStruct {
 	return TestStruct{
+		Byte:          0x61,
 		Bytes:         []byte{0x00, 0xFF},
+		Int:           int(-2),
 		Int64:         int64(-1),
+		Uint:          uint(2),
 		Uint64:        uint64(1),
 		Float32:       float32(-1.23),
 		Float64:       float64(-3.45),
