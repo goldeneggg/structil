@@ -1,11 +1,12 @@
-package structil
+package reflectil
 
 import (
 	"fmt"
 	"runtime"
 )
 
-func recoverToError(r interface{}) (err error) {
+// RecoverToError returns an error converted from recoverd panic information.
+func RecoverToError(r interface{}) (err error) {
 	if r != nil {
 		msg := fmt.Sprintf("\n%v\n", r) + stackTrace()
 		err = fmt.Errorf("unexpected panic occured: %s", msg)

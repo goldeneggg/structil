@@ -145,7 +145,7 @@ func (g *gImpl) Get(name string) interface{} {
 func (g *gImpl) EGet(name string) (intf interface{}, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = recoverToError(r)
+			err = reflectil.RecoverToError(r)
 		}
 	}()
 
