@@ -15,6 +15,8 @@ type toMapTest struct {
 }
 
 func TestNewFinder(t *testing.T) {
+	t.Parallel()
+
 	type args struct {
 		i interface{}
 	}
@@ -69,6 +71,8 @@ func TestNewFinder(t *testing.T) {
 }
 
 func TestNewFinderWithGetterAndSep(t *testing.T) {
+	t.Parallel()
+
 	g, err := NewGetter(newTestStructPtr())
 	if err != nil {
 		t.Errorf("NewGetter() error = %v", err)
