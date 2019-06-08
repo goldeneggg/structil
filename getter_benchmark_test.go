@@ -1,111 +1,148 @@
 package structil_test
 
 import (
+	"reflect"
 	"testing"
 
 	. "github.com/goldeneggg/structil"
 )
 
 func BenchmarkNewGetter_Val(b *testing.B) {
-	testStructVal := newTestStruct()
+	var g Getter
+	var e error
 
+	testStructVal := newTestStruct()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		NewGetter(testStructVal)
+		g, e = NewGetter(testStructVal)
+		if e == nil {
+			_ = g
+		} else {
+			b.Fatalf("abort benchmark because error %v occurd.", e)
+		}
 	}
 }
 
 func BenchmarkNewGetter_Ptr(b *testing.B) {
-	testStructPtr := newTestStructPtr()
+	var g Getter
+	var e error
 
+	testStructPtr := newTestStructPtr()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		NewGetter(testStructPtr)
+		g, e = NewGetter(testStructPtr)
+		if e == nil {
+			_ = g
+		} else {
+			b.Fatalf("abort benchmark because error %v occurd.", e)
+		}
 	}
 }
 
 func BenchmarkGetterGetType_String(b *testing.B) {
+	var t reflect.Type
+
 	g, err := newTestGetter()
 	if err != nil {
-		b.Errorf("NewGetter() occurs unexpected error: %v", err)
+		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
 		return
 	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		g.GetType("String")
+		t = g.GetType("String")
+		_ = t
 	}
 }
 
 func BenchmarkGetterGetValue_String(b *testing.B) {
+	var v reflect.Value
+
 	g, err := newTestGetter()
 	if err != nil {
-		b.Errorf("NewGetter() occurs unexpected error: %v", err)
+		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
 		return
 	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		g.GetValue("String")
+		v = g.GetValue("String")
+		_ = v
 	}
 }
 
 func BenchmarkGetterHas_String(b *testing.B) {
+	var bl bool
+
 	g, err := newTestGetter()
 	if err != nil {
-		b.Errorf("NewGetter() occurs unexpected error: %v", err)
+		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
 		return
 	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		g.Has("String")
+		bl = g.Has("String")
+		_ = bl
 	}
 }
 
 func BenchmarkGetterGet_String(b *testing.B) {
+	var it interface{}
+
 	g, err := newTestGetter()
 	if err != nil {
-		b.Errorf("NewGetter() occurs unexpected error: %v", err)
+		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
 		return
 	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		g.Get("String")
+		it = g.Get("String")
+		_ = it
 	}
 }
 
 func BenchmarkGetterEGet_String(b *testing.B) {
+	var it interface{}
+
 	g, err := newTestGetter()
 	if err != nil {
-		b.Errorf("NewGetter() occurs unexpected error: %v", err)
+		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
 		return
 	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		g.EGet("String")
+		it, err = g.EGet("String")
+		if err == nil {
+			_ = it
+		}
 	}
 }
 
 func BenchmarkGetterString(b *testing.B) {
+	var str string
+
 	g, err := newTestGetter()
 	if err != nil {
-		b.Errorf("NewGetter() occurs unexpected error: %v", err)
+		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
 		return
 	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		g.String("String")
+		str = g.String("String")
+		_ = str
 	}
 }
 
 func BenchmarkGetterMapGet(b *testing.B) {
+	var ia []interface{}
+
 	g, err := newTestGetter()
 	if err != nil {
-		b.Errorf("NewGetter() occurs unexpected error: %v", err)
+		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
 		return
 	}
 	fn := func(i int, g Getter) (interface{}, error) {
@@ -114,6 +151,11 @@ func BenchmarkGetterMapGet(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		g.MapGet("TestStruct4PtrSlice", fn)
+		ia, err = g.MapGet("TestStruct4PtrSlice", fn)
+		if err == nil {
+			_ = ia
+		} else {
+			b.Fatalf("abort benchmark because error %v occurd.", err)
+		}
 	}
 }
