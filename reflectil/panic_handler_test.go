@@ -7,6 +7,8 @@ import (
 )
 
 func TestRecoverToError(t *testing.T) {
+	t.Parallel()
+
 	t.Run("recover to error", func(t *testing.T) {
 		defer func() {
 			if r := recover(); r != nil {

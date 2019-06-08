@@ -123,6 +123,8 @@ func TestNewFinderWithGetterAndSep(t *testing.T) {
 }
 
 func TestToMap(t *testing.T) {
+	t.Parallel()
+
 	var f Finder
 	var fs []Finder
 	var err error

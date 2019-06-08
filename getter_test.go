@@ -6,7 +6,6 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/goldeneggg/structil"
 	. "github.com/goldeneggg/structil"
 )
 
@@ -187,7 +186,7 @@ func TestGetType(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := structil.NewGetter(testStructPtr)
+	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() unexpected error [%v] occured.", err)
 		return
@@ -247,7 +246,7 @@ func TestGetValue(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := structil.NewGetter(testStructPtr)
+	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
 		return
@@ -307,7 +306,7 @@ func TestGet(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := structil.NewGetter(testStructPtr)
+	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
 	}
@@ -373,7 +372,7 @@ func TestEGet(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := structil.NewGetter(testStructPtr)
+	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
 	}
@@ -451,7 +450,7 @@ func TestBytes(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := structil.NewGetter(testStructPtr)
+	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
 	}
@@ -482,7 +481,7 @@ func TestString(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := structil.NewGetter(testStructPtr)
+	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
 	}
@@ -513,7 +512,7 @@ func TestInt64(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := structil.NewGetter(testStructPtr)
+	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
 	}
@@ -544,7 +543,7 @@ func TestUint64(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := structil.NewGetter(testStructPtr)
+	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
 	}
@@ -575,7 +574,7 @@ func TestFloat64(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := structil.NewGetter(testStructPtr)
+	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
 	}
@@ -606,7 +605,7 @@ func TestBool(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := structil.NewGetter(testStructPtr)
+	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
 	}

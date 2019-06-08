@@ -117,6 +117,8 @@ func BenchmarkGetterEGet_String(b *testing.B) {
 		it, err = g.EGet("String")
 		if err == nil {
 			_ = it
+		} else {
+			b.Fatalf("abort benchmark because error %v occurd.", err)
 		}
 	}
 }
