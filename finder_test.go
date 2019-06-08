@@ -3,8 +3,9 @@ package structil_test
 import (
 	"testing"
 
-	. "github.com/goldeneggg/structil"
 	"github.com/google/go-cmp/cmp"
+
+	. "github.com/goldeneggg/structil"
 )
 
 type toMapTest struct {

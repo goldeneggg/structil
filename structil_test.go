@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/goldeneggg/structil"
+	. "github.com/goldeneggg/structil"
 )
 
 type (
@@ -139,6 +139,6 @@ func newTestStructPtr() *TestStruct {
 	return &ts
 }
 
-func newTestGetter() (structil.Getter, error) {
-	return structil.NewGetter(newTestStructPtr())
+func newTestGetter() (Getter, error) {
+	return NewGetter(newTestStructPtr())
 }
