@@ -34,5 +34,5 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Printf("Name: %+v, Age: %+v, Company: %+v\n", getter.String("Name"), getter.Int("Age"), getter.Get("Company"))
+	fmt.Printf("Name: %#v, Age: %#v, Company: %#v\n", getter.String("Name"), getter.Int("Age"), getter.Get("Company"))
 }

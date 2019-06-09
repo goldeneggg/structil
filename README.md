@@ -55,7 +55,7 @@ func main() {
 }
 ```
 ```
-Name: Mike Davis, Age: 27, Company: {Name:Scott inc. Address:Osaka Period:2}
+Name: "Mike Davis", Age: 27, Company: main.company{Name:"Scott inc.", Address:"Osaka", Period:2}
 ```
 
 #### Collection method for slice of struct
@@ -187,8 +187,10 @@ func main() {
 		panic(err)
 	}
 
-  // We can use method chain for Find and Into methods.
-  // And finally, we can call ToMap method for converting from struct to map.
+	// We can use method chain for Find and Into methods.
+	//  - Find returns a Finder that fields in struct are looked up and held named "names".
+	//  - Into returns a Finder that nested struct fields are looked up and held named "names".
+	// And finally, we can call ToMap method for converting from struct to map.
 	m, err := finder.
 		Find("Name", "School").
 		Into("Company").Find("Address").
