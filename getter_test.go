@@ -133,7 +133,7 @@ func TestNewGetter(t *testing.T) {
 		{
 			name:    "valid struct ptr nil",
 			args:    args{i: (*TestStruct)(nil)},
-			wantErr: false,
+			wantErr: true,
 		},
 		{
 			name:    "invalid (nil)",
@@ -162,6 +162,44 @@ func TestNewGetter(t *testing.T) {
 				}
 			} else if !tt.wantErr {
 				t.Errorf("NewGetter() unexpected error [%v] occured. wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestNumField(t *testing.T) {
+	t.Parallel()
+
+	type args struct {
+		i interface{}
+	}
+	tests := []struct {
+		name string
+		args args
+		want int
+	}{
+		{
+			name: "use TestStruct",
+			args: args{i: &TestStruct{}},
+			want: 20,
+		},
+		{
+			name: "use TestStruct2",
+			args: args{i: &TestStruct2{}},
+			want: 2,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g, err := NewGetter(tt.args.i)
+			if err != nil {
+				t.Errorf("NewGetter() unexpected error [%v] occured", err)
+			}
+
+			nf := g.NumField()
+			if nf != tt.want {
+				t.Errorf("unmatch NumField. got: %d, want: %d", nf, tt.want)
 			}
 		})
 	}

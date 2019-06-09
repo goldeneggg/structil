@@ -9,6 +9,7 @@ import (
 
 // Getter is the interface that wraps the basic Getter method.
 type Getter interface {
+	NumField() int
 	Has(name string) bool
 	GetType(name string) reflect.Type
 	GetValue(name string) reflect.Value
@@ -42,6 +43,7 @@ type Getter interface {
 
 type gImpl struct {
 	rv     reflect.Value // Value of input interface
+	numf   int
 	hases  map[string]bool
 	types  map[string]reflect.Type  // Type map of struct fields
 	values map[string]reflect.Value // Value map of indirected struct fields
@@ -51,28 +53,34 @@ type gImpl struct {
 // NewGetter returns a concrete Getter that uses and obtains from i.
 // i must be a struct or struct pointer.
 func NewGetter(i interface{}) (Getter, error) {
-	if i == nil {
-		return nil, fmt.Errorf("value of passed argument %+v is nil.", i)
-	}
-
 	rv := reflect.ValueOf(i)
 	kind := rv.Kind()
 
 	if kind != reflect.Ptr && kind != reflect.Struct {
-		return nil, fmt.Errorf("%v is not supported kind.", kind)
+		return nil, fmt.Errorf("%+v is not supported kind: %v. value: %+v.", i, kind, rv)
 	}
 
 	if kind == reflect.Ptr {
 		rv = reflect.Indirect(rv)
 	}
 
+	if !rv.IsValid() {
+		return nil, fmt.Errorf("%+v is invalid argument. value: %+v.", i, rv)
+	}
+
 	return &gImpl{
 		rv:     rv,
+		numf:   rv.NumField(),
 		hases:  map[string]bool{},
 		values: map[string]reflect.Value{},
 		types:  map[string]reflect.Type{},
 		intfs:  map[string]interface{}{},
 	}, nil
+}
+
+// NumField returns num of struct field.
+func (g *gImpl) NumField() int {
+	return g.numf
 }
 
 // Has tests whether the original struct has a field named "name" arg.
