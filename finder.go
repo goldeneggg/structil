@@ -143,9 +143,7 @@ func (f *fImpl) Find(names ...string) Finder {
 	}
 
 	f.fMap[f.ck] = make([]string, len(names))
-	for i, n := range names {
-		f.fMap[f.ck][i] = n
-	}
+	copy(f.fMap[f.ck], names)
 
 	return f
 }
