@@ -356,8 +356,9 @@ func (g *gImpl) MapGet(name string, f func(int, Getter) (interface{}, error)) ([
 	var eg Getter
 	var err error
 	var r interface{}
-	var res []interface{}
+
 	srv := g.GetValue(name)
+	res := make([]interface{}, srv.Len())
 
 	for i := 0; i < srv.Len(); i++ {
 		vi = srv.Index(i)
@@ -371,7 +372,7 @@ func (g *gImpl) MapGet(name string, f func(int, Getter) (interface{}, error)) ([
 			return nil, err
 		}
 
-		res = append(res, r)
+		res[i] = r
 	}
 
 	return res, nil
