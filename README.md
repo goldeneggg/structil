@@ -8,8 +8,92 @@
 
 Struct Utilities for runtime and dynamic environment in Go.
 
-## Usage
-See [![GoDoc](https://godoc.org/github.com/goldeneggg/structil?status.png)](https://godoc.org/github.com/goldeneggg/structil)
+## Runtime and Dynamic struct accessor
+See [GoDoc](https://godoc.org/github.com/goldeneggg/structil)
+
+### `Finder`
+Use `Finder`
+
+We can access usefully nested struct fields using field name string.
+
+Sample script on playground is https://play.golang.org/p/AcF5c7Prf3z .
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/goldeneggg/structil"
+)
+
+type group struct {
+	Name string
+	Boss string
+}
+
+type company struct {
+	Name    string
+	Address string
+	Period  int
+	Group   *group
+}
+
+type school struct {
+	Name          string
+	GraduatedYear int
+}
+
+type person struct {
+	Name    string
+	Age     int
+	Company *company
+	School  *school
+}
+
+func main() {
+	i := &person{
+		Name: "Lisa Mary",
+		Age:  34,
+		Company: &company{
+			Name:    "ZZZ Air inc.",
+			Address: "Boston",
+			Period:  11,
+			Group: &group{
+				Name: "ZZZZZZ Holdings",
+				Boss: "Donald Mac",
+			},
+		},
+		School: &school{
+			Name:          "XYZ College",
+			GraduatedYear: 2008,
+		},
+	}
+
+	finder, err := structil.NewFinder(i)
+	if err != nil {
+		panic(err)
+	}
+
+	// We can use method chain for Find and Into methods.
+	//  - Find returns a Finder that fields in struct are looked up and held named "names".
+	//  - Into returns a Finder that nested struct fields are looked up and held named "names".
+	// And finally, we can call ToMap method for converting from struct to map.
+	m, err := finder.
+		Find("Name", "School").
+		Into("Company").Find("Address").
+		Into("Company", "Group").Find("Name", "Boss").
+		ToMap()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("%#v", m)
+}
+```
+```
+map[string]interface {}{"Company.Address":"Boston", "Company.Group.Boss":"Donald Mac", "Company.Group.Name":"ZZZZZZ Holdings", "Name":"Lisa Mary", "School":main.school{Name:"XYZ College", GraduatedYear:2008}}
+```
 
 ### `Getter`
 Use `Getter`
@@ -131,86 +215,3 @@ func main() {
 []interface {}{"You worked for 3 years since you joined the company Dragons inc.", "You worked for 2 years since you joined the company Swallows inc."}
 ```
 
-### `Finder`
-Use `Finder`
-
-We can access usefully nested struct fields using field name string.
-
-Sample script on playground is https://play.golang.org/p/AcF5c7Prf3z .
-
-```go
-package main
-
-import (
-	"fmt"
-
-	"github.com/goldeneggg/structil"
-)
-
-type group struct {
-	Name string
-	Boss string
-}
-
-type company struct {
-	Name    string
-	Address string
-	Period  int
-	Group   *group
-}
-
-type school struct {
-	Name          string
-	GraduatedYear int
-}
-
-type person struct {
-	Name    string
-	Age     int
-	Company *company
-	School  *school
-}
-
-func main() {
-	i := &person{
-		Name: "Lisa Mary",
-		Age:  34,
-		Company: &company{
-			Name:    "ZZZ Air inc.",
-			Address: "Boston",
-			Period:  11,
-			Group: &group{
-				Name: "ZZZZZZ Holdings",
-				Boss: "Donald Mac",
-			},
-		},
-		School: &school{
-			Name:          "XYZ College",
-			GraduatedYear: 2008,
-		},
-	}
-
-	finder, err := structil.NewFinder(i)
-	if err != nil {
-		panic(err)
-	}
-
-	// We can use method chain for Find and Into methods.
-	//  - Find returns a Finder that fields in struct are looked up and held named "names".
-	//  - Into returns a Finder that nested struct fields are looked up and held named "names".
-	// And finally, we can call ToMap method for converting from struct to map.
-	m, err := finder.
-		Find("Name", "School").
-		Into("Company").Find("Address").
-		Into("Company", "Group").Find("Name", "Boss").
-		ToMap()
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Printf("%#v", m)
-}
-```
-```
-map[string]interface {}{"Company.Address":"Boston", "Company.Group.Boss":"Donald Mac", "Company.Group.Name":"ZZZZZZ Holdings", "Name":"Lisa Mary", "School":main.school{Name:"XYZ College", GraduatedYear:2008}}
-```
