@@ -19,11 +19,11 @@ test-v:
 
 .PHONY: bench
 bench:
-	@go test -bench . $(PKGS)
+	@go test -bench . -benchmem $(PKGS)
 
 .PHONY: bench-v
 bench-v:
-	@go test -v -bench . $(PKGS)
+	@go test -v -bench . -benchmem $(PKGS)
 
 .PHONY: lint
 lint:

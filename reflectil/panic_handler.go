@@ -3,6 +3,7 @@ package reflectil
 import (
 	"fmt"
 	"runtime"
+	"strings"
 )
 
 // RecoverToError returns an error converted from recoverd panic information.
@@ -16,15 +17,15 @@ func RecoverToError(r interface{}) (err error) {
 }
 
 func stackTrace() string {
-	msg := ""
+	msgs := make([]string, 0, 10)
 
 	for d := 0; ; d++ {
 		pc, file, line, ok := runtime.Caller(d)
 		if !ok {
 			break
 		}
-		msg = msg + fmt.Sprintf(" -> %d: %s: %s:%d\n", d, runtime.FuncForPC(pc).Name(), file, line)
+		msgs = append(msgs, fmt.Sprintf(" -> %d: %s: %s:%d", d, runtime.FuncForPC(pc).Name(), file, line))
 	}
 
-	return msg
+	return strings.Join(msgs, "\n")
 }

@@ -72,11 +72,9 @@ func (f *fImpl) Reset() Finder {
 	f.gMap = gMap
 
 	fMap := map[string][]string{}
-	fMap[rootKey] = []string{}
 	f.fMap = fMap
 
 	eMap := map[string][]error{}
-	eMap[rootKey] = []error{}
 	f.eMap = eMap
 
 	f.ck = rootKey
@@ -108,7 +106,6 @@ func (f *fImpl) Struct(names ...string) Finder {
 			nextKey = nextKey + f.sep + name
 		}
 		err = nil
-		f.eMap[nextKey] = []error{}
 
 		nextGetter, ok = f.gMap[nextKey]
 		if !ok {
@@ -127,16 +124,12 @@ func (f *fImpl) Struct(names ...string) Finder {
 		f.ck = nextKey
 	}
 
-	if !f.HasError() {
-		f.fMap[f.ck] = []string{}
-	}
-
 	return f
 }
 
 func (f *fImpl) addError(key string, err error) Finder {
 	if _, ok := f.eMap[key]; !ok {
-		f.eMap[key] = []error{}
+		f.eMap[key] = make([]error, 0, 3)
 	}
 	f.eMap[key] = append(f.eMap[key], err)
 
@@ -149,7 +142,10 @@ func (f *fImpl) Find(names ...string) Finder {
 		return f
 	}
 
-	f.fMap[f.ck] = append(f.fMap[f.ck], names...)
+	f.fMap[f.ck] = make([]string, len(names))
+	for i, n := range names {
+		f.fMap[f.ck][i] = n
+	}
 
 	return f
 }
@@ -202,16 +198,19 @@ func (f *fImpl) HasError() bool {
 
 // Error returns error string.
 func (f *fImpl) Error() string {
-	tmp := []string{}
+	var es []string
 
 	for _, errs := range f.eMap {
-		for _, err := range errs {
-			tmp = append(tmp, err.Error())
+		if len(errs) > 0 {
+			es = make([]string, len(errs))
+			for i, err := range errs {
+				es[i] = err.Error()
+			}
 		}
 	}
 
 	// TODO: prettize
-	return strings.Join(tmp, "\n")
+	return strings.Join(es, "\n")
 }
 
 // GetNameSeparator returns the separator string for nested struct name separating.
