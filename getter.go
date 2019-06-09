@@ -41,6 +41,7 @@ type Getter interface {
 	MapGet(name string, f func(int, Getter) (interface{}, error)) ([]interface{}, error)
 }
 
+// GetterImpl is the default Getter implementation.
 type GetterImpl struct {
 	rv     reflect.Value // Value of input interface
 	numf   int

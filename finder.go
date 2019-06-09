@@ -21,6 +21,7 @@ type Finder interface {
 	Reset() Finder
 }
 
+// FinderImpl is the default Finder implementation.
 type FinderImpl struct {
 	rootGetter Getter
 	gMap       map[string]Getter
