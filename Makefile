@@ -19,11 +19,11 @@ test-v:
 
 .PHONY: bench
 bench:
-	@go test -bench . -benchmem $(PKGS)
+	@GOMAXPROCS=1 go test -bench . -benchmem -benchtime=1s $(PKGS)
 
 .PHONY: bench-v
 bench-v:
-	@go test -v -bench . -benchmem $(PKGS)
+	@GOMAXPROCS=1 go test -v -bench . -benchmem -benchtime=1s $(PKGS)
 
 .PHONY: lint
 lint:
