@@ -45,6 +45,17 @@ func newSettable(typ reflect.Type) reflect.Value {
 	return reflect.New(typ).Elem()
 }
 
+// Note: Publicize candidate
+func isImplements(i interface{}, t interface{}) bool {
+	typ := reflect.TypeOf(t).Elem()
+	return isImplementsType(i, typ)
+}
+
+func isImplementsType(i interface{}, typ reflect.Type) bool {
+	v := reflect.ValueOf(i)
+	return typ.Implements(v.Type())
+}
+
 func genericsTypeOf() reflect.Type {
 	return reflect.TypeOf((*interface{})(nil)).Elem()
 }
