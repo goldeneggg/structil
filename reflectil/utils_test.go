@@ -53,6 +53,16 @@ func TestToI(t *testing.T) {
 			want: testTstrPtr,
 		},
 		{
+			name: "struct slice",
+			args: args{i: reflect.ValueOf([]tStruct{{10, "Name10"}, {20, "Name20"}})},
+			want: []tStruct{{10, "Name10"}, {20, "Name20"}},
+		},
+		{
+			name: "struct ptr slice",
+			args: args{i: reflect.ValueOf([]*tStruct{&tStruct{30, "Name30"}, &tStruct{40, "Name40"}})},
+			want: []*tStruct{&tStruct{30, "Name30"}, &tStruct{40, "Name40"}},
+		},
+		{
 			name: "map",
 			args: args{i: reflect.ValueOf(testMap)},
 			want: testMap,
