@@ -12,8 +12,8 @@ const (
 
 // Finder is the interface that builds the nested struct finder.
 type Finder interface {
-	Struct(names ...string) Finder
 	Find(names ...string) Finder
+	Into(names ...string) Finder
 	ToMap() (map[string]interface{}, error)
 	HasError() bool
 	Error() string
@@ -65,27 +65,20 @@ func NewFinderWithGetterAndSep(g Getter, sep string) (Finder, error) {
 	return f.Reset(), nil
 }
 
-// Reset resets the current build Finder.
-func (f *fImpl) Reset() Finder {
-	gMap := map[string]Getter{}
-	gMap[rootKey] = f.rootGetter
-	f.gMap = gMap
+// Find returns a Finder that fields in struct are looked up and held named "names".
+func (f *fImpl) Find(names ...string) Finder {
+	if f.HasError() {
+		return f
+	}
 
-	fMap := map[string][]string{}
-	fMap[rootKey] = []string{}
-	f.fMap = fMap
-
-	eMap := map[string][]error{}
-	eMap[rootKey] = []error{}
-	f.eMap = eMap
-
-	f.ck = rootKey
+	f.fMap[f.ck] = make([]string, len(names))
+	copy(f.fMap[f.ck], names)
 
 	return f
 }
 
-// Struct returns a Finder that nested struct fields are looked up and held named "names".
-func (f *fImpl) Struct(names ...string) Finder {
+// Into returns a Finder that nested struct fields are looked up and held named "names".
+func (f *fImpl) Into(names ...string) Finder {
 	if f.HasError() {
 		return f
 	}
@@ -108,7 +101,6 @@ func (f *fImpl) Struct(names ...string) Finder {
 			nextKey = nextKey + f.sep + name
 		}
 		err = nil
-		f.eMap[nextKey] = []error{}
 
 		nextGetter, ok = f.gMap[nextKey]
 		if !ok {
@@ -127,29 +119,14 @@ func (f *fImpl) Struct(names ...string) Finder {
 		f.ck = nextKey
 	}
 
-	if !f.HasError() {
-		f.fMap[f.ck] = []string{}
-	}
-
 	return f
 }
 
 func (f *fImpl) addError(key string, err error) Finder {
 	if _, ok := f.eMap[key]; !ok {
-		f.eMap[key] = []error{}
+		f.eMap[key] = make([]error, 0, 3)
 	}
 	f.eMap[key] = append(f.eMap[key], err)
-
-	return f
-}
-
-// Find returns a Finder that fields in struct are looked up and held named "names".
-func (f *fImpl) Find(names ...string) Finder {
-	if f.HasError() {
-		return f
-	}
-
-	f.fMap[f.ck] = append(f.fMap[f.ck], names...)
 
 	return f
 }
@@ -202,20 +179,40 @@ func (f *fImpl) HasError() bool {
 
 // Error returns error string.
 func (f *fImpl) Error() string {
-	tmp := []string{}
+	var es []string
 
 	for _, errs := range f.eMap {
-		for _, err := range errs {
-			tmp = append(tmp, err.Error())
+		if len(errs) > 0 {
+			es = make([]string, len(errs))
+			for i, err := range errs {
+				es[i] = err.Error()
+			}
 		}
 	}
 
 	// TODO: prettize
-	return strings.Join(tmp, "\n")
+	return strings.Join(es, "\n")
 }
 
 // GetNameSeparator returns the separator string for nested struct name separating.
 // Default is "." (dot).
 func (f *fImpl) GetNameSeparator() string {
 	return f.sep
+}
+
+// Reset resets the current build Finder.
+func (f *fImpl) Reset() Finder {
+	gMap := map[string]Getter{}
+	gMap[rootKey] = f.rootGetter
+	f.gMap = gMap
+
+	fMap := map[string][]string{}
+	f.fMap = fMap
+
+	eMap := map[string][]error{}
+	f.eMap = eMap
+
+	f.ck = rootKey
+
+	return f
 }

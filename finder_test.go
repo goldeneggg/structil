@@ -3,8 +3,9 @@ package structil_test
 import (
 	"testing"
 
-	. "github.com/goldeneggg/structil"
 	"github.com/google/go-cmp/cmp"
+
+	. "github.com/goldeneggg/structil"
 )
 
 type toMapTest struct {
@@ -15,6 +16,8 @@ type toMapTest struct {
 }
 
 func TestNewFinder(t *testing.T) {
+	t.Parallel()
+
 	type args struct {
 		i interface{}
 	}
@@ -69,6 +72,8 @@ func TestNewFinder(t *testing.T) {
 }
 
 func TestNewFinderWithGetterAndSep(t *testing.T) {
+	t.Parallel()
+
 	g, err := NewGetter(newTestStructPtr())
 	if err != nil {
 		t.Errorf("NewGetter() error = %v", err)
@@ -119,6 +124,8 @@ func TestNewFinderWithGetterAndSep(t *testing.T) {
 }
 
 func TestToMap(t *testing.T) {
+	t.Parallel()
+
 	var f Finder
 	var fs []Finder
 	var err error
@@ -205,7 +212,7 @@ func TestToMap(t *testing.T) {
 			name: "with single-nest chain",
 			args: args{
 				chain: fs[1].
-					Struct("TestStruct2").Find("String"),
+					Into("TestStruct2").Find("String"),
 			},
 			wantMap: map[string]interface{}{
 				"TestStruct2.String": "struct2 string",
@@ -215,7 +222,7 @@ func TestToMap(t *testing.T) {
 			name: "with two-nest chain",
 			args: args{
 				chain: fs[2].
-					Struct("TestStruct2Ptr", "TestStruct3").Find("String", "Int"),
+					Into("TestStruct2Ptr", "TestStruct3").Find("String", "Int"),
 			},
 			wantMap: map[string]interface{}{
 				"TestStruct2Ptr.TestStruct3.String": "struct3 string ptr",
@@ -226,9 +233,9 @@ func TestToMap(t *testing.T) {
 			name: "with multi nest chains",
 			args: args{
 				chain: fs[3].
-					Struct("TestStruct2").Find("String").
-					Struct("TestStruct2Ptr").Find("String").
-					Struct("TestStruct2Ptr", "TestStruct3").Find("String", "Int"),
+					Into("TestStruct2").Find("String").
+					Into("TestStruct2Ptr").Find("String").
+					Into("TestStruct2Ptr", "TestStruct3").Find("String", "Int"),
 			},
 			wantMap: map[string]interface{}{
 				"TestStruct2.String":                "struct2 string",
@@ -256,7 +263,7 @@ func TestToMap(t *testing.T) {
 		{
 			name: "with Struct with non-existed name",
 			args: args{
-				chain: fs[6].Struct("NonExist").Find("String"),
+				chain: fs[6].Into("NonExist").Find("String"),
 			},
 			wantError:       true,
 			wantErrorString: "Error in name: NonExist, key: NonExist. [name NonExist does not exist]",
@@ -264,7 +271,7 @@ func TestToMap(t *testing.T) {
 		{
 			name: "with Struct with existed name and Find with non-existed name",
 			args: args{
-				chain: fs[7].Struct("TestStruct2").Find("NonExist"),
+				chain: fs[7].Into("TestStruct2").Find("NonExist"),
 			},
 			wantError:       true,
 			wantErrorString: "field name NonExist does not exist",
@@ -273,8 +280,8 @@ func TestToMap(t *testing.T) {
 			name: "with Struct with existed and non-existed name and Find",
 			args: args{
 				chain: fs[8].
-					Struct("TestStruct2").Find("String").
-					Struct("TestStruct2", "NonExist").Find("String"),
+					Into("TestStruct2").Find("String").
+					Into("TestStruct2", "NonExist").Find("String"),
 			},
 			wantError:       true,
 			wantErrorString: "Error in name: NonExist, key: TestStruct2.NonExist. [name NonExist does not exist]",
@@ -283,9 +290,9 @@ func TestToMap(t *testing.T) {
 			name: "with multi nest chains separated by assigned sep",
 			args: args{
 				chain: fsep.
-					Struct("TestStruct2").Find("String").
-					Struct("TestStruct2Ptr").Find("String").
-					Struct("TestStruct2Ptr", "TestStruct3").Find("String", "Int"),
+					Into("TestStruct2").Find("String").
+					Into("TestStruct2Ptr").Find("String").
+					Into("TestStruct2Ptr", "TestStruct3").Find("String", "Int"),
 			},
 			wantMap: map[string]interface{}{
 				"TestStruct2:String":                "struct2 string",

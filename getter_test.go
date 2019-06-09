@@ -6,13 +6,12 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/goldeneggg/structil"
 	. "github.com/goldeneggg/structil"
 )
 
 type getterTestArgs struct {
 	name  string
-	mapfn func(int, Getter) interface{}
+	mapfn func(int, Getter) (interface{}, error)
 }
 
 type getterTest struct {
@@ -29,6 +28,10 @@ type getterTest struct {
 func newGetterTests() []*getterTest {
 	return []*getterTest{
 		{
+			name: "Byte",
+			args: &getterTestArgs{name: "Byte"},
+		},
+		{
 			name: "Bytes",
 			args: &getterTestArgs{name: "Bytes"},
 		},
@@ -37,8 +40,16 @@ func newGetterTests() []*getterTest {
 			args: &getterTestArgs{name: "String"},
 		},
 		{
+			name: "Int",
+			args: &getterTestArgs{name: "Int"},
+		},
+		{
 			name: "Int64",
 			args: &getterTestArgs{name: "Int64"},
+		},
+		{
+			name: "Uint",
+			args: &getterTestArgs{name: "Uint"},
 		},
 		{
 			name: "Uint64",
@@ -122,7 +133,7 @@ func TestNewGetter(t *testing.T) {
 		{
 			name:    "valid struct ptr nil",
 			args:    args{i: (*TestStruct)(nil)},
-			wantErr: false,
+			wantErr: true,
 		},
 		{
 			name:    "invalid (nil)",
@@ -151,6 +162,44 @@ func TestNewGetter(t *testing.T) {
 				}
 			} else if !tt.wantErr {
 				t.Errorf("NewGetter() unexpected error [%v] occured. wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestNumField(t *testing.T) {
+	t.Parallel()
+
+	type args struct {
+		i interface{}
+	}
+	tests := []struct {
+		name string
+		args args
+		want int
+	}{
+		{
+			name: "use TestStruct",
+			args: args{i: &TestStruct{}},
+			want: 20,
+		},
+		{
+			name: "use TestStruct2",
+			args: args{i: &TestStruct2{}},
+			want: 2,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g, err := NewGetter(tt.args.i)
+			if err != nil {
+				t.Errorf("NewGetter() unexpected error [%v] occured", err)
+			}
+
+			nf := g.NumField()
+			if nf != tt.want {
+				t.Errorf("unmatch NumField. got: %d, want: %d", nf, tt.want)
 			}
 		})
 	}
@@ -187,7 +236,7 @@ func TestGetType(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := structil.NewGetter(testStructPtr)
+	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() unexpected error [%v] occured.", err)
 		return
@@ -197,12 +246,18 @@ func TestGetType(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			switch tt.name {
+			case "Byte":
+				tt.wantType = reflect.TypeOf(testStructPtr.Byte)
 			case "Bytes":
 				tt.wantType = reflect.TypeOf(testStructPtr.Bytes)
 			case "String":
 				tt.wantType = reflect.TypeOf(testStructPtr.String)
+			case "Int":
+				tt.wantType = reflect.TypeOf(testStructPtr.Int)
 			case "Int64":
 				tt.wantType = reflect.TypeOf(testStructPtr.Int64)
+			case "Uint":
+				tt.wantType = reflect.TypeOf(testStructPtr.Uint)
 			case "Uint64":
 				tt.wantType = reflect.TypeOf(testStructPtr.Uint64)
 			case "Float32":
@@ -247,7 +302,7 @@ func TestGetValue(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := structil.NewGetter(testStructPtr)
+	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
 		return
@@ -257,12 +312,18 @@ func TestGetValue(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			switch tt.name {
+			case "Byte":
+				tt.wantValue = reflect.ValueOf(testStructPtr.Byte)
 			case "Bytes":
 				tt.wantValue = reflect.ValueOf(testStructPtr.Bytes)
 			case "String":
 				tt.wantValue = reflect.ValueOf(testStructPtr.String)
+			case "Int":
+				tt.wantValue = reflect.ValueOf(testStructPtr.Int)
 			case "Int64":
 				tt.wantValue = reflect.ValueOf(testStructPtr.Int64)
+			case "Uint":
+				tt.wantValue = reflect.ValueOf(testStructPtr.Uint)
 			case "Uint64":
 				tt.wantValue = reflect.ValueOf(testStructPtr.Uint64)
 			case "Float32":
@@ -307,7 +368,7 @@ func TestGet(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := structil.NewGetter(testStructPtr)
+	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
 	}
@@ -316,12 +377,18 @@ func TestGet(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			switch tt.name {
+			case "Byte":
+				tt.wantIntf = testStructPtr.Byte
 			case "Bytes":
 				tt.wantIntf = testStructPtr.Bytes
 			case "String":
 				tt.wantIntf = testStructPtr.String
+			case "Int":
+				tt.wantIntf = testStructPtr.Int
 			case "Int64":
 				tt.wantIntf = testStructPtr.Int64
+			case "Uint":
+				tt.wantIntf = testStructPtr.Uint
 			case "Uint64":
 				tt.wantIntf = testStructPtr.Uint64
 			case "Float32":
@@ -373,7 +440,7 @@ func TestEGet(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := structil.NewGetter(testStructPtr)
+	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
 	}
@@ -382,12 +449,18 @@ func TestEGet(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			switch tt.name {
+			case "Byte":
+				tt.wantIntf = testStructPtr.Byte
 			case "Bytes":
 				tt.wantIntf = testStructPtr.Bytes
 			case "String":
 				tt.wantIntf = testStructPtr.String
+			case "Int":
+				tt.wantIntf = testStructPtr.Int
 			case "Int64":
 				tt.wantIntf = testStructPtr.Int64
+			case "Uint":
+				tt.wantIntf = testStructPtr.Uint
 			case "Uint64":
 				tt.wantIntf = testStructPtr.Uint64
 			case "Float32":
@@ -447,11 +520,42 @@ func TestEGet(t *testing.T) {
 	}
 }
 
+func TestByte(t *testing.T) {
+	t.Parallel()
+
+	testStructPtr := newTestStructPtr()
+	g, err := NewGetter(testStructPtr)
+	if err != nil {
+		t.Errorf("NewGetter() occurs unexpected error: %v", err)
+	}
+
+	tests := newGetterTests()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch tt.name {
+			case "Byte":
+				tt.wantIntf = testStructPtr.Byte
+			default:
+				tt.wantPanic = true
+			}
+
+			defer deferPanic(t, tt.wantPanic, tt.args)
+
+			got := g.Byte(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
+			}
+		})
+	}
+}
+
 func TestBytes(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := structil.NewGetter(testStructPtr)
+	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
 	}
@@ -482,7 +586,7 @@ func TestString(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := structil.NewGetter(testStructPtr)
+	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
 	}
@@ -509,11 +613,42 @@ func TestString(t *testing.T) {
 	}
 }
 
+func TestInt(t *testing.T) {
+	t.Parallel()
+
+	testStructPtr := newTestStructPtr()
+	g, err := NewGetter(testStructPtr)
+	if err != nil {
+		t.Errorf("NewGetter() occurs unexpected error: %v", err)
+	}
+
+	tests := newGetterTests()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch tt.name {
+			case "Int":
+				tt.wantIntf = testStructPtr.Int
+			default:
+				tt.wantPanic = true
+			}
+
+			defer deferPanic(t, tt.wantPanic, tt.args)
+
+			got := g.Int(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
+			}
+		})
+	}
+}
+
 func TestInt64(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := structil.NewGetter(testStructPtr)
+	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
 	}
@@ -540,11 +675,42 @@ func TestInt64(t *testing.T) {
 	}
 }
 
+func TestUint(t *testing.T) {
+	t.Parallel()
+
+	testStructPtr := newTestStructPtr()
+	g, err := NewGetter(testStructPtr)
+	if err != nil {
+		t.Errorf("NewGetter() occurs unexpected error: %v", err)
+	}
+
+	tests := newGetterTests()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch tt.name {
+			case "Uint":
+				tt.wantIntf = testStructPtr.Uint
+			default:
+				tt.wantPanic = true
+			}
+
+			defer deferPanic(t, tt.wantPanic, tt.args)
+
+			got := g.Uint(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
+			}
+		})
+	}
+}
+
 func TestUint64(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := structil.NewGetter(testStructPtr)
+	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
 	}
@@ -575,7 +741,7 @@ func TestFloat64(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := structil.NewGetter(testStructPtr)
+	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
 	}
@@ -606,7 +772,7 @@ func TestBool(t *testing.T) {
 	t.Parallel()
 
 	testStructPtr := newTestStructPtr()
-	g, err := structil.NewGetter(testStructPtr)
+	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
 	}
@@ -628,6 +794,30 @@ func TestBool(t *testing.T) {
 				t.Errorf("expected panic did not occur. args: %+v", tt.args)
 			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
 				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
+			}
+		})
+	}
+}
+
+func TestIsByte(t *testing.T) {
+	t.Parallel()
+
+	g, err := newTestGetter()
+	if err != nil {
+		t.Errorf("NewGetter() occurs unexpected error: %v", err)
+	}
+
+	tests := newGetterTests()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch tt.name {
+			case "Byte":
+				tt.wantBool = true
+			}
+
+			got := g.IsByte(tt.args.name)
+			if got != tt.wantBool {
+				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
 			}
 		})
 	}
@@ -681,6 +871,30 @@ func TestIsString(t *testing.T) {
 	}
 }
 
+func TestIsInt(t *testing.T) {
+	t.Parallel()
+
+	g, err := newTestGetter()
+	if err != nil {
+		t.Errorf("NewGetter() occurs unexpected error: %v", err)
+	}
+
+	tests := newGetterTests()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch tt.name {
+			case "Int":
+				tt.wantBool = true
+			}
+
+			got := g.IsInt(tt.args.name)
+			if got != tt.wantBool {
+				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+			}
+		})
+	}
+}
+
 func TestIsInt64(t *testing.T) {
 	t.Parallel()
 
@@ -698,6 +912,30 @@ func TestIsInt64(t *testing.T) {
 			}
 
 			got := g.IsInt64(tt.args.name)
+			if got != tt.wantBool {
+				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+			}
+		})
+	}
+}
+
+func TestIsUint(t *testing.T) {
+	t.Parallel()
+
+	g, err := newTestGetter()
+	if err != nil {
+		t.Errorf("NewGetter() occurs unexpected error: %v", err)
+	}
+
+	tests := newGetterTests()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch tt.name {
+			case "Uint":
+				tt.wantBool = true
+			}
+
+			got := g.IsUint(tt.args.name)
 			if got != tt.wantBool {
 				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
 			}
@@ -909,16 +1147,14 @@ func TestMapGet(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			switch tt.name {
-			case "Bytes":
-				tt.wantIntf = []interface{}{nil, nil}
 			case "TestStruct4Slice":
-				tt.args.mapfn = func(i int, g Getter) interface{} {
-					return g.String("String") + "=" + g.String("String2")
+				tt.args.mapfn = func(i int, g Getter) (interface{}, error) {
+					return g.String("String") + "=" + g.String("String2"), nil
 				}
 				tt.wantIntf = []interface{}{string("key100=value100"), string("key200=value200")}
 			case "TestStruct4PtrSlice":
-				tt.args.mapfn = func(i int, g Getter) interface{} {
-					return g.String("String") + ":" + g.String("String2")
+				tt.args.mapfn = func(i int, g Getter) (interface{}, error) {
+					return g.String("String") + ":" + g.String("String2"), nil
 				}
 				tt.wantIntf = []interface{}{string("key991:value991"), string("key992:value992")}
 			default:

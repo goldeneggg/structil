@@ -19,7 +19,15 @@ test-v:
 
 .PHONY: bench
 bench:
-	@go test -bench . $(PKGS)
+	@GOMAXPROCS=1 go test -bench . -benchmem -benchtime=1s $(PKGS)
+
+.PHONY: bench-v
+bench-v:
+	@GOMAXPROCS=1 go test -v -bench . -benchmem -benchtime=1s $(PKGS)
+
+.PHONY: lint
+lint:
+	@golint -set_exit_status $(PKGS)
 
 .PHONY: vet
 vet:
@@ -29,7 +37,10 @@ ci-test:
 	@./scripts/ci-test.sh
 
 .PHONY: ci
-ci: ci-test vet
+ci: ci-test lint vet
+
+lint-travis:
+	@travis lint --org --debug .travis.yml
 
 mod-dl:
 	@GO111MODULE=on go mod download

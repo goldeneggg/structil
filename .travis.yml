@@ -16,6 +16,7 @@ env:
 install:
   - echo $TRAVIS_GO_VERSION
   - go mod download
+  - go install golang.org/x/lint/golint
 
 script:
   - make ci

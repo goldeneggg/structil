@@ -7,121 +7,153 @@ import (
 )
 
 func BenchmarkNewFinder_Val(b *testing.B) {
-	testStructVal := newTestStruct()
+	var f Finder
+	var e error
 
+	testStructVal := newTestStruct()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		NewFinder(testStructVal)
+		f, e = NewFinder(testStructVal)
+		if e == nil {
+			_ = f
+		} else {
+			b.Fatalf("abort benchmark because error %v occurd.", e)
+		}
 	}
 }
 
 func BenchmarkNewFinder_Ptr(b *testing.B) {
-	testStructPtr := newTestStructPtr()
+	var f Finder
+	var e error
 
+	testStructPtr := newTestStructPtr()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		NewFinder(testStructPtr)
+		f, e = NewFinder(testStructPtr)
+		if e == nil {
+			_ = f
+		} else {
+			b.Fatalf("abort benchmark because error %v occurd.", e)
+		}
 	}
 }
 
 func BenchmarkToMap_1FindOnly(b *testing.B) {
+	var m map[string]interface{}
+
 	f, err := NewFinder(newTestStructPtr())
 	if err != nil {
-		b.Errorf("NewFinder() occurs unexpected error: %v", err)
+		b.Fatalf("NewFinder() occurs unexpected error: %v", err)
 		return
 	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err = f.Find("String").ToMap()
-		if err != nil {
-			b.Errorf("ToMap() occurs unexpected error: %v", err)
-			return
+		m, err = f.Find("String").ToMap()
+		if err == nil {
+			_ = m
+		} else {
+			b.Fatalf("abort benchmark because error %v occurd.", err)
 		}
 	}
 }
 
 func BenchmarkToMap_2FindOnly(b *testing.B) {
+	var m map[string]interface{}
+
 	f, err := NewFinder(newTestStructPtr())
 	if err != nil {
-		b.Errorf("NewFinder() occurs unexpected error: %v", err)
+		b.Fatalf("NewFinder() occurs unexpected error: %v", err)
 		return
 	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err = f.Find("String", "Int64").ToMap()
-		if err != nil {
-			b.Errorf("ToMap() occurs unexpected error: %v", err)
-			return
+		m, err = f.Find("String", "Int64").ToMap()
+		if err == nil {
+			_ = m
+		} else {
+			b.Fatalf("abort benchmark because error %v occurd.", err)
 		}
 	}
 }
 
 func BenchmarkToMap_1Struct_1Find(b *testing.B) {
+	var m map[string]interface{}
+
 	f, err := NewFinder(newTestStructPtr())
 	if err != nil {
-		b.Errorf("NewFinder() occurs unexpected error: %v", err)
+		b.Fatalf("NewFinder() occurs unexpected error: %v", err)
 		return
 	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err = f.Struct("TestStruct2").Find("String").ToMap()
-		if err != nil {
-			b.Errorf("ToMap() occurs unexpected error: %v", err)
-			return
+		m, err = f.Into("TestStruct2").Find("String").ToMap()
+		if err == nil {
+			_ = m
+		} else {
+			b.Fatalf("abort benchmark because error %v occurd.", err)
 		}
 	}
 }
 
 func BenchmarkToMap_1Struct_1Find_2Pair(b *testing.B) {
+	var m map[string]interface{}
+
 	f, err := NewFinder(newTestStructPtr())
 	if err != nil {
-		b.Errorf("NewFinder() occurs unexpected error: %v", err)
+		b.Fatalf("NewFinder() occurs unexpected error: %v", err)
 		return
 	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err = f.Struct("TestStruct2").Find("String").Struct("TestStruct2Ptr").Find("String").ToMap()
-		if err != nil {
-			b.Errorf("ToMap() occurs unexpected error: %v", err)
-			return
+		m, err = f.Into("TestStruct2").Find("String").Into("TestStruct2Ptr").Find("String").ToMap()
+		if err == nil {
+			_ = m
+		} else {
+			b.Fatalf("abort benchmark because error %v occurd.", err)
 		}
 	}
 }
 
 func BenchmarkToMap_2Struct_1Find(b *testing.B) {
+	var m map[string]interface{}
+
 	f, err := NewFinder(newTestStructPtr())
 	if err != nil {
-		b.Errorf("NewFinder() occurs unexpected error: %v", err)
+		b.Fatalf("NewFinder() occurs unexpected error: %v", err)
 		return
 	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err = f.Struct("TestStruct2", "TestStruct3").Find("String").ToMap()
-		if err != nil {
-			b.Errorf("ToMap() occurs unexpected error: %v", err)
-			return
+		m, err = f.Into("TestStruct2", "TestStruct3").Find("String").ToMap()
+		if err == nil {
+			_ = m
+		} else {
+			b.Fatalf("abort benchmark because error %v occurd.", err)
 		}
 	}
 }
 
 func BenchmarkToMap_2Struct_2Find(b *testing.B) {
+	var m map[string]interface{}
+
 	f, err := NewFinder(newTestStructPtr())
 	if err != nil {
-		b.Errorf("NewFinder() occurs unexpected error: %v", err)
+		b.Fatalf("NewFinder() occurs unexpected error: %v", err)
 		return
 	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err = f.Struct("TestStruct2", "TestStruct3").Find("String", "Int").ToMap()
-		if err != nil {
-			b.Errorf("ToMap() occurs unexpected error: %v", err)
-			return
+		m, err = f.Into("TestStruct2", "TestStruct3").Find("String", "Int").ToMap()
+		if err == nil {
+			_ = m
+		} else {
+			b.Fatalf("abort benchmark because error %v occurd.", err)
 		}
 	}
 }

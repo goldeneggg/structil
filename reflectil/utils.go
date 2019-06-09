@@ -9,9 +9,8 @@ import (
 func ToI(rv reflect.Value) interface{} {
 	if rv.IsValid() && rv.CanInterface() {
 		return rv.Interface()
-	} else {
-		return nil
 	}
+	return nil
 }
 
 // Note: Publicize candidate
@@ -25,9 +24,9 @@ func elemOf(i interface{}) reflect.Value {
 
 	if k == reflect.Interface {
 		return v.Elem()
-	} else {
-		return v
 	}
+
+	return v
 }
 
 // Note: Publicize candidate

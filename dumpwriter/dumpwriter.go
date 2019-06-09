@@ -1,4 +1,4 @@
-package dumper
+package dumpwriter
 
 import (
 	"fmt"
@@ -8,6 +8,7 @@ import (
 	"text/tabwriter"
 )
 
+// DumpWriter is the interface that wraps the basic Write, Flush and Dump method.
 type DumpWriter interface {
 	io.Writer
 	Flush() error
@@ -18,7 +19,8 @@ type dwImpl struct {
 	tw *tabwriter.Writer
 }
 
-type DumpWriterParam struct {
+// Param has configurations for DumpWriter.
+type Param struct {
 	MinWidth int
 	TabWidth int
 	Padding  int
@@ -26,8 +28,9 @@ type DumpWriterParam struct {
 	Flags    uint
 }
 
+// New returns a new default DumpWriter that wraps tabwriter.
 func New() DumpWriter {
-	dwp := &DumpWriterParam{
+	dwp := &Param{
 		MinWidth: 0,
 		TabWidth: 4,
 		Padding:  4,
@@ -38,7 +41,8 @@ func New() DumpWriter {
 	return NewWithSetupInfo(dwp, os.Stdout)
 }
 
-func NewWithSetupInfo(dwp *DumpWriterParam, wrap io.Writer) DumpWriter {
+// NewWithSetupInfo returns a new default DumpWriter that wraps the Writer assigned by "wrap" arg.
+func NewWithSetupInfo(dwp *Param, wrap io.Writer) DumpWriter {
 	dw := &dwImpl{}
 
 	dw.tw = tabwriter.NewWriter(
@@ -53,14 +57,18 @@ func NewWithSetupInfo(dwp *DumpWriterParam, wrap io.Writer) DumpWriter {
 	return dw
 }
 
+// Write writes data to a dump target.
 func (dw *dwImpl) Write(b []byte) (int, error) {
 	return dw.tw.Write(b)
 }
 
+// Flush should be called after the last call to Write to ensure
+// that any data buffered in the Writer is written to output.
 func (dw *dwImpl) Flush() error {
 	return dw.tw.Flush()
 }
 
+// Dump writes reflection values to a dump target with automation Flush.
 func (dw *dwImpl) Dump(rvs ...reflect.Value) error {
 	var t interface{}
 
