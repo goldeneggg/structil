@@ -56,8 +56,8 @@ func main() {
 
 	m, err := finder.
 		Find("Name", "School").
-		Struct("Company").Find("Address").
-		Struct("Company", "Group").Find("Name", "Boss").
+		Into("Company").Find("Address").
+		Into("Company", "Group").Find("Name", "Boss").
 		ToMap()
 	if err != nil {
 		panic(err)

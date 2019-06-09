@@ -12,7 +12,7 @@ const (
 
 // Finder is the interface that builds the nested struct finder.
 type Finder interface {
-	Struct(names ...string) Finder
+	Into(names ...string) Finder
 	Find(names ...string) Finder
 	ToMap() (map[string]interface{}, error)
 	HasError() bool
@@ -82,8 +82,8 @@ func (f *fImpl) Reset() Finder {
 	return f
 }
 
-// Struct returns a Finder that nested struct fields are looked up and held named "names".
-func (f *fImpl) Struct(names ...string) Finder {
+// Into returns a Finder that nested struct fields are looked up and held named "names".
+func (f *fImpl) Into(names ...string) Finder {
 	if f.HasError() {
 		return f
 	}

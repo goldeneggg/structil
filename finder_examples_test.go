@@ -29,7 +29,7 @@ func ExampleFinder_ToMap_simpleFind() {
 	// map[string]interface {}{"Age":25, "Name":"Scott Tiger"}
 }
 
-func ExampleFinder_ToMap_singleNestStruct() {
+func ExampleFinder_ToMap_singleNestInto() {
 	type Company struct {
 		Name    string
 		Address string
@@ -59,7 +59,7 @@ func ExampleFinder_ToMap_singleNestStruct() {
 
 	m, err := finder.
 		Find("Name", "Age").
-		Struct("Company").Find("Period").
+		Into("Company").Find("Period").
 		ToMap()
 	if err != nil {
 		panic(err)
@@ -70,7 +70,7 @@ func ExampleFinder_ToMap_singleNestStruct() {
 	// map[string]interface {}{"Age":25, "Company.Period":3, "Name":"Mark Hunt"}
 }
 
-func ExampleFinder_ToMap_multiNestStruct() {
+func ExampleFinder_ToMap_multiNestInto() {
 	type Group struct {
 		Name string
 		Boss string
@@ -120,8 +120,8 @@ func ExampleFinder_ToMap_multiNestStruct() {
 
 	m, err := finder.
 		Find("School").
-		Struct("Company").Find("Address").
-		Struct("Company", "Group").Find("Name", "Boss").
+		Into("Company").Find("Address").
+		Into("Company", "Group").Find("Name", "Boss").
 		ToMap()
 	if err != nil {
 		panic(err)

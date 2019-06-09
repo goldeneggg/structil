@@ -128,7 +128,7 @@ func main() {
 ### `Finder`
 Use `Finder`
 
-We can access usefully nested struct fields using field name string
+We can access usefully nested struct fields using field name string.
 
 ```go
 package main
@@ -187,10 +187,12 @@ func main() {
 		panic(err)
 	}
 
+  // We can use method chain for Find and Into methods.
+  // And finally, we can call ToMap method for converting from struct to map.
 	m, err := finder.
 		Find("Name", "School").
-		Struct("Company").Find("Address").
-		Struct("Company", "Group").Find("Name", "Boss").
+		Into("Company").Find("Address").
+		Into("Company", "Group").Find("Name", "Boss").
 		ToMap()
 	if err != nil {
 		panic(err)

@@ -89,7 +89,7 @@ func BenchmarkToMap_1Struct_1Find(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		m, err = f.Struct("TestStruct2").Find("String").ToMap()
+		m, err = f.Into("TestStruct2").Find("String").ToMap()
 		if err == nil {
 			_ = m
 		} else {
@@ -109,7 +109,7 @@ func BenchmarkToMap_1Struct_1Find_2Pair(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		m, err = f.Struct("TestStruct2").Find("String").Struct("TestStruct2Ptr").Find("String").ToMap()
+		m, err = f.Into("TestStruct2").Find("String").Into("TestStruct2Ptr").Find("String").ToMap()
 		if err == nil {
 			_ = m
 		} else {
@@ -129,7 +129,7 @@ func BenchmarkToMap_2Struct_1Find(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		m, err = f.Struct("TestStruct2", "TestStruct3").Find("String").ToMap()
+		m, err = f.Into("TestStruct2", "TestStruct3").Find("String").ToMap()
 		if err == nil {
 			_ = m
 		} else {
@@ -149,7 +149,7 @@ func BenchmarkToMap_2Struct_2Find(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		m, err = f.Struct("TestStruct2", "TestStruct3").Find("String", "Int").ToMap()
+		m, err = f.Into("TestStruct2", "TestStruct3").Find("String", "Int").ToMap()
 		if err == nil {
 			_ = m
 		} else {
