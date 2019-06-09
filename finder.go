@@ -21,7 +21,8 @@ type Finder interface {
 	Reset() Finder
 }
 
-type fImpl struct {
+// FinderImpl is the default Finder implementation.
+type FinderImpl struct {
 	rootGetter Getter
 	gMap       map[string]Getter
 	fMap       map[string][]string
@@ -60,13 +61,13 @@ func NewFinderWithGetterAndSep(g Getter, sep string) (Finder, error) {
 		return nil, fmt.Errorf("sep [%s] is invalid", sep)
 	}
 
-	f := &fImpl{rootGetter: g, sep: sep}
+	f := &FinderImpl{rootGetter: g, sep: sep}
 
 	return f.Reset(), nil
 }
 
 // Find returns a Finder that fields in struct are looked up and held named "names".
-func (f *fImpl) Find(names ...string) Finder {
+func (f *FinderImpl) Find(names ...string) Finder {
 	if f.HasError() {
 		return f
 	}
@@ -78,7 +79,7 @@ func (f *fImpl) Find(names ...string) Finder {
 }
 
 // Into returns a Finder that nested struct fields are looked up and held named "names".
-func (f *fImpl) Into(names ...string) Finder {
+func (f *FinderImpl) Into(names ...string) Finder {
 	if f.HasError() {
 		return f
 	}
@@ -122,7 +123,7 @@ func (f *fImpl) Into(names ...string) Finder {
 	return f
 }
 
-func (f *fImpl) addError(key string, err error) Finder {
+func (f *FinderImpl) addError(key string, err error) Finder {
 	if _, ok := f.eMap[key]; !ok {
 		f.eMap[key] = make([]error, 0, 3)
 	}
@@ -134,7 +135,7 @@ func (f *fImpl) addError(key string, err error) Finder {
 // ToMap returns a map converted from struct.
 // Map keys are lookup field names by "Struct" method and "Find".
 // Map values are lookup field values by "Struct" method and "Find".
-func (f *fImpl) ToMap() (map[string]interface{}, error) {
+func (f *FinderImpl) ToMap() (map[string]interface{}, error) {
 	if f.HasError() {
 		return nil, f
 	}
@@ -167,7 +168,7 @@ func (f *fImpl) ToMap() (map[string]interface{}, error) {
 }
 
 // HasError tests whether this Finder have any errors.
-func (f *fImpl) HasError() bool {
+func (f *FinderImpl) HasError() bool {
 	for _, errs := range f.eMap {
 		if len(errs) > 0 {
 			return true
@@ -178,7 +179,7 @@ func (f *fImpl) HasError() bool {
 }
 
 // Error returns error string.
-func (f *fImpl) Error() string {
+func (f *FinderImpl) Error() string {
 	var es []string
 
 	for _, errs := range f.eMap {
@@ -196,12 +197,12 @@ func (f *fImpl) Error() string {
 
 // GetNameSeparator returns the separator string for nested struct name separating.
 // Default is "." (dot).
-func (f *fImpl) GetNameSeparator() string {
+func (f *FinderImpl) GetNameSeparator() string {
 	return f.sep
 }
 
 // Reset resets the current build Finder.
-func (f *fImpl) Reset() Finder {
+func (f *FinderImpl) Reset() Finder {
 	gMap := map[string]Getter{}
 	gMap[rootKey] = f.rootGetter
 	f.gMap = gMap

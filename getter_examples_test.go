@@ -1,9 +1,7 @@
-package structil_test
+package structil
 
 import (
 	"fmt"
-
-	. "github.com/goldeneggg/structil"
 )
 
 func ExampleGetter_String() {
