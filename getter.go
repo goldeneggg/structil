@@ -3,6 +3,7 @@ package structil
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 
 	"github.com/goldeneggg/structil/reflectil"
 )
@@ -38,6 +39,7 @@ type Getter interface {
 	IsChan(name string) bool
 	IsStruct(name string) bool
 	IsSlice(name string) bool
+	ToFloat64(name string) (float64, error)
 	MapGet(name string, f func(int, Getter) (interface{}, error)) ([]interface{}, error)
 }
 
@@ -336,6 +338,30 @@ func (g *GetterImpl) is(name string, exp reflect.Kind) bool {
 
 	frv := g.GetValue(name)
 	return frv.Kind() == exp
+}
+
+// ToFloat64 returns converted float64 from the original struct field named "name".
+// It returns an error if the original field named "name"can not convert to float64.
+func (g *GetterImpl) ToFloat64(name string) (float64, error) {
+	rv := g.GetValue(name)
+	k := rv.Kind()
+
+	switch k {
+	case reflect.Int:
+		return float64(rv.Int()), nil
+	case reflect.Int64:
+		return float64(rv.Int()), nil
+	case reflect.Uint8:
+		return float64(rv.Uint()), nil
+	case reflect.String:
+		tf, err := strconv.ParseFloat(rv.String(), 64)
+		if err != nil {
+			return 0, err
+		}
+		return tf, nil
+	default:
+		return 0, fmt.Errorf("can not convert to float64. name: %s, kind: %v", name, k)
+	}
 }
 
 // MapGet returns the interface slice of mapped values of the original struct field named "name".
