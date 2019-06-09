@@ -6,6 +6,123 @@ import (
 	. "github.com/goldeneggg/structil"
 )
 
+func ExampleGetter_String() {
+	type Person struct {
+		Name string
+		Age  int
+	}
+
+	i := &Person{
+		Name: "Tony",
+		Age:  25,
+	}
+
+	getter, err := NewGetter(i)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("%+v", getter.String("Name"))
+	// Output:
+	// Tony
+}
+
+func ExampleGetter_Int() {
+	type Person struct {
+		Name string
+		Age  int
+	}
+
+	i := &Person{
+		Name: "Tony",
+		Age:  25,
+	}
+
+	getter, err := NewGetter(i)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("%+v", getter.Int("Age"))
+	// Output:
+	// 25
+}
+
+func ExampleGetter_Get_struct() {
+	type Company struct {
+		Name    string
+		Address string
+		Period  int
+	}
+
+	type Person struct {
+		Name string
+		Age  int
+		*Company
+	}
+
+	i := &Person{
+		Name: "Tony",
+		Age:  25,
+		Company: &Company{
+			Name:    "Tiger inc.",
+			Address: "Tokyo",
+			Period:  3,
+		},
+	}
+
+	getter, err := NewGetter(i)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("%+v", getter.Get("Company"))
+	// Output:
+	// {Name:Tiger inc. Address:Tokyo Period:3}
+}
+
+/*
+func ExampleGetter_Get_structSliceField() {
+	type Company struct {
+		Name    string
+		Address string
+		Period  int
+	}
+
+	type Person struct {
+		Name      string
+		Age       int
+		Companies []*Company
+	}
+
+	i := &Person{
+		Name: "Tony",
+		Age:  25,
+		Companies: []*Company{
+			{
+				Name:    "Tiger inc.",
+				Address: "Tokyo",
+				Period:  3,
+			},
+			{
+				Name:    "Dragon inc.",
+				Address: "Osaka",
+				Period:  4,
+			},
+		},
+	}
+
+	getter, err := NewGetter(i)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("%#v", getter.Get("Companies"))
+	// Output:
+	// {Name:Tiger inc. Address:Tokyo Period:3}
+}
+*/
+
 func ExampleGetter_MapGet_joinElements() {
 	type Company struct {
 		Name    string
@@ -20,7 +137,7 @@ func ExampleGetter_MapGet_joinElements() {
 	}
 
 	i := &Person{
-		Name: "Mark Hunt",
+		Name: "Tony",
 		Age:  25,
 		Companies: []*Company{
 			{
