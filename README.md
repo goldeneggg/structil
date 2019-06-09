@@ -4,15 +4,19 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/goldeneggg/structil)](https://goreportcard.com/report/github.com/goldeneggg/structil)
 [![GolangCI](https://golangci.com/badges/github.com/goldeneggg/gat.svg)](https://golangci.com/r/github.com/goldeneggg/structil)
 [![Codecov](https://codecov.io/github/goldeneggg/structil/coverage.svg?branch=master)](https://codecov.io/github/goldeneggg/structil?branch=master)
+[![MIT License](http://img.shields.io/badge/license-MIT-lightgrey.svg)](https://github.com/goldeneggg/structil/blob/master/LICENSE)
 
 Struct Utilities for runtime and dynamic environment in Go.
 
 ## Usage
+See [![GoDoc](https://godoc.org/github.com/goldeneggg/structil?status.png)](https://godoc.org/github.com/goldeneggg/structil)
 
 ### `Getter`
 Use `Getter`
 
 We can access a struct using field name string, like map.
+
+Sample script on playground is https://play.golang.org/p/3CNDJpW3UmN .
 
 ```go
 package main
@@ -60,6 +64,8 @@ Name: "Mike Davis", Age: 27, Company: main.company{Name:"Scott inc.", Address:"O
 
 #### Collection method for slice of struct
 `MapGet` method provides the __Map__ collection function for slice of struct
+
+Sample script on playground is https://play.golang.org/p/98wCWCrs0vf .
 
 ```go
 package main
@@ -129,6 +135,8 @@ func main() {
 Use `Finder`
 
 We can access usefully nested struct fields using field name string.
+
+Sample script on playground is https://play.golang.org/p/AcF5c7Prf3z .
 
 ```go
 package main
