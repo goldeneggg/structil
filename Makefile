@@ -37,7 +37,10 @@ ci-test:
 	@./scripts/ci-test.sh
 
 .PHONY: ci
-ci: ci-test vet
+ci: ci-test lint vet
+
+lint-travis:
+	@travis lint --org --debug .travis.yml
 
 mod-dl:
 	@GO111MODULE=on go mod download
