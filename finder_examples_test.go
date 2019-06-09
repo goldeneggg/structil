@@ -1,9 +1,7 @@
-package structil_test
+package structil
 
 import (
 	"fmt"
-
-	. "github.com/goldeneggg/structil"
 )
 
 func ExampleFinder_ToMap_simpleFind() {
@@ -129,5 +127,5 @@ func ExampleFinder_ToMap_multiNestInto() {
 
 	fmt.Printf("%#v", m)
 	// Output:
-	// map[string]interface {}{"Company.Address":"New York", "Company.Group.Boss":"Donald", "Company.Group.Name":"YYY Group Holdings", "School":structil_test.School{Name:"ABC College", GraduatedYear:1995}}
+	// map[string]interface {}{"Company.Address":"New York", "Company.Group.Boss":"Donald", "Company.Group.Name":"YYY Group Holdings", "School":structil.School{Name:"ABC College", GraduatedYear:1995}}
 }
