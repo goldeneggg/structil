@@ -57,7 +57,7 @@ func NewGetter(i interface{}) (Getter, error) {
 	kind := rv.Kind()
 
 	if kind != reflect.Ptr && kind != reflect.Struct {
-		return nil, fmt.Errorf("%+v is not supported kind: %v. value: %+v.", i, kind, rv)
+		return nil, fmt.Errorf("%+v is not supported kind: %v. value: %+v", i, kind, rv)
 	}
 
 	if kind == reflect.Ptr {
@@ -65,7 +65,7 @@ func NewGetter(i interface{}) (Getter, error) {
 	}
 
 	if !rv.IsValid() {
-		return nil, fmt.Errorf("%+v is invalid argument. value: %+v.", i, rv)
+		return nil, fmt.Errorf("%+v is invalid argument. value: %+v", i, rv)
 	}
 
 	return &gImpl{
@@ -174,9 +174,8 @@ func (g *gImpl) EGet(name string) (intf interface{}, err error) {
 func (g *gImpl) Byte(name string) byte {
 	if v, ok := g.Get(name).(byte); ok {
 		return v
-	} else {
-		panic(fmt.Sprintf("field name %s is not byte type. value kind: %v", name, g.GetValue(name).Kind()))
 	}
+	panic(fmt.Sprintf("field name %s is not byte type. value kind: %v", name, g.GetValue(name).Kind()))
 }
 
 // Bytes returns the []byte of the original struct field named "name".
@@ -185,9 +184,8 @@ func (g *gImpl) Byte(name string) byte {
 func (g *gImpl) Bytes(name string) []byte {
 	if v, ok := g.Get(name).([]byte); ok {
 		return v
-	} else {
-		panic(fmt.Sprintf("field name %s is not []byte type. value kind: %v", name, g.GetValue(name).Kind()))
 	}
+	panic(fmt.Sprintf("field name %s is not []byte type. value kind: %v", name, g.GetValue(name).Kind()))
 }
 
 // String returns the string of the original struct field named "name".
@@ -196,9 +194,8 @@ func (g *gImpl) Bytes(name string) []byte {
 func (g *gImpl) String(name string) string {
 	if v, ok := g.Get(name).(string); ok {
 		return v
-	} else {
-		panic(fmt.Sprintf("field name %s is not string type. value kind: %v", name, g.GetValue(name).Kind()))
 	}
+	panic(fmt.Sprintf("field name %s is not string type. value kind: %v", name, g.GetValue(name).Kind()))
 }
 
 // Int returns the int of the original struct field named "name".
@@ -207,9 +204,8 @@ func (g *gImpl) String(name string) string {
 func (g *gImpl) Int(name string) int {
 	if v, ok := g.Get(name).(int); ok {
 		return v
-	} else {
-		panic(fmt.Sprintf("field name %s is not int type. value kind: %v", name, g.GetValue(name).Kind()))
 	}
+	panic(fmt.Sprintf("field name %s is not int type. value kind: %v", name, g.GetValue(name).Kind()))
 }
 
 // Int64 returns the int64 of the original struct field named "name".
@@ -218,9 +214,8 @@ func (g *gImpl) Int(name string) int {
 func (g *gImpl) Int64(name string) int64 {
 	if v, ok := g.Get(name).(int64); ok {
 		return v
-	} else {
-		panic(fmt.Sprintf("field name %s is not int64 type. value kind: %v", name, g.GetValue(name).Kind()))
 	}
+	panic(fmt.Sprintf("field name %s is not int64 type. value kind: %v", name, g.GetValue(name).Kind()))
 }
 
 // Uint returns the uint of the original struct field named "name".
@@ -229,9 +224,8 @@ func (g *gImpl) Int64(name string) int64 {
 func (g *gImpl) Uint(name string) uint {
 	if v, ok := g.Get(name).(uint); ok {
 		return v
-	} else {
-		panic(fmt.Sprintf("field name %s is not uint type. value kind: %v", name, g.GetValue(name).Kind()))
 	}
+	panic(fmt.Sprintf("field name %s is not uint type. value kind: %v", name, g.GetValue(name).Kind()))
 }
 
 // Uint64 returns the uint64 of the original struct field named "name".
@@ -240,9 +234,8 @@ func (g *gImpl) Uint(name string) uint {
 func (g *gImpl) Uint64(name string) uint64 {
 	if v, ok := g.Get(name).(uint64); ok {
 		return v
-	} else {
-		panic(fmt.Sprintf("field name %s is not uint64 type. value kind: %v", name, g.GetValue(name).Kind()))
 	}
+	panic(fmt.Sprintf("field name %s is not uint64 type. value kind: %v", name, g.GetValue(name).Kind()))
 }
 
 // Float64 returns the float64 of the original struct field named "name".
@@ -251,9 +244,8 @@ func (g *gImpl) Uint64(name string) uint64 {
 func (g *gImpl) Float64(name string) float64 {
 	if v, ok := g.Get(name).(float64); ok {
 		return v
-	} else {
-		panic(fmt.Sprintf("field name %s is not float64 type. value kind: %v", name, g.GetValue(name).Kind()))
 	}
+	panic(fmt.Sprintf("field name %s is not float64 type. value kind: %v", name, g.GetValue(name).Kind()))
 }
 
 // Bool returns the bool of the original struct field named "name".
@@ -262,9 +254,8 @@ func (g *gImpl) Float64(name string) float64 {
 func (g *gImpl) Bool(name string) bool {
 	if v, ok := g.Get(name).(bool); ok {
 		return v
-	} else {
-		panic(fmt.Sprintf("field name %s is not bool type. value kind: %v", name, g.GetValue(name).Kind()))
 	}
+	panic(fmt.Sprintf("field name %s is not bool type. value kind: %v", name, g.GetValue(name).Kind()))
 }
 
 // IsByte reports whether type of the original struct field named "name" is byte.
