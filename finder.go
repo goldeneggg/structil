@@ -133,8 +133,8 @@ func (f *FinderImpl) addError(key string, err error) Finder {
 }
 
 // ToMap returns a map converted from struct.
-// Map keys are lookup field names by "Struct" method and "Find".
-// Map values are lookup field values by "Struct" method and "Find".
+// Map keys are lookup field names by "Into" method and "Find".
+// Map values are lookup field values by "Into" method and "Find".
 func (f *FinderImpl) ToMap() (map[string]interface{}, error) {
 	if f.HasError() {
 		return nil, f
