@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func ExampleFinder_ToMap_simpleFind() {
+func ExampleFinderImpl_ToMap_simpleFind() {
 	type Person struct {
 		Name string
 		Age  int
@@ -27,7 +27,7 @@ func ExampleFinder_ToMap_simpleFind() {
 	// map[string]interface {}{"Age":25, "Name":"Scott Tiger"}
 }
 
-func ExampleFinder_ToMap_singleNestInto() {
+func ExampleFinderImpl_ToMap_singleNestInto() {
 	type Company struct {
 		Name    string
 		Address string
@@ -68,7 +68,7 @@ func ExampleFinder_ToMap_singleNestInto() {
 	// map[string]interface {}{"Age":25, "Company.Period":3, "Name":"Mark Hunt"}
 }
 
-func ExampleFinder_ToMap_multiNestInto() {
+func ExampleFinderImpl_ToMap_multiNestInto() {
 	type Group struct {
 		Name string
 		Boss string

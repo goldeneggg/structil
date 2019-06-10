@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func ExampleGetter_String() {
+func ExampleGetterImpl_String() {
 	type Person struct {
 		Name string
 		Age  int
@@ -25,7 +25,7 @@ func ExampleGetter_String() {
 	// Tony
 }
 
-func ExampleGetter_Int() {
+func ExampleGetterImpl_Int() {
 	type Person struct {
 		Name string
 		Age  int
@@ -46,7 +46,7 @@ func ExampleGetter_Int() {
 	// 25
 }
 
-func ExampleGetter_Get_struct() {
+func ExampleGetterImpl_Get_struct() {
 	type Company struct {
 		Name    string
 		Address string
@@ -80,7 +80,7 @@ func ExampleGetter_Get_struct() {
 }
 
 /*
-func ExampleGetter_Get_structSliceField() {
+func ExampleGetterImpl_Get_structSliceField() {
 	type Company struct {
 		Name    string
 		Address string
@@ -121,7 +121,7 @@ func ExampleGetter_Get_structSliceField() {
 }
 */
 
-func ExampleGetter_MapGet_joinElements() {
+func ExampleGetterImpl_MapGet_joinElements() {
 	type Company struct {
 		Name    string
 		Address string

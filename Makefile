@@ -42,6 +42,10 @@ ci: ci-test lint vet
 lint-travis:
 	@travis lint --org --debug .travis.yml
 
+.PHONY: godoc
+godoc:
+	@godoc -http=:6060
+
 mod-dl:
 	@GO111MODULE=on go mod download
 
