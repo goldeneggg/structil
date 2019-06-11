@@ -17,7 +17,7 @@ func ExampleFinderImpl_ToMap_simpleFind() {
 		panic(err)
 	}
 
-	m, err := finder.Find("Name", "Age").ToMap()
+	m, err := finder.FindTop("Name", "Age").ToMap()
 	if err != nil {
 		panic(err)
 	}
@@ -56,7 +56,7 @@ func ExampleFinderImpl_ToMap_singleNestInto() {
 	}
 
 	m, err := finder.
-		Find("Name", "Age").
+		FindTop("Name", "Age").
 		Into("Company").Find("Period").
 		ToMap()
 	if err != nil {
@@ -117,7 +117,7 @@ func ExampleFinderImpl_ToMap_multiNestInto() {
 	}
 
 	m, err := finder.
-		Find("School").
+		FindTop("School").
 		Into("Company").Find("Address").
 		Into("Company", "Group").Find("Name", "Boss").
 		ToMap()
