@@ -112,11 +112,11 @@ func (fks *FinderKeys) Keys() []string {
 	return fks.keys
 }
 
-func (fks *FinderKeys) intosAndFinds(i int) ([]string, []string) {
+func (fks *FinderKeys) intoAndFindNames(i int) (string, string) {
 	s := strings.Split(fks.keys[i], defaultSep)
 	if len(s) == 1 {
-		return nil, s[:1]
+		return topLevelKey, s[0]
 	}
 
-	return s[0 : len(s)-1], s[len(s)-1:]
+	return strings.Join(s[0:len(s)-1], defaultSep), s[len(s)-1]
 }

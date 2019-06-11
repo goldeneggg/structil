@@ -144,24 +144,31 @@ func (f *FinderImpl) addError(key string, err error) Finder {
 }
 
 func (f *FinderImpl) FromKeys(fks *FinderKeys) Finder {
-	var intos, finds []string
-	tops := make([]string, 0, 10)
+	var into, find string
+	var ok bool
+	m := make(map[string][]string)
 
 	for i := 0; i < fks.Len(); i++ {
 		if f.HasError() {
 			return f
 		}
 
-		intos, finds = fks.intosAndFinds(i)
-		if intos == nil {
-			tops = append(tops, finds...)
-		} else {
-			f.Into(intos...).Find(finds...)
+		into, find = fks.intoAndFindNames(i)
+		if _, ok = m[into]; !ok {
+			m[into] = make([]string, 0, 10)
 		}
+		m[into] = append(m[into], find)
 	}
 
-	if len(tops) > 0 {
-		f.FindTop(tops...)
+	var is []string
+
+	for k, v := range m {
+		if k == topLevelKey {
+			f.FindTop(v...)
+		} else {
+			is = strings.Split(k, defaultSep)
+			f.Into(is...).Find(v...)
+		}
 	}
 
 	return f

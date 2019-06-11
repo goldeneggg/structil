@@ -1,6 +1,8 @@
 package structil_test
 
 import (
+	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -127,17 +129,17 @@ func TestToMap(t *testing.T) {
 	t.Parallel()
 
 	var f Finder
-	var fs []Finder
 	var err error
+	fs := make([]Finder, 10)
 
-	for i := 0; i < 9; i++ {
+	for i := 0; i < len(fs); i++ {
 		f, err = NewFinder(newTestStructPtr())
 		if err != nil {
 			t.Errorf("NewFinder() error = %v", err)
 			return
 		}
 
-		fs = append(fs, f)
+		fs[i] = f
 	}
 
 	fsep, err := NewFinderWithSep(newTestStructPtr(), ":")
@@ -159,7 +161,7 @@ func TestToMap(t *testing.T) {
 		cmpopts         []cmp.Option
 	}{
 		{
-			name: "with non-nest chain",
+			name: "with toplevel find chain",
 			args: args{
 				chain: fs[0].
 					Find(
@@ -183,7 +185,7 @@ func TestToMap(t *testing.T) {
 				"Int64":       int64(-1),
 				"Float64":     float64(-3.45),
 				"String":      "test name",
-				"Stringptr":   testString2, // TODO: if pointer, test is fail
+				"Stringptr":   testString2,
 				"Stringslice": []string{"strslice1", "strslice2"},
 				"Bool":        true,
 				"Map":         map[string]interface{}{"k1": "v1", "k2": 2},
@@ -300,6 +302,212 @@ func TestToMap(t *testing.T) {
 				"TestStruct2Ptr:TestStruct3:String": "struct3 string ptr",
 				"TestStruct2Ptr:TestStruct3:Int":    int(-456),
 			},
+		},
+		{
+			name: "with toplevel and multi-nest find chain using FindTop",
+			args: args{
+				chain: fs[9].
+					FindTop(
+						"Int64",
+						"Float64",
+						"String",
+						"Stringptr",
+						"Stringslice",
+						"Bool",
+						"Map",
+						//"Func",
+						"ChInt",
+						"privateString",
+						"TestStruct2",
+						"TestStruct2Ptr",
+						"TestStruct4Slice",
+						"TestStruct4PtrSlice",
+					).
+					Into("TestStruct2Ptr").Find("String").
+					Into("TestStruct2Ptr", "TestStruct3").Find("String", "Int"),
+			},
+			wantMap: map[string]interface{}{
+				"Int64":       int64(-1),
+				"Float64":     float64(-3.45),
+				"String":      "test name",
+				"Stringptr":   testString2,
+				"Stringslice": []string{"strslice1", "strslice2"},
+				"Bool":        true,
+				"Map":         map[string]interface{}{"k1": "v1", "k2": 2},
+				//"Func":        testFunc,  // TODO: func is fail
+				"ChInt":         testChan,
+				"privateString": nil, // unexported field is nil
+				"TestStruct2": TestStruct2{
+					String:      "struct2 string",
+					TestStruct3: &TestStruct3{String: "struct3 string", Int: -123},
+				},
+				"TestStruct2Ptr": TestStruct2{ // not ptr
+					String:      "struct2 string ptr",
+					TestStruct3: &TestStruct3{String: "struct3 string ptr", Int: -456},
+				},
+				"TestStruct4Slice": []TestStruct4{
+					{String: "key100", String2: "value100"},
+					{String: "key200", String2: "value200"},
+				},
+				"TestStruct4PtrSlice": []*TestStruct4{
+					{String: "key991", String2: "value991"},
+					{String: "key992", String2: "value992"},
+				},
+				"TestStruct2Ptr.String":             "struct2 string ptr",
+				"TestStruct2Ptr.TestStruct3.String": "struct3 string ptr",
+				"TestStruct2Ptr.TestStruct3.Int":    int(-456),
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			defer deferPanic(t, tt.wantPanic, tt.args)
+
+			got, err := tt.args.chain.ToMap()
+
+			if err == nil {
+				if tt.wantError {
+					t.Errorf("error does not occur. got: %v", got)
+					return
+				}
+
+				if got == nil {
+					t.Errorf("result is nil %v", got)
+					return
+				}
+
+				for k, wv := range tt.wantMap {
+					gv, ok := got[k]
+					if ok {
+						if d := cmp.Diff(gv, wv, tt.cmpopts...); d != "" {
+							t.Errorf("key: %s, gotMap: %+v, (-got +want)\n%s", k, got, d)
+							return
+						}
+					} else {
+						t.Errorf("ok: %v, key: %s, gotValue: [%v], wantValue: [%v], gotMap: %+v, ", ok, k, gv, wv, got)
+						return
+					}
+				}
+			} else {
+				if tt.args.chain.HasError() && tt.wantError {
+					if d := cmp.Diff(err.Error(), tt.wantErrorString); d != "" {
+						t.Errorf("error string is unmatch. (-got +want)\n%s", d)
+						return
+					}
+
+					tt.args.chain.Reset()
+					if tt.args.chain.HasError() {
+						t.Errorf("Reset() does not work expectedly. Errors still remain.")
+					}
+				} else {
+					t.Errorf("unexpected error = %v, HasError: %v, wantError: %v", err, tt.args.chain.HasError(), tt.wantError)
+				}
+			}
+		})
+	}
+}
+
+func TestFromKeys(t *testing.T) {
+	t.Parallel()
+
+	var f Finder
+	var fk *FinderKeys
+	var err error
+	fs := make([]Finder, 5)
+	fks := make([]*FinderKeys, 5)
+
+	for i := 0; i < len(fs); i++ {
+		fk, err = NewFinderKeysFromConf("examples/finder_from_conf/", fmt.Sprintf("ex_test%s_yml", strconv.Itoa(i+1)))
+		if err != nil {
+			t.Errorf("NewFinderKeysFromConf() error = %v", err)
+			return
+		}
+		fks[i] = fk
+
+		f, err = NewFinder(newTestStructPtr())
+		if err != nil {
+			t.Errorf("NewFinder() error = %v", err)
+			return
+		}
+		fs[i] = f
+	}
+
+	type args struct {
+		chain Finder
+	}
+	tests := []struct {
+		name            string
+		args            args
+		wantError       bool
+		wantErrorString string
+		wantPanic       bool
+		wantMap         map[string]interface{}
+		cmpopts         []cmp.Option
+	}{
+		{
+			name: "with toplevel find chain",
+			args: args{
+				chain: fs[0].FromKeys(fks[0]),
+			},
+			wantMap: map[string]interface{}{
+				"Int64":         int64(-1),
+				"Float64":       float64(-3.45),
+				"String":        "test name",
+				"Stringptr":     testString2,
+				"Stringslice":   []string{"strslice1", "strslice2"},
+				"Bool":          true,
+				"Map":           map[string]interface{}{"k1": "v1", "k2": 2},
+				"ChInt":         testChan,
+				"privateString": nil, // unexported field is nil
+				"TestStruct2": TestStruct2{
+					String:      "struct2 string",
+					TestStruct3: &TestStruct3{String: "struct3 string", Int: -123},
+				},
+				"TestStruct4Slice": []TestStruct4{
+					{String: "key100", String2: "value100"},
+					{String: "key200", String2: "value200"},
+				},
+				"TestStruct4PtrSlice": []*TestStruct4{
+					{String: "key991", String2: "value991"},
+					{String: "key992", String2: "value992"},
+				},
+				"TestStruct2Ptr.String":             "struct2 string ptr",
+				"TestStruct2Ptr.TestStruct3.String": "struct3 string ptr",
+				"TestStruct2Ptr.TestStruct3.Int":    int(-456),
+			},
+		},
+		{
+			name: "with Find with non-existed name",
+			args: args{
+				chain: fs[1].FromKeys(fks[1]),
+			},
+			wantError:       true,
+			wantErrorString: "field name NonExist does not exist",
+		},
+		{
+			name: "with Find with existed and non-existed names",
+			args: args{
+				chain: fs[2].FromKeys(fks[2]),
+			},
+			wantError:       true,
+			wantErrorString: "field name NonExist does not exist",
+		},
+		{
+			name: "with Struct with non-existed name",
+			args: args{
+				chain: fs[3].FromKeys(fks[3]),
+			},
+			wantError:       true,
+			wantErrorString: "Error in name: NonExist, key: NonExist. [name NonExist does not exist]",
+		},
+		{
+			name: "with Struct with existed name and Find with non-existed name",
+			args: args{
+				chain: fs[4].FromKeys(fks[4]),
+			},
+			wantError:       true,
+			wantErrorString: "field name NonExist does not exist",
 		},
 	}
 

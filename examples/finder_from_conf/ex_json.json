@@ -4,9 +4,11 @@
       "Company":[
         {
           "Group":[
+            "Name",
             "Boss"
           ]
         },
+        "Address",
         "Period"
       ]
     },
