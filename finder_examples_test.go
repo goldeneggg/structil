@@ -129,3 +129,129 @@ func ExampleFinderImpl_ToMap_multiNestInto() {
 	// Output:
 	// map[string]interface {}{"Company.Address":"New York", "Company.Group.Boss":"Donald", "Company.Group.Name":"YYY Group Holdings", "School":structil.School{Name:"ABC College", GraduatedYear:1995}}
 }
+
+func ExampleFinderImpl_FromKeys_yml() {
+	type Group struct {
+		Name string
+		Boss string
+	}
+
+	type Company struct {
+		Name    string
+		Address string
+		Period  int
+		*Group
+	}
+
+	type School struct {
+		Name          string
+		GraduatedYear int
+	}
+
+	type Person struct {
+		Name string
+		Age  int
+		*Company
+		*School
+	}
+
+	i := &Person{
+		Name: "Joe Davis",
+		Age:  45,
+		Company: &Company{
+			Name:    "XXX Cars inc.",
+			Address: "New York",
+			Period:  20,
+			Group: &Group{
+				Name: "YYY Group Holdings",
+				Boss: "Donald",
+			},
+		},
+		School: &School{
+			Name:          "ABC College",
+			GraduatedYear: 1995,
+		},
+	}
+
+	fks, err := NewFinderKeysFromConf("examples/finder_from_conf", "ex_yml")
+	if err != nil {
+		panic(err)
+	}
+
+	finder, err := NewFinder(i)
+	if err != nil {
+		panic(err)
+	}
+
+	m, err := finder.FromKeys(fks).ToMap()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("%#v", m)
+	// Output:
+	// map[string]interface {}{"Age":45, "Company.Address":"New York", "Company.Group.Boss":"Donald", "Company.Group.Name":"YYY Group Holdings", "Company.Period":20, "Name":"Joe Davis"}
+}
+
+func ExampleFinderImpl_FromKeys_json() {
+	type Group struct {
+		Name string
+		Boss string
+	}
+
+	type Company struct {
+		Name    string
+		Address string
+		Period  int
+		*Group
+	}
+
+	type School struct {
+		Name          string
+		GraduatedYear int
+	}
+
+	type Person struct {
+		Name string
+		Age  int
+		*Company
+		*School
+	}
+
+	i := &Person{
+		Name: "Joe Davis",
+		Age:  45,
+		Company: &Company{
+			Name:    "XXX Cars inc.",
+			Address: "New York",
+			Period:  20,
+			Group: &Group{
+				Name: "YYY Group Holdings",
+				Boss: "Donald",
+			},
+		},
+		School: &School{
+			Name:          "ABC College",
+			GraduatedYear: 1995,
+		},
+	}
+
+	fks, err := NewFinderKeysFromConf("examples/finder_from_conf", "ex_json")
+	if err != nil {
+		panic(err)
+	}
+
+	finder, err := NewFinder(i)
+	if err != nil {
+		panic(err)
+	}
+
+	m, err := finder.FromKeys(fks).ToMap()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("%#v", m)
+	// Output:
+	// map[string]interface {}{"Age":45, "Company.Address":"New York", "Company.Group.Boss":"Donald", "Company.Group.Name":"YYY Group Holdings", "Company.Period":20, "Name":"Joe Davis"}
+}
