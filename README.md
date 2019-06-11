@@ -76,11 +76,12 @@ func main() {
 	}
 
 	// We can use method chain for Find and Into methods.
-	//  - Find returns a Finder that fields in struct are looked up and held named "names".
+	//  - FindTop returns a Finder that top level fields in struct are looked up and held named "names".
 	//  - Into returns a Finder that nested struct fields are looked up and held named "names".
+	//  - Find returns a Finder that fields in struct are looked up and held named "names".
 	// And finally, we can call ToMap method for converting from struct to map.
 	m, err := finder.
-		Find("Name", "School").
+		FindTop("Name", "School").
 		Into("Company").Find("Address").
 		Into("Company", "Group").Find("Name", "Boss").
 		ToMap()
@@ -94,6 +95,10 @@ func main() {
 ```
 map[string]interface {}{"Company.Address":"Boston", "Company.Group.Boss":"Donald Mac", "Company.Group.Name":"ZZZZZZ Holdings", "Name":"Lisa Mary", "School":main.school{Name:"XYZ College", GraduatedYear:2008}}
 ```
+
+#### with `FinderKeys`
+TODO
+
 
 ### `Getter`
 Use `Getter`
