@@ -1,0 +1,27 @@
+{
+  "Keys":[
+   "Int64",
+   "Float64",
+   "String",
+   "Stringptr",
+   "Stringslice",
+   "Bool",
+   "Map",
+   "ChInt",
+   "privateString",
+   "TestStruct2",
+   "TestStruct4Slice",
+   "TestStruct4PtrSlice",
+    {
+      "TestStruct2Ptr":[
+        "String",
+        {
+          "TestStruct3":[
+            "String",
+            "Int"
+          ]
+        }
+      ]
+    }
+  ]
+}
