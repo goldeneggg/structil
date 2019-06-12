@@ -2,7 +2,6 @@ package reflectil
 
 import (
 	"reflect"
-	"unsafe"
 )
 
 // ToI returns a converted interface from rv.
@@ -13,6 +12,7 @@ func ToI(rv reflect.Value) interface{} {
 	return nil
 }
 
+/*
 // Note: Publicize candidate
 func elemOf(i interface{}) reflect.Value {
 	v := reflect.Indirect(reflect.ValueOf(i))
@@ -69,3 +69,4 @@ func privateFieldValueOf(i interface{}, name string) reflect.Value {
 	f := sv.FieldByName(name)
 	return reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem()
 }
+*/

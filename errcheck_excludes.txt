@@ -1,0 +1,7 @@
+(github.com/goldeneggg/structil.Finder).Find
+(github.com/goldeneggg/structil.Finder).Into
+(github.com/goldeneggg/structil.Finder).FromKeys
+(github.com/goldeneggg/structil.Finder).Reset
+(github.com/goldeneggg/structil.Finder).FindTop
+(*github.com/goldeneggg/structil.FinderImpl).FindTop
+(*github.com/goldeneggg/structil.FinderImpl).addError

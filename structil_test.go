@@ -51,10 +51,6 @@ type (
 )
 
 var (
-	testIntf interface{}
-)
-
-var (
 	testString2 = "test name2"
 	testFunc    = func(s string) interface{} { return s + "-func" }
 	testChan    = make(chan int)

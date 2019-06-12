@@ -39,6 +39,10 @@ ci-test:
 .PHONY: ci
 ci: ci-test lint vet
 
+.PHONY: golangci
+golangci:
+	@golangci-lint run -c .golangci.yml
+
 lint-travis:
 	@travis lint --org --debug .travis.yml
 

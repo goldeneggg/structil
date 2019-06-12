@@ -86,13 +86,17 @@ func (dw *dwImpl) Dump(rvs ...reflect.Value) error {
 		}
 	}
 
-	dw.tw.Write([]byte(fmt.Sprintf("%s\t%s\n", "Type", "Value")))
-	dw.tw.Write([]byte(fmt.Sprintf("%s\t%s\n", "-----", "-----")))
+	if _, err := dw.tw.Write([]byte(fmt.Sprintf("%s\t%s\n", "Type", "Value"))); err != nil {
+		return err
+	}
+	if _, err := dw.tw.Write([]byte(fmt.Sprintf("%s\t%s\n", "-----", "-----"))); err != nil {
+		return err
+	}
 
 	for _, d := range ds {
-		dw.tw.Write([]byte(fmt.Sprintf(
-			"%v\t%+v\n", d[0], d[1],
-		)))
+		if _, err := dw.tw.Write([]byte(fmt.Sprintf("%v\t%+v\n", d[0], d[1]))); err != nil {
+			return err
+		}
 	}
 	err := dw.tw.Flush()
 

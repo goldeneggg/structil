@@ -10,13 +10,6 @@ import (
 	. "github.com/goldeneggg/structil"
 )
 
-type toMapTest struct {
-	name      string
-	wantError bool
-	wantPanic bool
-	wantMap   map[string]interface{}
-}
-
 func TestNewFinder(t *testing.T) {
 	t.Parallel()
 
