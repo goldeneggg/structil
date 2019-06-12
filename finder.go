@@ -68,7 +68,7 @@ func NewFinderWithGetterAndSep(g Getter, sep string) (Finder, error) {
 	return f.Reset(), nil
 }
 
-// FindRoot returns a Finder that top level fields in struct are looked up and held named "names".
+// FindTop returns a Finder that top level fields in struct are looked up and held named "names".
 func (f *FinderImpl) FindTop(names ...string) Finder {
 	return f.find(topLevelKey, names...)
 }
