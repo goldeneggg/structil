@@ -1,5 +1,8 @@
 # structil
 
+[![GoDoc](https://godoc.org/github.com/goldeneggg/structil?status.png)](https://godoc.org/github.com/goldeneggg/structil)
+<br />
+<br />
 [![Build Status](https://travis-ci.org/goldeneggg/structil.svg?branch=master)](https://travis-ci.org/goldeneggg/structil)
 [![Go Report Card](https://goreportcard.com/badge/github.com/goldeneggg/structil)](https://goreportcard.com/report/github.com/goldeneggg/structil)
 [![GolangCI](https://golangci.com/badges/github.com/goldeneggg/gat.svg)](https://golangci.com/r/github.com/goldeneggg/structil)
@@ -9,14 +12,11 @@
 Struct Utilities for runtime and dynamic environment in Go.
 
 ## Runtime and Dynamic struct accessor
-See [GoDoc](https://godoc.org/github.com/goldeneggg/structil)
 
 ### `Finder`
-Use `Finder`
-
 We can access usefully nested struct fields using field name string.
 
-Sample script on playground is https://play.golang.org/p/AcF5c7Prf3z .
+[Sample script on playground](https://play.golang.org/p/AcF5c7Prf3z).
 
 ```go
 package main
@@ -92,6 +92,9 @@ func main() {
 	fmt.Printf("%#v", m)
 }
 ```
+
+Result as follows.
+
 ```
 map[string]interface {}{"Company.Address":"Boston", "Company.Group.Boss":"Donald Mac", "Company.Group.Name":"ZZZZZZ Holdings", "Name":"Lisa Mary", "School":main.school{Name:"XYZ College", GraduatedYear:2008}}
 ```
@@ -99,7 +102,9 @@ map[string]interface {}{"Company.Address":"Boston", "Company.Group.Boss":"Donald
 #### with `FinderKeys`
 We can create a Finder from the configuration file that have some finding target keys.
 
-We support some file format of configuration file such as `yaml`, `json`, `toml` and more. Thanks for the awesome configuration management library [spf13/viper](https://github.com/spf13/viper).
+We support some file format of configuration file such as `yaml`, `json`, `toml` and more.
+
+Thanks for the awesome configuration management library [spf13/viper](https://github.com/spf13/viper).
 
 ```go
 package main
@@ -177,9 +182,7 @@ func json(i *person) {
     return
   }
 
-  finder = finder.FromKeys(fks)
-
-  m, err := finder.ToMap()
+  m, err := finder.FromKeys(fks).ToMap()
   fmt.Printf("Found Map(json): %#v, err: %v\n", m, err)
 }
 
@@ -196,12 +199,14 @@ func yml(i *person) {
     fmt.Printf("error: %v\n", err)
     return
   }
-  finder = finder.FromKeys(fks)
 
-  m, err := finder.ToMap()
+  m, err := finder.FromKeys(fks).ToMap()
   fmt.Printf("Found Map(yml): %#v, err: %v\n", m, err)
 }
 ```
+
+Result as follows.
+
 ```
 fks.Keys(json): []string{"Company.Group.Name", "Company.Group.Boss", "Company.Address", "Company.Period", "Name", "Age"}
 Found Map(json): map[string]interface {}{"Age":34, "Company.Address":"Boston", "Company.Group.Boss":"Donald Mac", "Company.Group.Name":"ZZZZZZ Holdings", "Company.Period":11, "Name":"Lisa Mary"}, err: <nil>
@@ -256,6 +261,9 @@ func main() {
 	fmt.Printf("Name: %+v, Age: %+v, Company: %+v\n", getter.String("Name"), getter.Int("Age"), getter.Get("Company"))
 }
 ```
+
+Result as follows.
+
 ```
 Name: "Mike Davis", Age: 27, Company: main.company{Name:"Scott inc.", Address:"Osaka", Period:2}
 ```
@@ -325,6 +333,9 @@ func main() {
 	fmt.Printf("%#v\n", intfs)
 }
 ```
+
+Result as follows.
+
 ```
 []interface {}{"You worked for 3 years since you joined the company Dragons inc.", "You worked for 2 years since you joined the company Swallows inc."}
 ```
