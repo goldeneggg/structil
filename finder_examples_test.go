@@ -173,6 +173,18 @@ func ExampleFinderImpl_FromKeys_yml() {
 		},
 	}
 
+	// examples/finder_from_conf/ex_yml.yml as follows:
+	//
+	// Keys:
+	//   - Company:
+	//     - Group:
+	//       - Name
+	//       - Boss
+	//     - Address
+	//     - Period
+	//   - Name
+	//   - Age
+
 	fks, err := NewFinderKeysFromConf("examples/finder_from_conf", "ex_yml")
 	if err != nil {
 		panic(err)
@@ -236,6 +248,26 @@ func ExampleFinderImpl_FromKeys_json() {
 		},
 	}
 
+	// examples/finder_from_conf/ex_json.json as follows:
+	//
+	// {
+	//   "Keys":[
+	//     {
+	//       "Company":[
+	//         {
+	//           "Group":[
+	//             "Name",
+	//             "Boss"
+	//           ]
+	//         },
+	//         "Address",
+	//         "Period"
+	//       ]
+	//     },
+	//     "Name",
+	//     "Age"
+	//   ]
+	// }
 	fks, err := NewFinderKeysFromConf("examples/finder_from_conf", "ex_json")
 	if err != nil {
 		panic(err)

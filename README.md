@@ -205,6 +205,43 @@ func yml(i *person) {
 }
 ```
 
+File `examples/finder_from_conf/ex_json.json` as follows:
+
+```json
+{
+  "Keys":[
+    {
+      "Company":[
+        {
+          "Group":[
+            "Name",
+            "Boss"
+          ]
+        },
+        "Address",
+        "Period"
+      ]
+    },
+    "Name",
+    "Age"
+  ]
+}
+```
+
+File `examples/finder_from_conf/ex_yml.yml` as follows:
+
+```yml
+Keys:
+  - Company:
+    - Group:
+      - Name
+      - Boss
+    - Address
+    - Period
+  - Name
+  - Age
+```
+
 Result as follows.
 
 ```
