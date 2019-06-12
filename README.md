@@ -97,8 +97,117 @@ map[string]interface {}{"Company.Address":"Boston", "Company.Group.Boss":"Donald
 ```
 
 #### with `FinderKeys`
-TODO
+We can create a Finder from the configuration file that have some finding target keys.
 
+We support some file format of configuration file such as `yaml`, `json`, `toml` and more. Thanks for the awesome configuration management library [spf13/viper](https://github.com/spf13/viper).
+
+```go
+package main
+
+import (
+  "fmt"
+
+  "github.com/goldeneggg/structil"
+)
+
+type person struct {
+  Name    string
+  Age     int
+  Company *company
+  Schools []*school
+}
+
+type school struct {
+  Name          string
+  GraduatedYear int
+}
+
+type company struct {
+  Name    string
+  Address string
+  Period  int
+  Group   *group
+}
+
+type group struct {
+  Name string
+  Boss string
+}
+
+func main() {
+  i := &person{
+    Name: "Lisa Mary",
+    Age:  34,
+    Company: &company{
+      Name:    "ZZZ Air inc.",
+      Address: "Boston",
+      Period:  11,
+      Group: &group{
+        Name: "ZZZZZZ Holdings",
+        Boss: "Donald Mac",
+      },
+    },
+    Schools: []*school{
+      {
+        Name:          "STU High School",
+        GraduatedYear: 2005,
+      },
+      {
+        Name:          "XYZ College",
+        GraduatedYear: 2008,
+      },
+    },
+  }
+
+  json(i)
+  yml(i)
+}
+
+func json(i *person) {
+  fks, err := structil.NewFinderKeysFromConf("examples/finder_from_conf", "ex_json")
+  if err != nil {
+    fmt.Printf("error: %v\n", err)
+    return
+  }
+  fmt.Printf("fks.Keys(json): %#v\n", fks.Keys())
+
+  finder, err := structil.NewFinder(i)
+  if err != nil {
+    fmt.Printf("error: %v\n", err)
+    return
+  }
+
+  finder = finder.FromKeys(fks)
+
+  m, err := finder.ToMap()
+  fmt.Printf("Found Map(json): %#v, err: %v\n", m, err)
+}
+
+func yml(i *person) {
+  fks, err := structil.NewFinderKeysFromConf("examples/finder_from_conf", "ex_yml")
+  if err != nil {
+    fmt.Printf("error: %v\n", err)
+    return
+  }
+  fmt.Printf("fks.Keys(yml): %#v\n", fks.Keys())
+
+  finder, err := structil.NewFinder(i)
+  if err != nil {
+    fmt.Printf("error: %v\n", err)
+    return
+  }
+  finder = finder.FromKeys(fks)
+
+  m, err := finder.ToMap()
+  fmt.Printf("Found Map(yml): %#v, err: %v\n", m, err)
+}
+```
+```
+fks.Keys(json): []string{"Company.Group.Name", "Company.Group.Boss", "Company.Address", "Company.Period", "Name", "Age"}
+Found Map(json): map[string]interface {}{"Age":34, "Company.Address":"Boston", "Company.Group.Boss":"Donald Mac", "Company.Group.Name":"ZZZZZZ Holdings", "Company.Period":11, "Name":"Lisa Mary"}, err: <nil>
+fks.Keys(yml): []string{"Company.Group.Name", "Company.Group.Boss", "Company.Address", "Company.Period", "Name", "Age"}
+Found Map(yml): map[string]interface {}{"Age":34, "Company.Address":"Boston", "Company.Group.Boss":"Donald Mac", "Company.Group.Name":"ZZZZZZ Holdings", "Company.Period":11, "Name":"Lisa Mary"}, err: <nil>
+```
 
 ### `Getter`
 Use `Getter`
