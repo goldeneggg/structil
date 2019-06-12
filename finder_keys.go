@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/viper"
 )
 
+// FinderKeys is the struct that have keys for Finder.
 type FinderKeys struct {
 	keys []string
 }
@@ -15,6 +16,8 @@ type confKeys struct {
 	Keys []interface{}
 }
 
+// NewFinderKeysFromConf returns a FinderKeys object
+// that is created from configuration file indicated by "dir" and "name" file.
 func NewFinderKeysFromConf(dir string, baseName string) (*FinderKeys, error) {
 	viper.SetConfigName(baseName)
 	viper.AddConfigPath(dir)
@@ -104,10 +107,12 @@ func (fks *FinderKeys) addRecursive(key interface{}, prefix string) error {
 	return nil
 }
 
+// Len returns length of FinderKeys
 func (fks *FinderKeys) Len() int {
 	return len(fks.keys)
 }
 
+// Keys returns keys
 func (fks *FinderKeys) Keys() []string {
 	return fks.keys
 }

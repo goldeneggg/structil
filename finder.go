@@ -143,6 +143,7 @@ func (f *FinderImpl) addError(key string, err error) Finder {
 	return f
 }
 
+// FromKeys returns a Finder that looked up by FinderKeys generated from configuration file.
 func (f *FinderImpl) FromKeys(fks *FinderKeys) Finder {
 	var into, find string
 	var ok bool
