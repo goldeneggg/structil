@@ -1,0 +1,9 @@
+Keys:
+  - Int64
+  - Float64
+  - String
+  - TestStruct2Ptr:
+    - String:
+    - TestStruct3:
+      - String
+      - Int

@@ -6,14 +6,16 @@ import (
 )
 
 const (
-	defaultSep = "."
-	rootKey    = "!"
+	defaultSep  = "."
+	topLevelKey = "!"
 )
 
 // Finder is the interface that builds the nested struct finder.
 type Finder interface {
+	FindTop(names ...string) Finder
 	Find(names ...string) Finder
 	Into(names ...string) Finder
+	FromKeys(fks *FinderKeys) Finder
 	ToMap() (map[string]interface{}, error)
 	HasError() bool
 	Error() string
@@ -23,12 +25,12 @@ type Finder interface {
 
 // FinderImpl is the default Finder implementation.
 type FinderImpl struct {
-	rootGetter Getter
-	gMap       map[string]Getter
-	fMap       map[string][]string
-	eMap       map[string][]error
-	ck         string
-	sep        string
+	topLevelGetter Getter
+	gMap           map[string]Getter
+	fMap           map[string][]string
+	eMap           map[string][]error
+	ck             string
+	sep            string
 }
 
 // NewFinder returns a concrete Finder that uses and obtains from i.
@@ -61,19 +63,28 @@ func NewFinderWithGetterAndSep(g Getter, sep string) (Finder, error) {
 		return nil, fmt.Errorf("sep [%s] is invalid", sep)
 	}
 
-	f := &FinderImpl{rootGetter: g, sep: sep}
+	f := &FinderImpl{topLevelGetter: g, sep: sep}
 
 	return f.Reset(), nil
 }
 
+// FindTop returns a Finder that top level fields in struct are looked up and held named "names".
+func (f *FinderImpl) FindTop(names ...string) Finder {
+	return f.find(topLevelKey, names...)
+}
+
 // Find returns a Finder that fields in struct are looked up and held named "names".
 func (f *FinderImpl) Find(names ...string) Finder {
+	return f.find(f.ck, names...)
+}
+
+func (f *FinderImpl) find(fKey string, names ...string) Finder {
 	if f.HasError() {
 		return f
 	}
 
-	f.fMap[f.ck] = make([]string, len(names))
-	copy(f.fMap[f.ck], names)
+	f.fMap[fKey] = make([]string, len(names))
+	copy(f.fMap[fKey], names)
 
 	return f
 }
@@ -84,7 +95,7 @@ func (f *FinderImpl) Into(names ...string) Finder {
 		return f
 	}
 
-	f.ck = rootKey
+	f.ck = topLevelKey
 
 	var nextGetter Getter
 	var ok bool
@@ -132,6 +143,38 @@ func (f *FinderImpl) addError(key string, err error) Finder {
 	return f
 }
 
+// FromKeys returns a Finder that looked up by FinderKeys generated from configuration file.
+func (f *FinderImpl) FromKeys(fks *FinderKeys) Finder {
+	var into, find string
+	var ok bool
+	m := make(map[string][]string)
+
+	for i := 0; i < fks.Len(); i++ {
+		if f.HasError() {
+			return f
+		}
+
+		into, find = fks.intoAndFindNames(i)
+		if _, ok = m[into]; !ok {
+			m[into] = make([]string, 0, 10)
+		}
+		m[into] = append(m[into], find)
+	}
+
+	var is []string
+
+	for k, v := range m {
+		if k == topLevelKey {
+			f.FindTop(v...)
+		} else {
+			is = strings.Split(k, defaultSep)
+			f.Into(is...).Find(v...)
+		}
+	}
+
+	return f
+}
+
 // ToMap returns a map converted from struct.
 // Map keys are lookup field names by "Into" method and "Find".
 // Map values are lookup field values by "Into" method and "Find".
@@ -145,7 +188,7 @@ func (f *FinderImpl) ToMap() (map[string]interface{}, error) {
 
 	for kg, getter := range f.gMap {
 		for _, name := range f.fMap[kg] {
-			if kg == rootKey {
+			if kg == topLevelKey {
 				key = name
 			} else {
 				key = kg + f.sep + name
@@ -204,7 +247,7 @@ func (f *FinderImpl) GetNameSeparator() string {
 // Reset resets the current build Finder.
 func (f *FinderImpl) Reset() Finder {
 	gMap := map[string]Getter{}
-	gMap[rootKey] = f.rootGetter
+	gMap[topLevelKey] = f.topLevelGetter
 	f.gMap = gMap
 
 	fMap := map[string][]string{}
@@ -213,7 +256,7 @@ func (f *FinderImpl) Reset() Finder {
 	eMap := map[string][]error{}
 	f.eMap = eMap
 
-	f.ck = rootKey
+	f.ck = topLevelKey
 
 	return f
 }

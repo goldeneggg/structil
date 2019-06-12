@@ -1,0 +1,18 @@
+{
+  "Keys":[
+    {
+      "Company":[
+        {
+          "Group":[
+            "Name",
+            "Boss"
+          ]
+        },
+        "Address",
+        "Period"
+      ]
+    },
+    "Name",
+    "Age"
+  ]
+}
