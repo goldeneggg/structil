@@ -70,9 +70,7 @@ func main() {
 		panic(err)
 	}
 
-	finder = finder.FromKeys(fks)
-
-	m, err := finder.ToMap()
+	m, err := finder.FromKeys(fks).ToMap()
 	fmt.Printf("Found Map(json): %#v, err: %v\n", m, err)
 
 	fks, err = structil.NewFinderKeysFromConf("examples/finder_from_conf", "ex_yml")
@@ -81,8 +79,6 @@ func main() {
 	}
 	fmt.Printf("fks.Keys(yml): %#v\n", fks.Keys())
 
-	finder = finder.Reset().FromKeys(fks)
-
-	m, err = finder.ToMap()
+	m, err = finder.Reset().FromKeys(fks).ToMap()
 	fmt.Printf("Found Map(yml): %#v, err: %v\n", m, err)
 }
