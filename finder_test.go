@@ -408,9 +408,8 @@ func TestToMap(t *testing.T) {
 	}
 }
 
+// This test should *NOT* be parallel
 func TestFromKeys(t *testing.T) {
-	t.Parallel()
-
 	var f Finder
 	var fk *FinderKeys
 	var err error
@@ -418,7 +417,7 @@ func TestFromKeys(t *testing.T) {
 	fks := make([]*FinderKeys, 5)
 
 	for i := 0; i < len(fs); i++ {
-		fk, err = NewFinderKeysFromConf("examples/finder_from_conf/", fmt.Sprintf("ex_test%s_yml", strconv.Itoa(i+1)))
+		fk, err = NewFinderKeysFromConf("examples/finder_from_conf", fmt.Sprintf("ex_test%s_yml", strconv.Itoa(i+1)))
 		if err != nil {
 			t.Errorf("NewFinderKeysFromConf() error = %v", err)
 			return

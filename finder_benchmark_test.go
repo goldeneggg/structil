@@ -157,39 +157,3 @@ func BenchmarkToMap_2Struct_2Find(b *testing.B) {
 		}
 	}
 }
-
-func BenchmarkFromKeys_Yml(b *testing.B) {
-	f, err := NewFinder(newTestStructPtr())
-	if err != nil {
-		b.Fatalf("NewFinder() occurs unexpected error: %v", err)
-		return
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		fks, err := NewFinderKeysFromConf("examples/finder_from_conf", "ex_test1_yml")
-		if err == nil {
-			_ = f.FromKeys(fks)
-		} else {
-			b.Fatalf("abort benchmark because error %v occurd.", err)
-		}
-	}
-}
-
-func BenchmarkFromKeys_Json(b *testing.B) {
-	f, err := NewFinder(newTestStructPtr())
-	if err != nil {
-		b.Fatalf("NewFinder() occurs unexpected error: %v", err)
-		return
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		fks, err := NewFinderKeysFromConf("examples/finder_from_conf", "ex_test1_json")
-		if err == nil {
-			_ = f.FromKeys(fks)
-		} else {
-			b.Fatalf("abort benchmark because error %v occurd.", err)
-		}
-	}
-}
