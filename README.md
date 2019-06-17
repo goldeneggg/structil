@@ -1,8 +1,6 @@
-# structil
+structil  [![GoDoc](https://godoc.org/github.com/goldeneggg/structil?status.png)](https://godoc.org/github.com/goldeneggg/structil)
+==========
 
-[![GoDoc](https://godoc.org/github.com/goldeneggg/structil?status.png)](https://godoc.org/github.com/goldeneggg/structil)
-<br />
-<br />
 [![Build Status](https://travis-ci.org/goldeneggg/structil.svg?branch=master)](https://travis-ci.org/goldeneggg/structil)
 [![Go Report Card](https://goreportcard.com/badge/github.com/goldeneggg/structil)](https://goreportcard.com/report/github.com/goldeneggg/structil)
 [![GolangCI](https://golangci.com/badges/github.com/goldeneggg/gat.svg)](https://golangci.com/r/github.com/goldeneggg/structil)
@@ -11,9 +9,22 @@
 
 Struct Utilities for runtime and dynamic environment in Go.
 
-## Runtime and Dynamic struct accessor
+# Table of Contents
 
-### `Finder`
+<!-- TOC depthFrom:1 -->
+
+- [Table of Contents](#table-of-contents)
+- [Runtime and Dynamic struct accessor](#runtime-and-dynamic-struct-accessor)
+  - [`Finder`](#finder)
+    - [With config? use `FinderKeys`](#with-config-use-finderkeys)
+  - [`Getter`](#getter)
+    - [`MapGet` method](#mapget-method)
+
+<!-- /TOC -->
+
+# Runtime and Dynamic struct accessor
+
+## `Finder`
 We can access usefully nested struct fields using field name string.
 
 [Sample script on playground](https://play.golang.org/p/AcF5c7Prf3z).
@@ -99,7 +110,7 @@ Result as follows.
 map[string]interface {}{"Company.Address":"Boston", "Company.Group.Boss":"Donald Mac", "Company.Group.Name":"ZZZZZZ Holdings", "Name":"Lisa Mary", "School":main.school{Name:"XYZ College", GraduatedYear:2008}}
 ```
 
-#### with `FinderKeys`
+### With config? use `FinderKeys`
 We can create a Finder from the configuration file that have some finding target keys.
 
 We support some file format of configuration file such as `yaml`, `json`, `toml` and more.
@@ -251,12 +262,10 @@ fks.Keys(yml): []string{"Company.Group.Name", "Company.Group.Boss", "Company.Add
 Found Map(yml): map[string]interface {}{"Age":34, "Company.Address":"Boston", "Company.Group.Boss":"Donald Mac", "Company.Group.Name":"ZZZZZZ Holdings", "Company.Period":11, "Name":"Lisa Mary"}, err: <nil>
 ```
 
-### `Getter`
-Use `Getter`
-
+## `Getter`
 We can access a struct using field name string, like map.
 
-Sample script on playground is https://play.golang.org/p/3CNDJpW3UmN .
+[Sample script on playground](https://play.golang.org/p/3CNDJpW3UmN).
 
 ```go
 package main
@@ -305,7 +314,7 @@ Result as follows.
 Name: "Mike Davis", Age: 27, Company: main.company{Name:"Scott inc.", Address:"Osaka", Period:2}
 ```
 
-#### Collection method for slice of struct
+### `MapGet` method
 `MapGet` method provides the __Map__ collection function for slice of struct
 
 Sample script on playground is https://play.golang.org/p/98wCWCrs0vf .
