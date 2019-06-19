@@ -1,14 +1,16 @@
 package dynamicstruct
 
-import "reflect"
+import (
+	"reflect"
+)
 
 type ofType int
 
 const (
-	smpString = ""
-	smpInt    = 0
-	smpFloat  = 0.0
-	smpBool   = false
+	SampleString = ""
+	SampleInt    = 0
+	SampleFloat  = 0.0
+	SampleBool   = false
 
 	tMap ofType = iota
 	tFunc
@@ -22,6 +24,7 @@ const (
 
 var (
 	smpMap  map[interface{}]interface{}
+	smpFunc func([]interface{}) []interface{}
 	smpIntf interface{}
 )
 
@@ -32,12 +35,12 @@ type DynamicStruct interface {
 	AddBool(name string) DynamicStruct
 	AddMap(name string) DynamicStruct
 	AddFunc(name string) DynamicStruct
-	AddChanBoth(name string) DynamicStruct
-	AddChanRecv(name string) DynamicStruct
-	AddChanSend(name string) DynamicStruct
+	AddChanBoth(name string, e interface{}) DynamicStruct
+	AddChanRecv(name string, e interface{}) DynamicStruct
+	AddChanSend(name string, e interface{}) DynamicStruct
 	AddStruct(name string, i interface{}, isPtr bool) DynamicStruct
 	AddStructPtr(name string, i interface{}) DynamicStruct
-	AddSlice(name string) DynamicStruct
+	AddSlice(name string, e interface{}) DynamicStruct
 	Build() interface{}
 	BuildNonPtr() interface{}
 	NumBuiltField() int
@@ -65,7 +68,7 @@ type addParam struct {
 func (ds *DsImpl) AddString(name string) DynamicStruct {
 	p := &addParam{
 		n:     name,
-		i:     smpString,
+		i:     SampleString,
 		ot:    tPrv,
 		isPtr: false,
 	}
@@ -76,7 +79,7 @@ func (ds *DsImpl) AddString(name string) DynamicStruct {
 func (ds *DsImpl) AddInt(name string) DynamicStruct {
 	p := &addParam{
 		n:     name,
-		i:     smpInt,
+		i:     SampleInt,
 		ot:    tPrv,
 		isPtr: false,
 	}
@@ -87,7 +90,7 @@ func (ds *DsImpl) AddInt(name string) DynamicStruct {
 func (ds *DsImpl) AddFloat(name string) DynamicStruct {
 	p := &addParam{
 		n:     name,
-		i:     smpFloat,
+		i:     SampleFloat,
 		ot:    tPrv,
 		isPtr: false,
 	}
@@ -98,7 +101,7 @@ func (ds *DsImpl) AddFloat(name string) DynamicStruct {
 func (ds *DsImpl) AddBool(name string) DynamicStruct {
 	p := &addParam{
 		n:     name,
-		i:     smpBool,
+		i:     SampleBool,
 		ot:    tPrv,
 		isPtr: false,
 	}
@@ -120,7 +123,7 @@ func (ds *DsImpl) AddMap(name string) DynamicStruct {
 func (ds *DsImpl) AddFunc(name string) DynamicStruct {
 	p := &addParam{
 		n:     name,
-		i:     smpIntf,
+		i:     smpFunc,
 		ot:    tFunc,
 		isPtr: false,
 	}
@@ -128,10 +131,10 @@ func (ds *DsImpl) AddFunc(name string) DynamicStruct {
 	return ds
 }
 
-func (ds *DsImpl) AddChanBoth(name string) DynamicStruct {
+func (ds *DsImpl) AddChanBoth(name string, e interface{}) DynamicStruct {
 	p := &addParam{
 		n:     name,
-		i:     smpIntf,
+		i:     e,
 		ot:    tChanBoth,
 		isPtr: false,
 	}
@@ -139,10 +142,10 @@ func (ds *DsImpl) AddChanBoth(name string) DynamicStruct {
 	return ds
 }
 
-func (ds *DsImpl) AddChanRecv(name string) DynamicStruct {
+func (ds *DsImpl) AddChanRecv(name string, e interface{}) DynamicStruct {
 	p := &addParam{
 		n:     name,
-		i:     smpIntf,
+		i:     e,
 		ot:    tChanRecv,
 		isPtr: false,
 	}
@@ -150,10 +153,10 @@ func (ds *DsImpl) AddChanRecv(name string) DynamicStruct {
 	return ds
 }
 
-func (ds *DsImpl) AddChanSend(name string) DynamicStruct {
+func (ds *DsImpl) AddChanSend(name string, e interface{}) DynamicStruct {
 	p := &addParam{
 		n:     name,
-		i:     smpIntf,
+		i:     e,
 		ot:    tChanSend,
 		isPtr: false,
 	}
@@ -176,10 +179,10 @@ func (ds *DsImpl) AddStructPtr(name string, i interface{}) DynamicStruct {
 	return ds.AddStruct(name, i, true)
 }
 
-func (ds *DsImpl) AddSlice(name string) DynamicStruct {
+func (ds *DsImpl) AddSlice(name string, e interface{}) DynamicStruct {
 	p := &addParam{
 		n:     name,
-		i:     smpIntf,
+		i:     e,
 		ot:    tSlice,
 		isPtr: false,
 	}
@@ -203,6 +206,9 @@ func (ds *DsImpl) add(p *addParam) {
 	case tChanSend:
 		typeOf = reflect.ChanOf(reflect.SendDir, it)
 	case tStruct:
+		if it.Kind() == reflect.Ptr {
+			it = it.Elem()
+		}
 		fs := make([]reflect.StructField, it.NumField())
 		for i := 0; i < it.NumField(); i++ {
 			fs[i] = it.Field(i)
@@ -226,7 +232,7 @@ func (ds *DsImpl) Build() interface{} {
 }
 
 func (ds *DsImpl) BuildNonPtr() interface{} {
-	return ds.build(true)
+	return ds.build(false)
 }
 
 func (ds *DsImpl) build(isPtr bool) interface{} {
