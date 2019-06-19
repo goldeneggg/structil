@@ -9,20 +9,16 @@ structil  [![GoDoc](https://godoc.org/github.com/goldeneggg/structil?status.png)
 
 Struct Utilities for runtime and dynamic environment in Go.
 
-# Table of Contents
+__Table of Contents__
 
 <!-- TOC depthFrom:1 -->
 
-- [Table of Contents](#table-of-contents)
-- [Runtime and Dynamic struct accessor](#runtime-and-dynamic-struct-accessor)
-  - [`Finder`](#finder)
-    - [With config? use `FinderKeys`](#with-config-use-finderkeys)
-  - [`Getter`](#getter)
-    - [`MapGet` method](#mapget-method)
+- [`Finder`](#finder)
+  - [With config? use `FinderKeys`](#with-config-use-finderkeys)
+- [`Getter`](#getter)
+  - [`MapGet` method](#mapget-method)
 
 <!-- /TOC -->
-
-# Runtime and Dynamic struct accessor
 
 ## `Finder`
 We can access usefully nested struct fields using field name string.
