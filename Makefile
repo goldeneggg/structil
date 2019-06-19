@@ -5,10 +5,6 @@ PKGS = $(shell go list ./... | \grep -v 'vendor')
 pkgs:
 	@echo $(PKGS)
 
-.PHONY: run
-run:
-	@go run examples/misc/main.go
-
 .PHONY: test
 test:
 	@go test -race -cover -parallel 2 $(PKGS)
