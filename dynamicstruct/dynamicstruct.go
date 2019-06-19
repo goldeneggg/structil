@@ -48,13 +48,13 @@ type DynamicStruct interface {
 	Exists(name string) bool
 }
 
-type DsImpl struct {
+type DynamicStructImpl struct {
 	fields     map[string]reflect.Type
 	structType reflect.Type
 }
 
 func New() DynamicStruct {
-	return &DsImpl{fields: map[string]reflect.Type{}}
+	return &DynamicStructImpl{fields: map[string]reflect.Type{}}
 }
 
 type addParam struct {
@@ -64,7 +64,7 @@ type addParam struct {
 	isPtr bool
 }
 
-func (ds *DsImpl) AddString(name string) DynamicStruct {
+func (ds *DynamicStructImpl) AddString(name string) DynamicStruct {
 	p := &addParam{
 		n:     name,
 		i:     SampleString,
@@ -75,7 +75,7 @@ func (ds *DsImpl) AddString(name string) DynamicStruct {
 	return ds
 }
 
-func (ds *DsImpl) AddInt(name string) DynamicStruct {
+func (ds *DynamicStructImpl) AddInt(name string) DynamicStruct {
 	p := &addParam{
 		n:     name,
 		i:     SampleInt,
@@ -86,7 +86,7 @@ func (ds *DsImpl) AddInt(name string) DynamicStruct {
 	return ds
 }
 
-func (ds *DsImpl) AddFloat(name string) DynamicStruct {
+func (ds *DynamicStructImpl) AddFloat(name string) DynamicStruct {
 	p := &addParam{
 		n:     name,
 		i:     SampleFloat,
@@ -97,7 +97,7 @@ func (ds *DsImpl) AddFloat(name string) DynamicStruct {
 	return ds
 }
 
-func (ds *DsImpl) AddBool(name string) DynamicStruct {
+func (ds *DynamicStructImpl) AddBool(name string) DynamicStruct {
 	p := &addParam{
 		n:     name,
 		i:     SampleBool,
@@ -108,7 +108,7 @@ func (ds *DsImpl) AddBool(name string) DynamicStruct {
 	return ds
 }
 
-func (ds *DsImpl) AddMap(name string) DynamicStruct {
+func (ds *DynamicStructImpl) AddMap(name string) DynamicStruct {
 	p := &addParam{
 		n:     name,
 		i:     smpMap,
@@ -119,7 +119,7 @@ func (ds *DsImpl) AddMap(name string) DynamicStruct {
 	return ds
 }
 
-func (ds *DsImpl) AddFunc(name string) DynamicStruct {
+func (ds *DynamicStructImpl) AddFunc(name string) DynamicStruct {
 	p := &addParam{
 		n:     name,
 		i:     smpFunc,
@@ -130,7 +130,7 @@ func (ds *DsImpl) AddFunc(name string) DynamicStruct {
 	return ds
 }
 
-func (ds *DsImpl) AddChanBoth(name string, e interface{}) DynamicStruct {
+func (ds *DynamicStructImpl) AddChanBoth(name string, e interface{}) DynamicStruct {
 	p := &addParam{
 		n:     name,
 		i:     e,
@@ -141,7 +141,7 @@ func (ds *DsImpl) AddChanBoth(name string, e interface{}) DynamicStruct {
 	return ds
 }
 
-func (ds *DsImpl) AddChanRecv(name string, e interface{}) DynamicStruct {
+func (ds *DynamicStructImpl) AddChanRecv(name string, e interface{}) DynamicStruct {
 	p := &addParam{
 		n:     name,
 		i:     e,
@@ -152,7 +152,7 @@ func (ds *DsImpl) AddChanRecv(name string, e interface{}) DynamicStruct {
 	return ds
 }
 
-func (ds *DsImpl) AddChanSend(name string, e interface{}) DynamicStruct {
+func (ds *DynamicStructImpl) AddChanSend(name string, e interface{}) DynamicStruct {
 	p := &addParam{
 		n:     name,
 		i:     e,
@@ -163,7 +163,7 @@ func (ds *DsImpl) AddChanSend(name string, e interface{}) DynamicStruct {
 	return ds
 }
 
-func (ds *DsImpl) AddStruct(name string, i interface{}, isPtr bool) DynamicStruct {
+func (ds *DynamicStructImpl) AddStruct(name string, i interface{}, isPtr bool) DynamicStruct {
 	p := &addParam{
 		n:     name,
 		i:     i,
@@ -174,11 +174,11 @@ func (ds *DsImpl) AddStruct(name string, i interface{}, isPtr bool) DynamicStruc
 	return ds
 }
 
-func (ds *DsImpl) AddStructPtr(name string, i interface{}) DynamicStruct {
+func (ds *DynamicStructImpl) AddStructPtr(name string, i interface{}) DynamicStruct {
 	return ds.AddStruct(name, i, true)
 }
 
-func (ds *DsImpl) AddSlice(name string, e interface{}) DynamicStruct {
+func (ds *DynamicStructImpl) AddSlice(name string, e interface{}) DynamicStruct {
 	p := &addParam{
 		n:     name,
 		i:     e,
@@ -189,7 +189,7 @@ func (ds *DsImpl) AddSlice(name string, e interface{}) DynamicStruct {
 	return ds
 }
 
-func (ds *DsImpl) add(p *addParam) {
+func (ds *DynamicStructImpl) add(p *addParam) {
 	it := reflect.TypeOf(p.i)
 	var typeOf reflect.Type
 
@@ -226,15 +226,15 @@ func (ds *DsImpl) add(p *addParam) {
 	ds.fields[p.n] = typeOf
 }
 
-func (ds *DsImpl) Build() interface{} {
+func (ds *DynamicStructImpl) Build() interface{} {
 	return ds.build(true)
 }
 
-func (ds *DsImpl) BuildNonPtr() interface{} {
+func (ds *DynamicStructImpl) BuildNonPtr() interface{} {
 	return ds.build(false)
 }
 
-func (ds *DsImpl) build(isPtr bool) interface{} {
+func (ds *DynamicStructImpl) build(isPtr bool) interface{} {
 	var i int
 	fs := make([]reflect.StructField, len(ds.fields))
 
@@ -252,20 +252,20 @@ func (ds *DsImpl) build(isPtr bool) interface{} {
 	}
 }
 
-func (ds *DsImpl) NumBuiltField() int {
+func (ds *DynamicStructImpl) NumBuiltField() int {
 	return ds.structType.NumField()
 }
 
-func (ds *DsImpl) BuiltField(i int) reflect.StructField {
+func (ds *DynamicStructImpl) BuiltField(i int) reflect.StructField {
 	return ds.structType.Field(i)
 }
 
-func (ds *DsImpl) Remove(name string) DynamicStruct {
+func (ds *DynamicStructImpl) Remove(name string) DynamicStruct {
 	delete(ds.fields, name)
 	return ds
 }
 
-func (ds *DsImpl) Exists(name string) bool {
+func (ds *DynamicStructImpl) Exists(name string) bool {
 	_, ok := ds.fields[name]
 	return ok
 }
