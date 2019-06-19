@@ -23,8 +23,8 @@ func main() {
 		AddInt("IntField").
 		AddFloat("FloatField").
 		AddBool("BoolField").
-		AddMap("MapField").
-		AddFunc("FuncField").
+		AddMap("MapField", dynamicstruct.SampleString, dynamicstruct.SampleFloat).
+		AddFunc("FuncField", []interface{}{dynamicstruct.SampleInt, dynamicstruct.SampleInt}, []interface{}{dynamicstruct.SampleBool}).
 		AddChanBoth("ChanBothField", dynamicstruct.SampleInt).
 		AddChanRecv("ChanRecvField", dynamicstruct.SampleInt).
 		AddChanSend("ChanSendField", dynamicstruct.SampleInt).
