@@ -33,7 +33,7 @@ ci-test:
 	@./scripts/ci-test.sh
 
 .PHONY: ci
-ci: ci-test lint vet
+ci: ci-test vet lint
 
 .PHONY: golangci
 golangci:
