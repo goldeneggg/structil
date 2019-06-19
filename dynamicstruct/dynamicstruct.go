@@ -25,7 +25,6 @@ const (
 var (
 	smpMap  map[interface{}]interface{}
 	smpFunc func([]interface{}) []interface{}
-	smpIntf interface{}
 )
 
 type DynamicStruct interface {
