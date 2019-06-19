@@ -26,11 +26,6 @@ const (
 	tPrmtv
 )
 
-var (
-	smpMap  map[interface{}]interface{}
-	smpFunc func([]interface{}) []interface{}
-)
-
 // DynamicStruct is the interface that builds a dynamic and runtime struct.
 type DynamicStruct interface {
 	AddString(name string) DynamicStruct
