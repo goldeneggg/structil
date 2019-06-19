@@ -313,7 +313,7 @@ Name: "Mike Davis", Age: 27, Company: main.company{Name:"Scott inc.", Address:"O
 ### `MapGet` method
 `MapGet` method provides the __Map__ collection function for slice of struct
 
-Sample script on playground is https://play.golang.org/p/98wCWCrs0vf .
+[Sample script on playground](https://play.golang.org/p/98wCWCrs0vf).
 
 ```go
 package main
