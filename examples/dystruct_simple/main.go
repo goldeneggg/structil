@@ -7,6 +7,7 @@ import (
 	"github.com/goldeneggg/structil/dynamicstruct"
 )
 
+// Hoge is test struct
 type Hoge struct {
 	Key   string
 	Value interface{}
