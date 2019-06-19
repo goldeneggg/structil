@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"reflect"
 
 	"github.com/goldeneggg/structil/dynamicstruct"
+	"github.com/mitchellh/mapstructure"
 )
 
 // Hoge is test struct
@@ -32,18 +32,23 @@ func main() {
 		AddStruct("StructField", hoge, false).
 		AddStructPtr("StructPtrField", hogePtr).
 		AddSlice("SliceField", hogePtr)
-	fmt.Printf("ds: %#v\n", ds)
-	fmt.Printf("ds.Exists(FloatField) BEFORE: %v\n", ds.Exists("FloatField"))
 	ds = ds.Remove("FloatField")
-	fmt.Printf("ds.Exists(FloatField) AFTER: %v\n", ds.Exists("FloatField"))
 	sPtr := ds.Build()
 	fmt.Printf("sPtr: %#v\n", sPtr)
-	sVal := ds.BuildNonPtr()
-	fmt.Printf("sVal: %#v\n", sVal)
 
-	var sfi reflect.StructField
-	for i := 0; i < ds.NumBuiltField(); i++ {
-		sfi = ds.BuiltField(i)
-		fmt.Printf("i: %d, sfi: %+v\n", i, sfi)
+	// try mapstructure.Decode using dynamic struct
+	input := map[string]interface{}{
+		"StringField": "Mitchell",
+		"IntField":    91,
+		"extra": map[string]float64{
+			"twitter": 3.14,
+		},
 	}
+
+	// 2nd arg need to be a pointer of dynamic struct
+	err := mapstructure.Decode(input, &sPtr)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Decoded sPtr: %#v\n", sPtr)
 }
