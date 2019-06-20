@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/goldeneggg/structil/dynamicstruct"
-	"github.com/mitchellh/mapstructure"
 )
 
 // Hoge is test struct
@@ -19,7 +18,7 @@ var (
 )
 
 func main() {
-	ds := dynamicstruct.New().
+	b := dynamicstruct.NewBuilder().
 		AddString("StringField").
 		AddInt("IntField").
 		AddFloat("FloatField").
@@ -32,23 +31,24 @@ func main() {
 		AddStruct("StructField", hoge, false).
 		AddStructPtr("StructPtrField", hogePtr).
 		AddSlice("SliceField", hogePtr)
-	ds = ds.Remove("FloatField")
-	sPtr := ds.Build()
-	fmt.Printf("sPtr: %#v\n", sPtr)
+	b = b.Remove("FloatField")
+	ds := b.Build()
+	fmt.Printf("ds: %#v\n", ds)
 
 	// try mapstructure.Decode using dynamic struct
 	input := map[string]interface{}{
-		"StringField": "Mitchell",
-		"IntField":    91,
+		"StringField": "@@@!!!@@@",
+		"IntField":    12345,
+		"BoolField":   true,
 		"extra": map[string]float64{
 			"twitter": 3.14,
 		},
 	}
 
 	// 2nd arg need to be a pointer of dynamic struct
-	err := mapstructure.Decode(input, &sPtr)
+	dec, err := ds.DecodeMap(input)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Decoded sPtr: %#v\n", sPtr)
+	fmt.Printf("Decoded intf: %#v\n", dec)
 }

@@ -2,6 +2,8 @@ package dynamicstruct
 
 import (
 	"reflect"
+
+	"github.com/mitchellh/mapstructure"
 )
 
 type ofType int
@@ -26,37 +28,34 @@ const (
 	tPrmtv
 )
 
-// DynamicStruct is the interface that builds a dynamic and runtime struct.
-type DynamicStruct interface {
-	AddString(name string) DynamicStruct
-	AddInt(name string) DynamicStruct
-	AddFloat(name string) DynamicStruct
-	AddBool(name string) DynamicStruct
-	AddMap(name string, ke interface{}, ve interface{}) DynamicStruct
-	AddFunc(name string, eargs []interface{}, erets []interface{}) DynamicStruct
-	AddChanBoth(name string, e interface{}) DynamicStruct
-	AddChanRecv(name string, e interface{}) DynamicStruct
-	AddChanSend(name string, e interface{}) DynamicStruct
-	AddStruct(name string, i interface{}, isPtr bool) DynamicStruct
-	AddStructPtr(name string, i interface{}) DynamicStruct
-	AddSlice(name string, e interface{}) DynamicStruct
-	Build() interface{}
-	BuildNonPtr() interface{}
-	NumBuiltField() int
-	BuiltField(i int) reflect.StructField
-	Remove(name string) DynamicStruct
+// Builder is the interface that builds a dynamic and runtime struct.
+type Builder interface {
+	AddString(name string) Builder
+	AddInt(name string) Builder
+	AddFloat(name string) Builder
+	AddBool(name string) Builder
+	AddMap(name string, ke interface{}, ve interface{}) Builder
+	AddFunc(name string, eargs []interface{}, erets []interface{}) Builder
+	AddChanBoth(name string, e interface{}) Builder
+	AddChanRecv(name string, e interface{}) Builder
+	AddChanSend(name string, e interface{}) Builder
+	AddStruct(name string, i interface{}, isPtr bool) Builder
+	AddStructPtr(name string, i interface{}) Builder
+	AddSlice(name string, e interface{}) Builder
+	Remove(name string) Builder
 	Exists(name string) bool
+	Build() DynamicStruct
+	BuildNonPtr() DynamicStruct
 }
 
-// Impl is the default DynamicStruct implementation.
-type Impl struct {
-	fields     map[string]reflect.Type
-	structType reflect.Type
+// BuilderImpl is the default Builder implementation.
+type BuilderImpl struct {
+	fields map[string]reflect.Type
 }
 
-// New returns a concrete DynamicStruct
-func New() DynamicStruct {
-	return &Impl{fields: map[string]reflect.Type{}}
+// NewBuilder returns a concrete Builder
+func NewBuilder() Builder {
+	return &BuilderImpl{fields: map[string]reflect.Type{}}
 }
 
 type addParam struct {
@@ -67,57 +66,57 @@ type addParam struct {
 	isPtr    bool
 }
 
-// AddString returns a DynamicStruct that was added a string field named by "name" parameter.
-func (ds *Impl) AddString(name string) DynamicStruct {
+// AddString returns a Builder that was added a string field named by "name" parameter.
+func (b *BuilderImpl) AddString(name string) Builder {
 	p := &addParam{
 		name:  name,
 		intfs: []interface{}{SampleString},
 		ot:    tPrmtv,
 		isPtr: false,
 	}
-	ds.add(p)
-	return ds
+	b.add(p)
+	return b
 }
 
-// AddInt returns a DynamicStruct that was added a int field named by "name" parameter.
-func (ds *Impl) AddInt(name string) DynamicStruct {
+// AddInt returns a Builder that was added a int field named by "name" parameter.
+func (b *BuilderImpl) AddInt(name string) Builder {
 	p := &addParam{
 		name:  name,
 		intfs: []interface{}{SampleInt},
 		ot:    tPrmtv,
 		isPtr: false,
 	}
-	ds.add(p)
-	return ds
+	b.add(p)
+	return b
 }
 
-// AddFloat returns a DynamicStruct that was added a float64 field named by "name" parameter.
-func (ds *Impl) AddFloat(name string) DynamicStruct {
+// AddFloat returns a Builder that was added a float64 field named by "name" parameter.
+func (b *BuilderImpl) AddFloat(name string) Builder {
 	p := &addParam{
 		name:  name,
 		intfs: []interface{}{SampleFloat},
 		ot:    tPrmtv,
 		isPtr: false,
 	}
-	ds.add(p)
-	return ds
+	b.add(p)
+	return b
 }
 
-// AddBool returns a DynamicStruct that was added a bool field named by "name" parameter.
-func (ds *Impl) AddBool(name string) DynamicStruct {
+// AddBool returns a Builder that was added a bool field named by "name" parameter.
+func (b *BuilderImpl) AddBool(name string) Builder {
 	p := &addParam{
 		name:  name,
 		intfs: []interface{}{SampleBool},
 		ot:    tPrmtv,
 		isPtr: false,
 	}
-	ds.add(p)
-	return ds
+	b.add(p)
+	return b
 }
 
-// AddMap returns a DynamicStruct that was added a map field named by "name" parameter.
+// AddMap returns a Builder that was added a map field named by "name" parameter.
 // Type of map key is type of "ke" and type of map value is type of "ve".
-func (ds *Impl) AddMap(name string, ke interface{}, ve interface{}) DynamicStruct {
+func (b *BuilderImpl) AddMap(name string, ke interface{}, ve interface{}) Builder {
 	p := &addParam{
 		name:     name,
 		intfs:    []interface{}{ve},
@@ -125,13 +124,13 @@ func (ds *Impl) AddMap(name string, ke interface{}, ve interface{}) DynamicStruc
 		ot:       tMap,
 		isPtr:    false,
 	}
-	ds.add(p)
-	return ds
+	b.add(p)
+	return b
 }
 
-// AddFunc returns a DynamicStruct that was added a func field named by "name" parameter.
+// AddFunc returns a Builder that was added a func field named by "name" parameter.
 // Types of func args are types of "eargs" and types of func returns are types of "erets".
-func (ds *Impl) AddFunc(name string, eargs []interface{}, erets []interface{}) DynamicStruct {
+func (b *BuilderImpl) AddFunc(name string, eargs []interface{}, erets []interface{}) Builder {
 	p := &addParam{
 		name:     name,
 		intfs:    erets,
@@ -139,82 +138,82 @@ func (ds *Impl) AddFunc(name string, eargs []interface{}, erets []interface{}) D
 		ot:       tFunc,
 		isPtr:    false,
 	}
-	ds.add(p)
-	return ds
+	b.add(p)
+	return b
 }
 
-// AddChanBoth returns a DynamicStruct that was added a BothDir chan field named by "name" parameter.
+// AddChanBoth returns a Builder that was added a BothDir chan field named by "name" parameter.
 // Type of chan is type of "e".
-func (ds *Impl) AddChanBoth(name string, e interface{}) DynamicStruct {
+func (b *BuilderImpl) AddChanBoth(name string, e interface{}) Builder {
 	p := &addParam{
 		name:  name,
 		intfs: []interface{}{e},
 		ot:    tChanBoth,
 		isPtr: false,
 	}
-	ds.add(p)
-	return ds
+	b.add(p)
+	return b
 }
 
-// AddChanRecv returns a DynamicStruct that was added a RecvDir chan field named by "name" parameter.
+// AddChanRecv returns a Builder that was added a RecvDir chan field named by "name" parameter.
 // Type of chan is type of "e".
-func (ds *Impl) AddChanRecv(name string, e interface{}) DynamicStruct {
+func (b *BuilderImpl) AddChanRecv(name string, e interface{}) Builder {
 	p := &addParam{
 		name:  name,
 		intfs: []interface{}{e},
 		ot:    tChanRecv,
 		isPtr: false,
 	}
-	ds.add(p)
-	return ds
+	b.add(p)
+	return b
 }
 
-// AddChanSend returns a DynamicStruct that was added a SendDir chan field named by "name" parameter.
+// AddChanSend returns a Builder that was added a SendDir chan field named by "name" parameter.
 // Type of chan is type of "e".
-func (ds *Impl) AddChanSend(name string, e interface{}) DynamicStruct {
+func (b *BuilderImpl) AddChanSend(name string, e interface{}) Builder {
 	p := &addParam{
 		name:  name,
 		intfs: []interface{}{e},
 		ot:    tChanSend,
 		isPtr: false,
 	}
-	ds.add(p)
-	return ds
+	b.add(p)
+	return b
 }
 
-// AddStruct returns a DynamicStruct that was added a struct field named by "name" parameter.
+// AddStruct returns a Builder that was added a struct field named by "name" parameter.
 // Type of struct is type of "i".
-func (ds *Impl) AddStruct(name string, i interface{}, isPtr bool) DynamicStruct {
+func (b *BuilderImpl) AddStruct(name string, i interface{}, isPtr bool) Builder {
 	p := &addParam{
 		name:  name,
 		intfs: []interface{}{i},
 		ot:    tStruct,
 		isPtr: isPtr,
 	}
-	ds.add(p)
-	return ds
+	b.add(p)
+	return b
 }
 
-// AddStructPtr returns a DynamicStruct that was added a struct pointer field named by "name" parameter.
+// AddStructPtr returns a Builder that was added a struct pointer field named by "name" parameter.
 // Type of struct is type of "i".
-func (ds *Impl) AddStructPtr(name string, i interface{}) DynamicStruct {
-	return ds.AddStruct(name, i, true)
+func (b *BuilderImpl) AddStructPtr(name string, i interface{}) Builder {
+	return b.AddStruct(name, i, true)
 }
 
-// AddSlice returns a DynamicStruct that was added a slice field named by "name" parameter.
+// AddSlice returns a Builder that was added a slice field named by "name" parameter.
 // Type of slice is type of "e".
-func (ds *Impl) AddSlice(name string, e interface{}) DynamicStruct {
+func (b *BuilderImpl) AddSlice(name string, e interface{}) Builder {
 	p := &addParam{
 		name:  name,
 		intfs: []interface{}{e},
 		ot:    tSlice,
 		isPtr: false,
 	}
-	ds.add(p)
-	return ds
+	b.add(p)
+	return b
 }
 
-func (ds *Impl) add(p *addParam) {
+func (b *BuilderImpl) add(p *addParam) {
 	it := reflect.TypeOf(p.intfs[0])
 	var typeOf reflect.Type
 
@@ -259,55 +258,86 @@ func (ds *Impl) add(p *addParam) {
 		typeOf = reflect.PtrTo(typeOf)
 	}
 
-	ds.fields[p.name] = typeOf
+	b.fields[p.name] = typeOf
 }
 
-// Build returns a concrete struct pointer built by DynamicStruct.
-func (ds *Impl) Build() interface{} {
-	return ds.build(true)
-}
-
-// BuildNonPtr returns a concrete struct built by DynamicStruct.
-func (ds *Impl) BuildNonPtr() interface{} {
-	return ds.build(false)
-}
-
-func (ds *Impl) build(isPtr bool) interface{} {
-	var i int
-	fs := make([]reflect.StructField, len(ds.fields))
-
-	for name, typ := range ds.fields {
-		fs[i] = reflect.StructField{Name: name, Type: typ}
-		i++
-	}
-	ds.structType = reflect.StructOf(fs)
-	n := reflect.New(ds.structType)
-
-	if isPtr {
-		return n.Interface()
-	}
-
-	return reflect.Indirect(n).Interface()
-}
-
-// NumBuiltField returns the number of built struct fields.
-func (ds *Impl) NumBuiltField() int {
-	return ds.structType.NumField()
-}
-
-// BuiltField returns the i'th field of the built struct.
-func (ds *Impl) BuiltField(i int) reflect.StructField {
-	return ds.structType.Field(i)
-}
-
-// Remove returns a DynamicStruct that was removed a field named by "name" parameter.
-func (ds *Impl) Remove(name string) DynamicStruct {
-	delete(ds.fields, name)
-	return ds
+// Remove returns a Builder that was removed a field named by "name" parameter.
+func (b *BuilderImpl) Remove(name string) Builder {
+	delete(b.fields, name)
+	return b
 }
 
 // Exists returns true if the specified name field exists
-func (ds *Impl) Exists(name string) bool {
-	_, ok := ds.fields[name]
+func (b *BuilderImpl) Exists(name string) bool {
+	_, ok := b.fields[name]
 	return ok
+}
+
+// Build returns a concrete struct pointer built by Builder.
+func (b *BuilderImpl) Build() DynamicStruct {
+	return b.build(true)
+}
+
+// BuildNonPtr returns a concrete struct built by Builder.
+func (b *BuilderImpl) BuildNonPtr() DynamicStruct {
+	return b.build(false)
+}
+
+func (b *BuilderImpl) build(isPtr bool) DynamicStruct {
+	var i int
+	fs := make([]reflect.StructField, len(b.fields))
+	for name, typ := range b.fields {
+		fs[i] = reflect.StructField{Name: name, Type: typ}
+		i++
+	}
+
+	return newDs(fs, isPtr)
+}
+
+// DynamicStruct is the interface that built dynamic struct by Builder.Build().
+type DynamicStruct interface {
+	NumField() int
+	Field(i int) reflect.StructField
+	Interface() interface{}
+	DecodeMap(m map[string]interface{}) (interface{}, error)
+}
+
+// Impl is the default DynamicStruct implementation.
+type Impl struct {
+	structType reflect.Type
+	intf       interface{}
+}
+
+func newDs(fs []reflect.StructField, isPtr bool) DynamicStruct {
+	ds := &Impl{structType: reflect.StructOf(fs)}
+
+	n := reflect.New(ds.structType)
+	if isPtr {
+		ds.intf = n.Interface()
+	} else {
+		ds.intf = reflect.Indirect(n).Interface()
+	}
+
+	return ds
+}
+
+// NumField returns the number of built struct fields.
+func (ds *Impl) NumField() int {
+	return ds.structType.NumField()
+}
+
+// Field returns the i'th field of the built struct.
+func (ds *Impl) Field(i int) reflect.StructField {
+	return ds.structType.Field(i)
+}
+
+// Interface returns the interface of built struct.
+func (ds *Impl) Interface() interface{} {
+	return ds.intf
+}
+
+// DecodeMap returns the interface that was decoded from input map.
+func (ds *Impl) DecodeMap(m map[string]interface{}) (interface{}, error) {
+	err := mapstructure.Decode(m, &ds.intf)
+	return ds.intf, err
 }
