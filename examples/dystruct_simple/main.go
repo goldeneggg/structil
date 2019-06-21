@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/goldeneggg/structil"
 	"github.com/goldeneggg/structil/dynamicstruct"
 )
 
@@ -51,4 +52,10 @@ func main() {
 		panic(err)
 	}
 	fmt.Printf("Decoded intf: %#v\n", dec)
+
+	g, err := structil.NewGetter(dec)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("String: %v, Int: %v, Map: %#v, Struct: %#v\n", g.String("StringField"), g.Int("IntField"), g.Get("MapField"), g.Get("StructField"))
 }
