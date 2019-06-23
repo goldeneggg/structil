@@ -30,8 +30,8 @@ const (
 )
 
 var (
-	// SampleError is sample init error value
-	SampleError = errors.New("SampleError")
+	// ErrSample is sample init error value
+	ErrSample = errors.New("SampleError")
 )
 
 // Builder is the interface that builds a dynamic and runtime struct.

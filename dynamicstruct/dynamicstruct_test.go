@@ -52,7 +52,7 @@ type (
 var (
 	dynamicTestString2 = "test name2"
 	dynamicTestFunc    = func(s string) interface{} { return s + "-func" }
-	dynamicTestChan    = make(chan int)
+	//dynamicTestChan    = make(chan int)
 )
 
 func newDynamicTestStruct() DynamicTestStruct {
@@ -121,7 +121,7 @@ func newDynamicTestBuilder() Builder {
 		AddFloat("FloatField").
 		AddBool("BoolField").
 		AddMap("MapField", SampleString, SampleFloat).
-		AddFunc("FuncField", []interface{}{SampleInt, SampleInt}, []interface{}{SampleBool, SampleError}).
+		AddFunc("FuncField", []interface{}{SampleInt, SampleInt}, []interface{}{SampleBool, ErrSample}).
 		AddChanBoth("ChanBothField", SampleInt).
 		AddChanRecv("ChanRecvField", SampleInt).
 		AddChanSend("ChanSendField", SampleInt).
@@ -650,7 +650,7 @@ func BenchmarkAddMap(b *testing.B) {
 func BenchmarkAddFunc(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = NewBuilder().AddFunc("FuncField", []interface{}{SampleInt, SampleInt}, []interface{}{SampleBool, SampleError})
+		_ = NewBuilder().AddFunc("FuncField", []interface{}{SampleInt, SampleInt}, []interface{}{SampleBool, ErrSample})
 	}
 }
 
