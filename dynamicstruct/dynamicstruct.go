@@ -1,6 +1,7 @@
 package dynamicstruct
 
 import (
+	"errors"
 	"reflect"
 
 	"github.com/mitchellh/mapstructure"
@@ -28,6 +29,11 @@ const (
 	tPrmtv
 )
 
+var (
+	// SampleError is sample init error value
+	SampleError = errors.New("SampleError")
+)
+
 // Builder is the interface that builds a dynamic and runtime struct.
 type Builder interface {
 	AddString(name string) Builder
@@ -44,6 +50,7 @@ type Builder interface {
 	AddSlice(name string, e interface{}) Builder
 	Remove(name string) Builder
 	Exists(name string) bool
+	NumField() int
 	Build() DynamicStruct
 	BuildNonPtr() DynamicStruct
 }
@@ -214,13 +221,11 @@ func (b *BuilderImpl) AddSlice(name string, e interface{}) Builder {
 }
 
 func (b *BuilderImpl) add(p *addParam) {
-	it := reflect.TypeOf(p.intfs[0])
 	var typeOf reflect.Type
 
 	switch p.ot {
 	case tMap:
-		kt := reflect.TypeOf(p.keyIntfs[0])
-		typeOf = reflect.MapOf(kt, it)
+		typeOf = reflect.MapOf(reflect.TypeOf(p.keyIntfs[0]), reflect.TypeOf(p.intfs[0]))
 	case tFunc:
 		aTypes := make([]reflect.Type, len(p.keyIntfs))
 		for i := 0; i < len(p.keyIntfs); i++ {
@@ -234,12 +239,13 @@ func (b *BuilderImpl) add(p *addParam) {
 		// TODO: variadic support
 		typeOf = reflect.FuncOf(aTypes, vTypes, false)
 	case tChanBoth:
-		typeOf = reflect.ChanOf(reflect.BothDir, it)
+		typeOf = reflect.ChanOf(reflect.BothDir, reflect.TypeOf(p.intfs[0]))
 	case tChanRecv:
-		typeOf = reflect.ChanOf(reflect.RecvDir, it)
+		typeOf = reflect.ChanOf(reflect.RecvDir, reflect.TypeOf(p.intfs[0]))
 	case tChanSend:
-		typeOf = reflect.ChanOf(reflect.SendDir, it)
+		typeOf = reflect.ChanOf(reflect.SendDir, reflect.TypeOf(p.intfs[0]))
 	case tStruct:
+		it := reflect.TypeOf(p.intfs[0])
 		if it.Kind() == reflect.Ptr {
 			it = it.Elem()
 		}
@@ -249,9 +255,9 @@ func (b *BuilderImpl) add(p *addParam) {
 		}
 		typeOf = reflect.StructOf(fs)
 	case tSlice:
-		typeOf = reflect.SliceOf(it)
+		typeOf = reflect.SliceOf(reflect.TypeOf(p.intfs[0]))
 	default:
-		typeOf = it
+		typeOf = reflect.TypeOf(p.intfs[0])
 	}
 
 	if p.isPtr {
@@ -271,6 +277,11 @@ func (b *BuilderImpl) Remove(name string) Builder {
 func (b *BuilderImpl) Exists(name string) bool {
 	_, ok := b.fields[name]
 	return ok
+}
+
+// NumField returns the number of built struct fields.
+func (b *BuilderImpl) NumField() int {
+	return len(b.fields)
 }
 
 // Build returns a concrete struct pointer built by Builder.
@@ -298,6 +309,7 @@ func (b *BuilderImpl) build(isPtr bool) DynamicStruct {
 type DynamicStruct interface {
 	NumField() int
 	Field(i int) reflect.StructField
+	IsPtr() bool
 	Interface() interface{}
 	DecodeMap(m map[string]interface{}) (interface{}, error)
 }
@@ -305,11 +317,12 @@ type DynamicStruct interface {
 // Impl is the default DynamicStruct implementation.
 type Impl struct {
 	structType reflect.Type
+	isPtr      bool
 	intf       interface{}
 }
 
 func newDs(fs []reflect.StructField, isPtr bool) DynamicStruct {
-	ds := &Impl{structType: reflect.StructOf(fs)}
+	ds := &Impl{structType: reflect.StructOf(fs), isPtr: isPtr}
 
 	n := reflect.New(ds.structType)
 	if isPtr {
@@ -331,6 +344,11 @@ func (ds *Impl) Field(i int) reflect.StructField {
 	return ds.structType.Field(i)
 }
 
+// IsPtr reports whether the built struct type is pointer.
+func (ds *Impl) IsPtr() bool {
+	return ds.isPtr
+}
+
 // Interface returns the interface of built struct.
 func (ds *Impl) Interface() interface{} {
 	return ds.intf
@@ -338,6 +356,10 @@ func (ds *Impl) Interface() interface{} {
 
 // DecodeMap returns the interface that was decoded from input map.
 func (ds *Impl) DecodeMap(m map[string]interface{}) (interface{}, error) {
+	if !ds.IsPtr() {
+		return nil, errors.New("DecodeMap can execute only if dynamic struct is pointer. But this is false")
+	}
+
 	err := mapstructure.Decode(m, &ds.intf)
 	return ds.intf, err
 }
