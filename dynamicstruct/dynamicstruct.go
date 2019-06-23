@@ -39,16 +39,27 @@ type Builder interface {
 	AddString(name string) Builder
 	AddStringWithTag(name string, tag string) Builder
 	AddInt(name string) Builder
+	AddIntWithTag(name string, tag string) Builder
 	AddFloat(name string) Builder
+	AddFloatWithTag(name string, tag string) Builder
 	AddBool(name string) Builder
+	AddBoolWithTag(name string, tag string) Builder
 	AddMap(name string, ke interface{}, ve interface{}) Builder
+	AddMapWithTag(name string, ke interface{}, ve interface{}, tag string) Builder
 	AddFunc(name string, eargs []interface{}, erets []interface{}) Builder
+	AddFuncWithTag(name string, eargs []interface{}, erets []interface{}, tag string) Builder
 	AddChanBoth(name string, e interface{}) Builder
+	AddChanBothWithTag(name string, e interface{}, tag string) Builder
 	AddChanRecv(name string, e interface{}) Builder
+	AddChanRecvWithTag(name string, e interface{}, tag string) Builder
 	AddChanSend(name string, e interface{}) Builder
+	AddChanSendWithTag(name string, e interface{}, tag string) Builder
 	AddStruct(name string, i interface{}, isPtr bool) Builder
+	AddStructWithTag(name string, i interface{}, isPtr bool, tag string) Builder
 	AddStructPtr(name string, i interface{}) Builder
+	AddStructPtrWithTag(name string, i interface{}, tag string) Builder
 	AddSlice(name string, e interface{}) Builder
+	AddSliceWithTag(name string, e interface{}, tag string) Builder
 	Remove(name string) Builder
 	Exists(name string) bool
 	NumField() int
@@ -99,11 +110,18 @@ func (b *BuilderImpl) AddStringWithTag(name string, tag string) Builder {
 
 // AddInt returns a Builder that was added a int field named by name parameter.
 func (b *BuilderImpl) AddInt(name string) Builder {
+	b.AddIntWithTag(name, "")
+	return b
+}
+
+// AddIntWithTag returns a Builder that was added a int field with tag named by name parameter.
+func (b *BuilderImpl) AddIntWithTag(name string, tag string) Builder {
 	p := &addParam{
 		name:  name,
 		intfs: []interface{}{SampleInt},
 		ot:    tPrmtv,
 		isPtr: false,
+		tag:   tag,
 	}
 	b.add(p)
 	return b
@@ -111,11 +129,18 @@ func (b *BuilderImpl) AddInt(name string) Builder {
 
 // AddFloat returns a Builder that was added a float64 field named by name parameter.
 func (b *BuilderImpl) AddFloat(name string) Builder {
+	b.AddFloatWithTag(name, "")
+	return b
+}
+
+// AddFloatWithTag returns a Builder that was added a float64 field with tag named by name parameter.
+func (b *BuilderImpl) AddFloatWithTag(name string, tag string) Builder {
 	p := &addParam{
 		name:  name,
 		intfs: []interface{}{SampleFloat},
 		ot:    tPrmtv,
 		isPtr: false,
+		tag:   tag,
 	}
 	b.add(p)
 	return b
@@ -123,11 +148,18 @@ func (b *BuilderImpl) AddFloat(name string) Builder {
 
 // AddBool returns a Builder that was added a bool field named by name parameter.
 func (b *BuilderImpl) AddBool(name string) Builder {
+	b.AddBoolWithTag(name, "")
+	return b
+}
+
+// AddBoolWithTag returns a Builder that was added a bool field with tag named by name parameter.
+func (b *BuilderImpl) AddBoolWithTag(name string, tag string) Builder {
 	p := &addParam{
 		name:  name,
 		intfs: []interface{}{SampleBool},
 		ot:    tPrmtv,
 		isPtr: false,
+		tag:   tag,
 	}
 	b.add(p)
 	return b
@@ -137,12 +169,21 @@ func (b *BuilderImpl) AddBool(name string) Builder {
 // Type of map key is type of ke.
 // Type of map value is type of ve.
 func (b *BuilderImpl) AddMap(name string, ke interface{}, ve interface{}) Builder {
+	b.AddMapWithTag(name, ke, ve, "")
+	return b
+}
+
+// AddMapWithTag returns a Builder that was added a map field with tag named by name parameter.
+// Type of map key is type of ke.
+// Type of map value is type of ve.
+func (b *BuilderImpl) AddMapWithTag(name string, ke interface{}, ve interface{}, tag string) Builder {
 	p := &addParam{
 		name:     name,
 		intfs:    []interface{}{ve},
 		keyIntfs: []interface{}{ke},
 		ot:       tMap,
 		isPtr:    false,
+		tag:      tag,
 	}
 	b.add(p)
 	return b
@@ -152,12 +193,21 @@ func (b *BuilderImpl) AddMap(name string, ke interface{}, ve interface{}) Builde
 // Types of func args are types of eargs.
 // Types of func returns are types of erets.
 func (b *BuilderImpl) AddFunc(name string, eargs []interface{}, erets []interface{}) Builder {
+	b.AddFuncWithTag(name, eargs, erets, "")
+	return b
+}
+
+// AddFuncWithTag returns a Builder that was added a func field with tag named by name parameter.
+// Types of func args are types of eargs.
+// Types of func returns are types of erets.
+func (b *BuilderImpl) AddFuncWithTag(name string, eargs []interface{}, erets []interface{}, tag string) Builder {
 	p := &addParam{
 		name:     name,
 		intfs:    erets,
 		keyIntfs: eargs,
 		ot:       tFunc,
 		isPtr:    false,
+		tag:      tag,
 	}
 	b.add(p)
 	return b
@@ -166,11 +216,19 @@ func (b *BuilderImpl) AddFunc(name string, eargs []interface{}, erets []interfac
 // AddChanBoth returns a Builder that was added a BothDir chan field named by name parameter.
 // Type of chan is type of e.
 func (b *BuilderImpl) AddChanBoth(name string, e interface{}) Builder {
+	b.AddChanBothWithTag(name, e, "")
+	return b
+}
+
+// AddChanBothWithTag returns a Builder that was added a BothDir chan field with tag named by name parameter.
+// Type of chan is type of e.
+func (b *BuilderImpl) AddChanBothWithTag(name string, e interface{}, tag string) Builder {
 	p := &addParam{
 		name:  name,
 		intfs: []interface{}{e},
 		ot:    tChanBoth,
 		isPtr: false,
+		tag:   tag,
 	}
 	b.add(p)
 	return b
@@ -179,11 +237,19 @@ func (b *BuilderImpl) AddChanBoth(name string, e interface{}) Builder {
 // AddChanRecv returns a Builder that was added a RecvDir chan field named by name parameter.
 // Type of chan is type of e.
 func (b *BuilderImpl) AddChanRecv(name string, e interface{}) Builder {
+	b.AddChanRecvWithTag(name, e, "")
+	return b
+}
+
+// AddChanRecvWithTag returns a Builder that was added a RecvDir chan field with tag named by name parameter.
+// Type of chan is type of e.
+func (b *BuilderImpl) AddChanRecvWithTag(name string, e interface{}, tag string) Builder {
 	p := &addParam{
 		name:  name,
 		intfs: []interface{}{e},
 		ot:    tChanRecv,
 		isPtr: false,
+		tag:   tag,
 	}
 	b.add(p)
 	return b
@@ -192,11 +258,19 @@ func (b *BuilderImpl) AddChanRecv(name string, e interface{}) Builder {
 // AddChanSend returns a Builder that was added a SendDir chan field named by name parameter.
 // Type of chan is type of e.
 func (b *BuilderImpl) AddChanSend(name string, e interface{}) Builder {
+	b.AddChanSendWithTag(name, e, "")
+	return b
+}
+
+// AddChanSendWithTag returns a Builder that was added a SendDir chan field with tag named by name parameter.
+// Type of chan is type of e.
+func (b *BuilderImpl) AddChanSendWithTag(name string, e interface{}, tag string) Builder {
 	p := &addParam{
 		name:  name,
 		intfs: []interface{}{e},
 		ot:    tChanSend,
 		isPtr: false,
+		tag:   tag,
 	}
 	b.add(p)
 	return b
@@ -205,11 +279,19 @@ func (b *BuilderImpl) AddChanSend(name string, e interface{}) Builder {
 // AddStruct returns a Builder that was added a struct field named by name parameter.
 // Type of struct is type of i.
 func (b *BuilderImpl) AddStruct(name string, i interface{}, isPtr bool) Builder {
+	b.AddStructWithTag(name, i, isPtr, "")
+	return b
+}
+
+// AddStructWithTag returns a Builder that was added a struct field with tag named by name parameter.
+// Type of struct is type of i.
+func (b *BuilderImpl) AddStructWithTag(name string, i interface{}, isPtr bool, tag string) Builder {
 	p := &addParam{
 		name:  name,
 		intfs: []interface{}{i},
 		ot:    tStruct,
 		isPtr: isPtr,
+		tag:   tag,
 	}
 	b.add(p)
 	return b
@@ -221,14 +303,28 @@ func (b *BuilderImpl) AddStructPtr(name string, i interface{}) Builder {
 	return b.AddStruct(name, i, true)
 }
 
+// AddStructPtrWithTag returns a Builder that was added a struct pointer field with tag named by name parameter.
+// Type of struct is type of i.
+func (b *BuilderImpl) AddStructPtrWithTag(name string, i interface{}, tag string) Builder {
+	return b.AddStructWithTag(name, i, true, tag)
+}
+
 // AddSlice returns a Builder that was added a slice field named by name parameter.
 // Type of slice is type of e.
 func (b *BuilderImpl) AddSlice(name string, e interface{}) Builder {
+	b.AddSliceWithTag(name, e, "")
+	return b
+}
+
+// AddSliceWithTag returns a Builder that was added a slice field with tag named by name parameter.
+// Type of slice is type of e.
+func (b *BuilderImpl) AddSliceWithTag(name string, e interface{}, tag string) Builder {
 	p := &addParam{
 		name:  name,
 		intfs: []interface{}{e},
 		ot:    tSlice,
 		isPtr: false,
+		tag:   tag,
 	}
 	b.add(p)
 	return b

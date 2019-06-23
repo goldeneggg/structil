@@ -51,7 +51,18 @@ type (
 )
 
 const (
-	stringFieldWithTagTag = `json:"string_field_with_tag"`
+	stringFieldTag    = `json:"string_field_with_tag"`
+	intFieldTag       = `json:"int_field_with_tag"`
+	floatFieldTag     = `json:"float_field_with_tag"`
+	boolFieldTag      = `json:"bool_field_with_tag"`
+	mapFieldTag       = `json:"map_field_with_tag"`
+	funcFieldTag      = `json:"func_field_with_tag"`
+	chanBothFieldTag  = `json:"chan_both_field_with_tag"`
+	chanRecvFieldTag  = `json:"chan_recv_field_with_tag"`
+	chanSendFieldTag  = `json:"chan_send_field_with_tag"`
+	structFieldTag    = `json:"struct_field_with_tag"`
+	structPtrFieldTag = `json:"struct_ptr_field_with_tag"`
+	sliceFieldTag     = `json:"slice_field_with_tag"`
 )
 
 var (
@@ -122,18 +133,29 @@ func newDynamicTestStructPtr() *DynamicTestStruct {
 func newDynamicTestBuilder() Builder {
 	return NewBuilder().
 		AddString("StringField").
-		AddStringWithTag("StringFieldWithTag", stringFieldWithTagTag).
+		AddStringWithTag("StringFieldWithTag", stringFieldTag).
 		AddInt("IntField").
+		AddIntWithTag("IntFieldWithTag", intFieldTag).
 		AddFloat("FloatField").
+		AddFloatWithTag("FloatFieldWithTag", floatFieldTag).
 		AddBool("BoolField").
+		AddBoolWithTag("BoolFieldWithTag", boolFieldTag).
 		AddMap("MapField", SampleString, SampleFloat).
+		AddMapWithTag("MapFieldWithTag", SampleString, SampleFloat, mapFieldTag).
 		AddFunc("FuncField", []interface{}{SampleInt, SampleInt}, []interface{}{SampleBool, ErrSample}).
+		AddFuncWithTag("FuncFieldWithTag", []interface{}{SampleInt, SampleInt}, []interface{}{SampleBool, ErrSample}, funcFieldTag).
 		AddChanBoth("ChanBothField", SampleInt).
+		AddChanBothWithTag("ChanBothFieldWithTag", SampleInt, chanBothFieldTag).
 		AddChanRecv("ChanRecvField", SampleInt).
+		AddChanRecvWithTag("ChanRecvFieldWithTag", SampleInt, chanRecvFieldTag).
 		AddChanSend("ChanSendField", SampleInt).
+		AddChanSendWithTag("ChanSendFieldWithTag", SampleInt, chanSendFieldTag).
 		AddStruct("StructField", newDynamicTestStruct(), false).
+		AddStructWithTag("StructFieldWithTag", newDynamicTestStruct(), false, structFieldTag).
 		AddStructPtr("StructPtrField", newDynamicTestStructPtr()).
-		AddSlice("SliceField", newDynamicTestStructPtr())
+		AddStructPtrWithTag("StructPtrFieldWithTag", newDynamicTestStructPtr(), structPtrFieldTag).
+		AddSlice("SliceField", newDynamicTestStructPtr()).
+		AddSliceWithTag("SliceFieldWithTag", newDynamicTestStructPtr(), sliceFieldTag)
 }
 
 func deferDynamicTestPanic(t *testing.T, wantPanic bool, args interface{}) {
@@ -178,13 +200,13 @@ func TestBuilderAddRemoveExistsNumField(t *testing.T) {
 			name:               "have fields set by newDynamicTestBuilder()",
 			args:               args{builder: newDynamicTestBuilder()},
 			wantExistsIntField: true,
-			wantNumField:       13, // See: newDynamicTestBuilder()
+			wantNumField:       24, // See: newDynamicTestBuilder()
 		},
 		{
 			name:               "have fields set by newDynamicTestBuilder() and Remove(IntField)",
 			args:               args{builder: newDynamicTestBuilder().Remove("IntField")},
 			wantExistsIntField: false,
-			wantNumField:       12,
+			wantNumField:       23,
 		},
 	}
 
@@ -226,6 +248,8 @@ func TestBuilderAddStringWithEmptyName(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			defer deferDynamicTestPanic(t, tt.wantPanic, tt.args)
+
+			tt.args.builder.AddString("")
 		})
 	}
 }
@@ -500,6 +524,21 @@ func TestBuilderAddSliceWithNil(t *testing.T) {
 	}
 }
 
+type buildArgs struct {
+	builder Builder
+	isPtr   bool
+}
+
+type buildTest struct {
+	name               string
+	args               buildArgs
+	wantIsPtr          bool
+	wantNumField       int
+	testMap            map[string]interface{}
+	wantErrorDecodeMap bool
+	wantPanic          bool
+}
+
 func TestBuilderBuild(t *testing.T) {
 	t.Parallel()
 
@@ -514,31 +553,19 @@ func TestBuilderBuild(t *testing.T) {
 		"SliceField":  []*DynamicTestStruct{{String: "Huga1"}, {String: "Huga2"}},
 	}
 
-	type args struct {
-		builder Builder
-		isPtr   bool
-	}
-	tests := []struct {
-		name               string
-		args               args
-		wantIsPtr          bool
-		wantNumField       int
-		testMap            map[string]interface{}
-		wantErrorDecodeMap bool
-		wantPanic          bool
-	}{
+	tests := []buildTest{
 		{
 			name:         "Build() with valid Builder",
-			args:         args{builder: newDynamicTestBuilder(), isPtr: true},
+			args:         buildArgs{builder: newDynamicTestBuilder(), isPtr: true},
 			wantIsPtr:    true,
-			wantNumField: 13, // See: newDynamicTestBuilder()
+			wantNumField: 24, // See: newDynamicTestBuilder()
 			testMap:      testMap,
 		},
 		{
 			name:               "BuildNonPtr() with valid Builder",
-			args:               args{builder: newDynamicTestBuilder().Remove("ChanBothField"), isPtr: false},
+			args:               buildArgs{builder: newDynamicTestBuilder(), isPtr: false},
 			wantIsPtr:          false,
-			wantNumField:       12,
+			wantNumField:       24,
 			testMap:            testMap,
 			wantErrorDecodeMap: true, // Note: can't execute DecodeMap if dynamic struct is NOT pointer.
 		},
@@ -555,80 +582,132 @@ func TestBuilderBuild(t *testing.T) {
 				got = tt.args.builder.BuildNonPtr()
 			}
 
-			if got.IsPtr() != tt.wantIsPtr {
-				t.Errorf("unexpected pointer or not result. got: %v, want: %v", got.IsPtr(), tt.wantIsPtr)
+			if !testBuilderBuildWant(t, got, tt) {
 				return
 			}
 
-			if got.NumField() != tt.wantNumField {
-				t.Errorf("result numfield is unexpected. got: %d, want: %d", got.NumField(), tt.wantNumField)
-				return
-			}
-
-			if _, ok := got.FieldByName("StringField"); !ok {
-				t.Errorf("FieldByName(StringField) returns unexpected false result.")
-				return
-			}
-
-			sft, ok := got.FieldByName("StringFieldWithTag")
-			if ok {
-				if d := cmp.Diff(sft.Tag, reflect.StructTag(stringFieldWithTagTag)); d != "" {
-					t.Errorf("unexpected mismatch StringFieldWithTag.Tag: (-got +want)\n%s", d)
-					return
-				}
-			} else {
-				t.Errorf("FieldByName(StringFieldWithTag) returns unexpected false result.")
+			if !testBuilderBuildTag(t, got, tt) {
 				return
 			}
 
 			if tt.testMap != nil {
-				dec, err := got.DecodeMap(tt.testMap)
-				if err != nil {
-					if !tt.wantErrorDecodeMap {
-						t.Errorf("unexpected error occured from DecodeMap: %v", err)
-					}
+				if !testBuilderBuildDecodeMap(t, got, tt) {
 					return
-				} else if tt.wantErrorDecodeMap {
-					t.Errorf("expected error did not occur from DecodeMap. dec: %+v", dec)
-					return
-				}
-
-				getter, err := structil.NewGetter(dec)
-				if err != nil {
-					t.Errorf("unexpected error occured from NewGetter: %v", err)
-					return
-				}
-
-				for k, v := range tt.testMap {
-					gotValue, err := getter.EGet(k)
-					if err != nil {
-						t.Errorf("unexpected error occured from Getter.EGet: %v. name: %s", err, k)
-						return
-					}
-
-					switch k {
-					case "StructField":
-						getter, err := structil.NewGetter(gotValue)
-						if err != nil {
-							t.Errorf("unexpected error occured from NewGetter for StructField: %v", err)
-							return
-						}
-
-						ds, _ := v.(DynamicTestStruct)
-						if getter.Get("String") != ds.String {
-							t.Errorf("unexpected mismatch Struct String field: got: %v, want: %v", getter.Get("String"), ds.String)
-							return
-						}
-					default:
-						if d := cmp.Diff(gotValue, v); d != "" {
-							t.Errorf("unexpected mismatch: name: %s, (-got +want)\n%s", k, d)
-							return
-						}
-					}
 				}
 			}
 		})
 	}
+}
+
+func testBuilderBuildWant(t *testing.T, got DynamicStruct, tt buildTest) bool {
+	if got.IsPtr() != tt.wantIsPtr {
+		t.Errorf("unexpected pointer or not result. got: %v, want: %v", got.IsPtr(), tt.wantIsPtr)
+		return false
+	}
+
+	if got.NumField() != tt.wantNumField {
+		t.Errorf("result numfield is unexpected. got: %d, want: %d", got.NumField(), tt.wantNumField)
+		return false
+	}
+
+	return true
+}
+
+func testBuilderBuildTag(t *testing.T, got DynamicStruct, tt buildTest) bool {
+	prefixes := map[string]string{
+		"String":    stringFieldTag,
+		"Int":       intFieldTag,
+		"Float":     floatFieldTag,
+		"Bool":      boolFieldTag,
+		"Map":       mapFieldTag,
+		"Func":      funcFieldTag,
+		"ChanBoth":  chanBothFieldTag,
+		"ChanRecv":  chanRecvFieldTag,
+		"ChanSend":  chanSendFieldTag,
+		"Struct":    structFieldTag,
+		"StructPtr": structPtrFieldTag,
+		"Slice":     sliceFieldTag,
+	}
+
+	var fName string
+	for prefix, tagWithTag := range prefixes {
+		// test without tag fields
+		fName = prefix + "Field"
+		st, ok := got.FieldByName(fName)
+		if ok {
+			if d := cmp.Diff(st.Tag, reflect.StructTag("")); d != "" {
+				t.Errorf("unexpected mismatch Tag: fName: %s, (-got +want)\n%s", fName, d)
+				return false
+			}
+		} else {
+			t.Errorf("Field %s does not exist.", fName)
+			return false
+		}
+
+		// test with tag fields
+		fName = prefix + "FieldWithTag"
+		sft, ok := got.FieldByName(fName)
+		if ok {
+			if d := cmp.Diff(sft.Tag, reflect.StructTag(tagWithTag)); d != "" {
+				t.Errorf("unexpected mismatch WithTag.Tag: fName: %s, (-got +want)\n%s", fName, d)
+				return false
+			}
+		} else {
+			t.Errorf("Field %s does not exist.", fName)
+			return false
+		}
+	}
+
+	return true
+}
+
+func testBuilderBuildDecodeMap(t *testing.T, got DynamicStruct, tt buildTest) bool {
+	dec, err := got.DecodeMap(tt.testMap)
+	if err != nil {
+		if !tt.wantErrorDecodeMap {
+			t.Errorf("unexpected error occured from DecodeMap: %v", err)
+		}
+		return false
+	} else if tt.wantErrorDecodeMap {
+		t.Errorf("expected error did not occur from DecodeMap. dec: %+v", dec)
+		return false
+	}
+
+	getter, err := structil.NewGetter(dec)
+	if err != nil {
+		t.Errorf("unexpected error occured from NewGetter: %v", err)
+		return false
+	}
+
+	for k, v := range tt.testMap {
+		gotValue, err := getter.EGet(k)
+		if err != nil {
+			t.Errorf("unexpected error occured from Getter.EGet: %v. name: %s", err, k)
+			return false
+		}
+
+		switch k {
+		case "StructField":
+			getter, err := structil.NewGetter(gotValue)
+			if err != nil {
+				t.Errorf("unexpected error occured from NewGetter for StructField: %v", err)
+				return false
+			}
+
+			ds, _ := v.(DynamicTestStruct)
+			if getter.Get("String") != ds.String {
+				t.Errorf("unexpected mismatch Struct String field: got: %v, want: %v", getter.Get("String"), ds.String)
+				return false
+			}
+		default:
+			if d := cmp.Diff(gotValue, v); d != "" {
+				t.Errorf("unexpected mismatch: name: %s, (-got +want)\n%s", k, d)
+				return false
+			}
+		}
+	}
+
+	return true
 }
 
 // benchmark tests
@@ -637,6 +716,13 @@ func BenchmarkAddString(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_ = NewBuilder().AddString("StringField")
+	}
+}
+
+func BenchmarkAddStringWithTag(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = NewBuilder().AddStringWithTag("StringField", stringFieldTag)
 	}
 }
 
