@@ -79,14 +79,14 @@ func NewBuilder() Builder {
 }
 
 type addParam struct {
-	name                 string
-	intfs                []interface{}
-	intfTypesIsInterface bool
-	keyIntfs             []interface{}
-	keyTypesIsInterface  bool
-	ot                   ofType
-	isPtr                bool
-	tag                  string
+	name  string
+	intfs []interface{}
+	//intfTypesIsInterface bool
+	keyIntfs []interface{}
+	//keyTypesIsInterface  bool
+	ot    ofType
+	isPtr bool
+	tag   string
 }
 
 // AddString returns a Builder that was added a string field named by name parameter.
