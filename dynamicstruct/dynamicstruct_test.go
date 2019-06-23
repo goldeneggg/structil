@@ -608,3 +608,114 @@ func TestBuilderBuild(t *testing.T) {
 		})
 	}
 }
+
+// benchmark tests
+
+func BenchmarkAddString(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = NewBuilder().AddString("StringField")
+	}
+}
+
+func BenchmarkAddInt(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = NewBuilder().AddInt("IntField")
+	}
+}
+
+func BenchmarkAddFloat(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = NewBuilder().AddFloat("FloatField")
+	}
+}
+
+func BenchmarkAddBool(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = NewBuilder().AddBool("BoolField")
+	}
+
+}
+
+func BenchmarkAddMap(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = NewBuilder().AddMap("MapField", SampleString, SampleFloat)
+	}
+}
+
+func BenchmarkAddFunc(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = NewBuilder().AddFunc("FuncField", []interface{}{SampleInt, SampleInt}, []interface{}{SampleBool, SampleError})
+	}
+}
+
+func BenchmarkAddChanBoth(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = NewBuilder().AddChanBoth("ChanBothField", SampleInt)
+	}
+}
+
+func BenchmarkAddChanRecv(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = NewBuilder().AddChanRecv("ChanRecvField", SampleInt)
+	}
+}
+
+func BenchmarkAddChanSend(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = NewBuilder().AddChanSend("ChanSendField", SampleInt)
+	}
+}
+
+func BenchmarkAddStruct(b *testing.B) {
+	st := newDynamicTestStruct()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = NewBuilder().AddStruct("StructField", st, false)
+	}
+}
+
+func BenchmarkAddStructPtr(b *testing.B) {
+	st := newDynamicTestStructPtr()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = NewBuilder().AddStructPtr("StructPtrField", st)
+	}
+}
+
+func BenchmarkAddSlice(b *testing.B) {
+	st := newDynamicTestStructPtr()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = NewBuilder().AddSlice("SliceField", st)
+	}
+}
+
+func BenchmarkBuild(b *testing.B) {
+	builder := newDynamicTestBuilder()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = builder.Build()
+	}
+}
+
+func BenchmarkBuildNonPtr(b *testing.B) {
+	builder := newDynamicTestBuilder()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = builder.BuildNonPtr()
+	}
+}
