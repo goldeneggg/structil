@@ -23,3 +23,21 @@ func TestRecoverToError(t *testing.T) {
 		panic("panic for test")
 	})
 }
+
+// benchmark tests
+
+func BenchmarkRecoverToError(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		recoverToErrorDemo()
+	}
+}
+
+func recoverToErrorDemo() {
+	defer func() {
+		if r := recover(); r != nil {
+			_ = RecoverToError(r)
+		}
+	}()
+	panic("panic for benchmark")
+}
