@@ -2,6 +2,7 @@ package structil_test
 
 import (
 	"fmt"
+	"runtime"
 	"strconv"
 	"testing"
 
@@ -9,6 +10,137 @@ import (
 
 	. "github.com/goldeneggg/structil"
 )
+
+type (
+	FinderTestStruct struct {
+		Byte          byte
+		Bytes         []byte
+		Int           int
+		Int64         int64
+		Uint          uint
+		Uint64        uint64
+		Float32       float32
+		Float64       float64
+		String        string
+		Stringptr     *string
+		Stringslice   []string
+		Bool          bool
+		Map           map[string]interface{}
+		Func          func(string) interface{}
+		ChInt         chan int
+		privateString string
+		FinderTestStruct2
+		FinderTestStruct2Ptr      *FinderTestStruct2
+		FinderTestStruct4Slice    []FinderTestStruct4
+		FinderTestStruct4PtrSlice []*FinderTestStruct4
+	}
+
+	FinderTestStruct2 struct {
+		String string
+		*FinderTestStruct3
+	}
+
+	FinderTestStruct3 struct {
+		String string
+		Int    int
+	}
+
+	FinderTestStruct4 struct {
+		String  string
+		String2 string
+	}
+)
+
+var (
+	finderTestString2 = "test name2"
+	finderTestFunc    = func(s string) interface{} { return s + "-func" }
+	finderTestChan    = make(chan int)
+)
+
+func newFinderTestStruct() FinderTestStruct {
+	return FinderTestStruct{
+		Byte:          0x61,
+		Bytes:         []byte{0x00, 0xFF},
+		Int:           int(-2),
+		Int64:         int64(-1),
+		Uint:          uint(2),
+		Uint64:        uint64(1),
+		Float32:       float32(-1.23),
+		Float64:       float64(-3.45),
+		String:        "test name",
+		Stringptr:     &finderTestString2,
+		Stringslice:   []string{"strslice1", "strslice2"},
+		Bool:          true,
+		Map:           map[string]interface{}{"k1": "v1", "k2": 2},
+		Func:          finderTestFunc,
+		ChInt:         finderTestChan,
+		privateString: "unexported string",
+		FinderTestStruct2: FinderTestStruct2{
+			String: "struct2 string",
+			FinderTestStruct3: &FinderTestStruct3{
+				String: "struct3 string",
+				Int:    -123,
+			},
+		},
+		FinderTestStruct2Ptr: &FinderTestStruct2{
+			String: "struct2 string ptr",
+			FinderTestStruct3: &FinderTestStruct3{
+				String: "struct3 string ptr",
+				Int:    -456,
+			},
+		},
+		FinderTestStruct4Slice: []FinderTestStruct4{
+			{
+				String:  "key100",
+				String2: "value100",
+			},
+			{
+				String:  "key200",
+				String2: "value200",
+			},
+		},
+		FinderTestStruct4PtrSlice: []*FinderTestStruct4{
+			{
+				String:  "key991",
+				String2: "value991",
+			},
+			{
+				String:  "key992",
+				String2: "value992",
+			},
+		},
+	}
+}
+
+func newFinderTestStructPtr() *FinderTestStruct {
+	ts := newFinderTestStruct()
+	return &ts
+}
+
+func deferFinderTestPanic(t *testing.T, wantPanic bool, args interface{}) {
+	r := recover()
+	if r != nil {
+		msg := fmt.Sprintf("\n%v\n", r)
+		for d := 0; ; d++ {
+			pc, file, line, ok := runtime.Caller(d)
+			if !ok {
+				break
+			}
+
+			msg = msg + fmt.Sprintf(" -> %d: %s: %s:%d\n", d, runtime.FuncForPC(pc).Name(), file, line)
+		}
+
+		if wantPanic {
+			t.Logf("OK panic is expected: args: %+v, %s", args, msg)
+		} else {
+			t.Errorf("unexpected panic occured: args: %+v, %s", args, msg)
+		}
+	} else {
+		if wantPanic {
+			t.Errorf("expect to occur panic but does not: args: %+v, %+v", args, r)
+		}
+	}
+}
 
 func TestNewFinder(t *testing.T) {
 	t.Parallel()
@@ -23,12 +155,12 @@ func TestNewFinder(t *testing.T) {
 	}{
 		{
 			name:      "NewFinder with valid struct",
-			args:      args{i: newTestStruct()},
+			args:      args{i: newFinderTestStruct()},
 			wantError: false,
 		},
 		{
 			name:      "NewFinder with valid struct ptr",
-			args:      args{i: newTestStructPtr()},
+			args:      args{i: newFinderTestStructPtr()},
 			wantError: false,
 		},
 		{
@@ -69,7 +201,7 @@ func TestNewFinder(t *testing.T) {
 func TestNewFinderWithGetterAndSep(t *testing.T) {
 	t.Parallel()
 
-	g, err := NewGetter(newTestStructPtr())
+	g, err := NewGetter(newFinderTestStructPtr())
 	if err != nil {
 		t.Errorf("NewGetter() error = %v", err)
 	}
@@ -126,7 +258,7 @@ func TestToMap(t *testing.T) {
 	fs := make([]Finder, 10)
 
 	for i := 0; i < len(fs); i++ {
-		f, err = NewFinder(newTestStructPtr())
+		f, err = NewFinder(newFinderTestStructPtr())
 		if err != nil {
 			t.Errorf("NewFinder() error = %v", err)
 			return
@@ -135,7 +267,7 @@ func TestToMap(t *testing.T) {
 		fs[i] = f
 	}
 
-	fsep, err := NewFinderWithSep(newTestStructPtr(), ":")
+	fsep, err := NewFinderWithSep(newFinderTestStructPtr(), ":")
 	if err != nil {
 		t.Errorf("NewFinderWithSep() error = %v", err)
 		return
@@ -168,36 +300,36 @@ func TestToMap(t *testing.T) {
 						//"Func",
 						"ChInt",
 						"privateString",
-						"TestStruct2",
-						"TestStruct2Ptr",
-						"TestStruct4Slice",
-						"TestStruct4PtrSlice",
+						"FinderTestStruct2",
+						"FinderTestStruct2Ptr",
+						"FinderTestStruct4Slice",
+						"FinderTestStruct4PtrSlice",
 					),
 			},
 			wantMap: map[string]interface{}{
 				"Int64":       int64(-1),
 				"Float64":     float64(-3.45),
 				"String":      "test name",
-				"Stringptr":   testString2,
+				"Stringptr":   finderTestString2,
 				"Stringslice": []string{"strslice1", "strslice2"},
 				"Bool":        true,
 				"Map":         map[string]interface{}{"k1": "v1", "k2": 2},
-				//"Func":        testFunc,  // TODO: func is fail
-				"ChInt":         testChan,
+				//"Func":        finderTestFunc,  // TODO: func is fail
+				"ChInt":         finderTestChan,
 				"privateString": nil, // unexported field is nil
-				"TestStruct2": TestStruct2{
-					String:      "struct2 string",
-					TestStruct3: &TestStruct3{String: "struct3 string", Int: -123},
+				"FinderTestStruct2": FinderTestStruct2{
+					String:            "struct2 string",
+					FinderTestStruct3: &FinderTestStruct3{String: "struct3 string", Int: -123},
 				},
-				"TestStruct2Ptr": TestStruct2{ // not ptr
-					String:      "struct2 string ptr",
-					TestStruct3: &TestStruct3{String: "struct3 string ptr", Int: -456},
+				"FinderTestStruct2Ptr": FinderTestStruct2{ // not ptr
+					String:            "struct2 string ptr",
+					FinderTestStruct3: &FinderTestStruct3{String: "struct3 string ptr", Int: -456},
 				},
-				"TestStruct4Slice": []TestStruct4{
+				"FinderTestStruct4Slice": []FinderTestStruct4{
 					{String: "key100", String2: "value100"},
 					{String: "key200", String2: "value200"},
 				},
-				"TestStruct4PtrSlice": []*TestStruct4{
+				"FinderTestStruct4PtrSlice": []*FinderTestStruct4{
 					{String: "key991", String2: "value991"},
 					{String: "key992", String2: "value992"},
 				},
@@ -207,36 +339,36 @@ func TestToMap(t *testing.T) {
 			name: "with single-nest chain",
 			args: args{
 				chain: fs[1].
-					Into("TestStruct2").Find("String"),
+					Into("FinderTestStruct2").Find("String"),
 			},
 			wantMap: map[string]interface{}{
-				"TestStruct2.String": "struct2 string",
+				"FinderTestStruct2.String": "struct2 string",
 			},
 		},
 		{
 			name: "with two-nest chain",
 			args: args{
 				chain: fs[2].
-					Into("TestStruct2Ptr", "TestStruct3").Find("String", "Int"),
+					Into("FinderTestStruct2Ptr", "FinderTestStruct3").Find("String", "Int"),
 			},
 			wantMap: map[string]interface{}{
-				"TestStruct2Ptr.TestStruct3.String": "struct3 string ptr",
-				"TestStruct2Ptr.TestStruct3.Int":    int(-456),
+				"FinderTestStruct2Ptr.FinderTestStruct3.String": "struct3 string ptr",
+				"FinderTestStruct2Ptr.FinderTestStruct3.Int":    int(-456),
 			},
 		},
 		{
 			name: "with multi nest chains",
 			args: args{
 				chain: fs[3].
-					Into("TestStruct2").Find("String").
-					Into("TestStruct2Ptr").Find("String").
-					Into("TestStruct2Ptr", "TestStruct3").Find("String", "Int"),
+					Into("FinderTestStruct2").Find("String").
+					Into("FinderTestStruct2Ptr").Find("String").
+					Into("FinderTestStruct2Ptr", "FinderTestStruct3").Find("String", "Int"),
 			},
 			wantMap: map[string]interface{}{
-				"TestStruct2.String":                "struct2 string",
-				"TestStruct2Ptr.String":             "struct2 string ptr",
-				"TestStruct2Ptr.TestStruct3.String": "struct3 string ptr",
-				"TestStruct2Ptr.TestStruct3.Int":    int(-456),
+				"FinderTestStruct2.String":                      "struct2 string",
+				"FinderTestStruct2Ptr.String":                   "struct2 string ptr",
+				"FinderTestStruct2Ptr.FinderTestStruct3.String": "struct3 string ptr",
+				"FinderTestStruct2Ptr.FinderTestStruct3.Int":    int(-456),
 			},
 		},
 		{
@@ -266,7 +398,7 @@ func TestToMap(t *testing.T) {
 		{
 			name: "with Struct with existed name and Find with non-existed name",
 			args: args{
-				chain: fs[7].Into("TestStruct2").Find("NonExist"),
+				chain: fs[7].Into("FinderTestStruct2").Find("NonExist"),
 			},
 			wantError:       true,
 			wantErrorString: "field name NonExist does not exist",
@@ -275,25 +407,25 @@ func TestToMap(t *testing.T) {
 			name: "with Struct with existed and non-existed name and Find",
 			args: args{
 				chain: fs[8].
-					Into("TestStruct2").Find("String").
-					Into("TestStruct2", "NonExist").Find("String"),
+					Into("FinderTestStruct2").Find("String").
+					Into("FinderTestStruct2", "NonExist").Find("String"),
 			},
 			wantError:       true,
-			wantErrorString: "Error in name: NonExist, key: TestStruct2.NonExist. [name NonExist does not exist]",
+			wantErrorString: "Error in name: NonExist, key: FinderTestStruct2.NonExist. [name NonExist does not exist]",
 		},
 		{
 			name: "with multi nest chains separated by assigned sep",
 			args: args{
 				chain: fsep.
-					Into("TestStruct2").Find("String").
-					Into("TestStruct2Ptr").Find("String").
-					Into("TestStruct2Ptr", "TestStruct3").Find("String", "Int"),
+					Into("FinderTestStruct2").Find("String").
+					Into("FinderTestStruct2Ptr").Find("String").
+					Into("FinderTestStruct2Ptr", "FinderTestStruct3").Find("String", "Int"),
 			},
 			wantMap: map[string]interface{}{
-				"TestStruct2:String":                "struct2 string",
-				"TestStruct2Ptr:String":             "struct2 string ptr",
-				"TestStruct2Ptr:TestStruct3:String": "struct3 string ptr",
-				"TestStruct2Ptr:TestStruct3:Int":    int(-456),
+				"FinderTestStruct2:String":                      "struct2 string",
+				"FinderTestStruct2Ptr:String":                   "struct2 string ptr",
+				"FinderTestStruct2Ptr:FinderTestStruct3:String": "struct3 string ptr",
+				"FinderTestStruct2Ptr:FinderTestStruct3:Int":    int(-456),
 			},
 		},
 		{
@@ -311,51 +443,51 @@ func TestToMap(t *testing.T) {
 						//"Func",
 						"ChInt",
 						"privateString",
-						"TestStruct2",
-						"TestStruct2Ptr",
-						"TestStruct4Slice",
-						"TestStruct4PtrSlice",
+						"FinderTestStruct2",
+						"FinderTestStruct2Ptr",
+						"FinderTestStruct4Slice",
+						"FinderTestStruct4PtrSlice",
 					).
-					Into("TestStruct2Ptr").Find("String").
-					Into("TestStruct2Ptr", "TestStruct3").Find("String", "Int"),
+					Into("FinderTestStruct2Ptr").Find("String").
+					Into("FinderTestStruct2Ptr", "FinderTestStruct3").Find("String", "Int"),
 			},
 			wantMap: map[string]interface{}{
 				"Int64":       int64(-1),
 				"Float64":     float64(-3.45),
 				"String":      "test name",
-				"Stringptr":   testString2,
+				"Stringptr":   finderTestString2,
 				"Stringslice": []string{"strslice1", "strslice2"},
 				"Bool":        true,
 				"Map":         map[string]interface{}{"k1": "v1", "k2": 2},
-				//"Func":        testFunc,  // TODO: func is fail
-				"ChInt":         testChan,
+				//"Func":        finderTestFunc,  // TODO: func is fail
+				"ChInt":         finderTestChan,
 				"privateString": nil, // unexported field is nil
-				"TestStruct2": TestStruct2{
-					String:      "struct2 string",
-					TestStruct3: &TestStruct3{String: "struct3 string", Int: -123},
+				"FinderTestStruct2": FinderTestStruct2{
+					String:            "struct2 string",
+					FinderTestStruct3: &FinderTestStruct3{String: "struct3 string", Int: -123},
 				},
-				"TestStruct2Ptr": TestStruct2{ // not ptr
-					String:      "struct2 string ptr",
-					TestStruct3: &TestStruct3{String: "struct3 string ptr", Int: -456},
+				"FinderTestStruct2Ptr": FinderTestStruct2{ // not ptr
+					String:            "struct2 string ptr",
+					FinderTestStruct3: &FinderTestStruct3{String: "struct3 string ptr", Int: -456},
 				},
-				"TestStruct4Slice": []TestStruct4{
+				"FinderTestStruct4Slice": []FinderTestStruct4{
 					{String: "key100", String2: "value100"},
 					{String: "key200", String2: "value200"},
 				},
-				"TestStruct4PtrSlice": []*TestStruct4{
+				"FinderTestStruct4PtrSlice": []*FinderTestStruct4{
 					{String: "key991", String2: "value991"},
 					{String: "key992", String2: "value992"},
 				},
-				"TestStruct2Ptr.String":             "struct2 string ptr",
-				"TestStruct2Ptr.TestStruct3.String": "struct3 string ptr",
-				"TestStruct2Ptr.TestStruct3.Int":    int(-456),
+				"FinderTestStruct2Ptr.String":                   "struct2 string ptr",
+				"FinderTestStruct2Ptr.FinderTestStruct3.String": "struct3 string ptr",
+				"FinderTestStruct2Ptr.FinderTestStruct3.Int":    int(-456),
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			defer deferPanic(t, tt.wantPanic, tt.args)
+			defer deferFinderTestPanic(t, tt.wantPanic, tt.args)
 
 			got, err := tt.args.chain.ToMap()
 
@@ -417,7 +549,7 @@ func TestFromKeys(t *testing.T) {
 		}
 		fks[i] = fk
 
-		f, err = NewFinder(newTestStructPtr())
+		f, err = NewFinder(newFinderTestStructPtr())
 		if err != nil {
 			t.Errorf("NewFinder() error = %v", err)
 			return
@@ -446,27 +578,27 @@ func TestFromKeys(t *testing.T) {
 				"Int64":         int64(-1),
 				"Float64":       float64(-3.45),
 				"String":        "test name",
-				"Stringptr":     testString2,
+				"Stringptr":     finderTestString2,
 				"Stringslice":   []string{"strslice1", "strslice2"},
 				"Bool":          true,
 				"Map":           map[string]interface{}{"k1": "v1", "k2": 2},
-				"ChInt":         testChan,
+				"ChInt":         finderTestChan,
 				"privateString": nil, // unexported field is nil
-				"TestStruct2": TestStruct2{
-					String:      "struct2 string",
-					TestStruct3: &TestStruct3{String: "struct3 string", Int: -123},
+				"FinderTestStruct2": FinderTestStruct2{
+					String:            "struct2 string",
+					FinderTestStruct3: &FinderTestStruct3{String: "struct3 string", Int: -123},
 				},
-				"TestStruct4Slice": []TestStruct4{
+				"FinderTestStruct4Slice": []FinderTestStruct4{
 					{String: "key100", String2: "value100"},
 					{String: "key200", String2: "value200"},
 				},
-				"TestStruct4PtrSlice": []*TestStruct4{
+				"FinderTestStruct4PtrSlice": []*FinderTestStruct4{
 					{String: "key991", String2: "value991"},
 					{String: "key992", String2: "value992"},
 				},
-				"TestStruct2Ptr.String":             "struct2 string ptr",
-				"TestStruct2Ptr.TestStruct3.String": "struct3 string ptr",
-				"TestStruct2Ptr.TestStruct3.Int":    int(-456),
+				"FinderTestStruct2Ptr.String":                   "struct2 string ptr",
+				"FinderTestStruct2Ptr.FinderTestStruct3.String": "struct3 string ptr",
+				"FinderTestStruct2Ptr.FinderTestStruct3.Int":    int(-456),
 			},
 		},
 		{
@@ -505,7 +637,7 @@ func TestFromKeys(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			defer deferPanic(t, tt.wantPanic, tt.args)
+			defer deferFinderTestPanic(t, tt.wantPanic, tt.args)
 
 			got, err := tt.args.chain.ToMap()
 
@@ -548,5 +680,304 @@ func TestFromKeys(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestNewFinderKeysFromConf(t *testing.T) {
+	t.Parallel()
+
+	type args struct {
+		d string
+		n string
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantError bool
+		wantLen   int
+		wantKeys  []string
+	}{
+		{
+			name:      "with valid yaml file",
+			args:      args{d: "examples/finder_from_conf", n: "ex_test1_yml"},
+			wantError: false,
+			wantLen:   15,
+			wantKeys: []string{
+				"Int64",
+				"Float64",
+				"String",
+				"Stringptr",
+				"Stringslice",
+				"Bool",
+				"Map",
+				"ChInt",
+				"privateString",
+				"FinderTestStruct2",
+				"FinderTestStruct4Slice",
+				"FinderTestStruct4PtrSlice",
+				"FinderTestStruct2Ptr.String",
+				"FinderTestStruct2Ptr.FinderTestStruct3.String",
+				"FinderTestStruct2Ptr.FinderTestStruct3.Int",
+			},
+		},
+		{
+			name:      "with valid json file",
+			args:      args{d: "examples/finder_from_conf", n: "ex_test1_json"},
+			wantError: false,
+			wantLen:   15,
+			wantKeys: []string{
+				"Int64",
+				"Float64",
+				"String",
+				"Stringptr",
+				"Stringslice",
+				"Bool",
+				"Map",
+				"ChInt",
+				"privateString",
+				"FinderTestStruct2",
+				"FinderTestStruct4Slice",
+				"FinderTestStruct4PtrSlice",
+				"FinderTestStruct2Ptr.String",
+				"FinderTestStruct2Ptr.FinderTestStruct3.String",
+				"FinderTestStruct2Ptr.FinderTestStruct3.Int",
+			},
+		},
+		{
+			name:      "with invalid conf file that Keys does not exist",
+			args:      args{d: "examples/finder_from_conf", n: "ex_test_nonkeys_yml"},
+			wantError: true,
+		},
+		{
+			name:      "with invalid conf file that is empty",
+			args:      args{d: "examples/finder_from_conf", n: "ex_test_empty_yml"},
+			wantError: true,
+		},
+		{
+			name:      "with invalid conf file",
+			args:      args{d: "examples/finder_from_conf", n: "ex_test_invalid_yml"},
+			wantError: true,
+		},
+		{
+			name:      "with conf file does not exist",
+			args:      args{d: "examples/finder_from_conf", n: "ex_test_notexist"},
+			wantError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := NewFinderKeysFromConf(tt.args.d, tt.args.n)
+
+			if err == nil {
+				if tt.wantError {
+					t.Errorf("NewFinderKeysFromConf() error did not occur. got: %v", got)
+					return
+				}
+
+				if got.Len() != tt.wantLen {
+					t.Errorf("NewFinderKeysFromConf() unexpected len. got: %d, want: %d", got.Len(), tt.wantLen)
+				}
+
+				if d := cmp.Diff(got.Keys(), tt.wantKeys); d != "" {
+					t.Errorf("NewFinderKeysFromConf() unexpected keys. (-got +want)\n%s", d)
+				}
+
+			} else if !tt.wantError {
+				t.Errorf("NewFinderKeysFromConf() unexpected error [%v] occured. wantError: %v", err, tt.wantError)
+			}
+		})
+	}
+}
+
+// benchmark tests
+
+func BenchmarkNewFinder_Val(b *testing.B) {
+	var f Finder
+	var e error
+
+	testStructVal := newFinderTestStruct()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		f, e = NewFinder(testStructVal)
+		if e == nil {
+			_ = f
+		} else {
+			b.Fatalf("abort benchmark because error %v occurd.", e)
+		}
+	}
+}
+
+func BenchmarkNewFinder_Ptr(b *testing.B) {
+	var f Finder
+	var e error
+
+	testStructPtr := newFinderTestStructPtr()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		f, e = NewFinder(testStructPtr)
+		if e == nil {
+			_ = f
+		} else {
+			b.Fatalf("abort benchmark because error %v occurd.", e)
+		}
+	}
+}
+
+func BenchmarkToMap_1FindOnly(b *testing.B) {
+	var m map[string]interface{}
+
+	f, err := NewFinder(newFinderTestStructPtr())
+	if err != nil {
+		b.Fatalf("NewFinder() occurs unexpected error: %v", err)
+		return
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		m, err = f.Find("String").ToMap()
+		if err == nil {
+			_ = m
+		} else {
+			b.Fatalf("abort benchmark because error %v occurd.", err)
+		}
+	}
+}
+
+func BenchmarkToMap_2FindOnly(b *testing.B) {
+	var m map[string]interface{}
+
+	f, err := NewFinder(newFinderTestStructPtr())
+	if err != nil {
+		b.Fatalf("NewFinder() occurs unexpected error: %v", err)
+		return
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		m, err = f.Find("String", "Int64").ToMap()
+		if err == nil {
+			_ = m
+		} else {
+			b.Fatalf("abort benchmark because error %v occurd.", err)
+		}
+	}
+}
+
+func BenchmarkToMap_1Struct_1Find(b *testing.B) {
+	var m map[string]interface{}
+
+	f, err := NewFinder(newFinderTestStructPtr())
+	if err != nil {
+		b.Fatalf("NewFinder() occurs unexpected error: %v", err)
+		return
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		m, err = f.Into("FinderTestStruct2").Find("String").ToMap()
+		if err == nil {
+			_ = m
+		} else {
+			b.Fatalf("abort benchmark because error %v occurd.", err)
+		}
+	}
+}
+
+func BenchmarkToMap_1Struct_1Find_2Pair(b *testing.B) {
+	var m map[string]interface{}
+
+	f, err := NewFinder(newFinderTestStructPtr())
+	if err != nil {
+		b.Fatalf("NewFinder() occurs unexpected error: %v", err)
+		return
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		m, err = f.Into("FinderTestStruct2").Find("String").Into("FinderTestStruct2Ptr").Find("String").ToMap()
+		if err == nil {
+			_ = m
+		} else {
+			b.Fatalf("abort benchmark because error %v occurd.", err)
+		}
+	}
+}
+
+func BenchmarkToMap_2Struct_1Find(b *testing.B) {
+	var m map[string]interface{}
+
+	f, err := NewFinder(newFinderTestStructPtr())
+	if err != nil {
+		b.Fatalf("NewFinder() occurs unexpected error: %v", err)
+		return
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		m, err = f.Into("FinderTestStruct2", "FinderTestStruct3").Find("String").ToMap()
+		if err == nil {
+			_ = m
+		} else {
+			b.Fatalf("abort benchmark because error %v occurd.", err)
+		}
+	}
+}
+
+func BenchmarkToMap_2Struct_2Find(b *testing.B) {
+	var m map[string]interface{}
+
+	f, err := NewFinder(newFinderTestStructPtr())
+	if err != nil {
+		b.Fatalf("NewFinder() occurs unexpected error: %v", err)
+		return
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		m, err = f.Into("FinderTestStruct2", "FinderTestStruct3").Find("String", "Int").ToMap()
+		if err == nil {
+			_ = m
+		} else {
+			b.Fatalf("abort benchmark because error %v occurd.", err)
+		}
+	}
+}
+
+func BenchmarkNewFinderKeysFromConf_yml(b *testing.B) {
+	f, err := NewFinder(newFinderTestStructPtr())
+	if err != nil {
+		b.Fatalf("NewFinder() occurs unexpected error: %v", err)
+		return
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		fks, err := NewFinderKeysFromConf("examples/finder_from_conf", "ex_test1_yml")
+		if err == nil {
+			_ = f.FromKeys(fks)
+			f.Reset()
+		} else {
+			b.Fatalf("abort benchmark because error %v occurd.", err)
+		}
+	}
+}
+
+func BenchmarkNewFinderKeysFromConf_json(b *testing.B) {
+	f, err := NewFinder(newFinderTestStructPtr())
+	if err != nil {
+		b.Fatalf("NewFinder() occurs unexpected error: %v", err)
+		return
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		fks, err := NewFinderKeysFromConf("examples/finder_from_conf", "ex_test1_json")
+		if err == nil {
+			_ = f.FromKeys(fks)
+			f.Reset()
+		} else {
+			b.Fatalf("abort benchmark because error %v occurd.", err)
+		}
 	}
 }

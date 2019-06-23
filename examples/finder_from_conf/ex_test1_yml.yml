@@ -8,11 +8,11 @@ Keys:
   - Map
   - ChInt
   - privateString
-  - TestStruct2
-  - TestStruct4Slice
-  - TestStruct4PtrSlice
-  - TestStruct2Ptr:
+  - FinderTestStruct2
+  - FinderTestStruct4Slice
+  - FinderTestStruct4PtrSlice
+  - FinderTestStruct2Ptr:
     - String
-    - TestStruct3:
+    - FinderTestStruct3:
       - String
       - Int

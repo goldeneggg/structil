@@ -2,8 +2,8 @@ Keys:
   - Int64
   - Float64
   - String
-  - TestStruct2Ptr:
+  - FinderTestStruct2Ptr:
     - String:
-    - TestStruct3:
+    - FinderTestStruct3:
       - String
       - Int
