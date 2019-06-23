@@ -311,6 +311,7 @@ func (b *BuilderImpl) build(isPtr bool) DynamicStruct {
 type DynamicStruct interface {
 	NumField() int
 	Field(i int) reflect.StructField
+	FieldByName(name string) (reflect.StructField, bool)
 	IsPtr() bool
 	Interface() interface{}
 	DecodeMap(m map[string]interface{}) (interface{}, error)
@@ -344,6 +345,12 @@ func (ds *Impl) NumField() int {
 // Field returns the i'th field of the built struct.
 func (ds *Impl) Field(i int) reflect.StructField {
 	return ds.structType.Field(i)
+}
+
+// FieldByName returns the struct field with the given name
+// and a boolean indicating if the field was found.
+func (ds *Impl) FieldByName(name string) (reflect.StructField, bool) {
+	return ds.structType.FieldByName(name)
 }
 
 // IsPtr reports whether the built struct type is pointer.

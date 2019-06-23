@@ -559,6 +559,11 @@ func TestBuilderBuild(t *testing.T) {
 				return
 			}
 
+			if _, ok := got.FieldByName("StringField"); !ok {
+				t.Errorf("FieldByName(StringField) returns unexpected false result.")
+				return
+			}
+
 			if tt.testMap != nil {
 				dec, err := got.DecodeMap(tt.testMap)
 				if err != nil {
