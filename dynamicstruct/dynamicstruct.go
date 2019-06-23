@@ -73,7 +73,7 @@ type addParam struct {
 	isPtr    bool
 }
 
-// AddString returns a Builder that was added a string field named by "name" parameter.
+// AddString returns a Builder that was added a string field named by name parameter.
 func (b *BuilderImpl) AddString(name string) Builder {
 	p := &addParam{
 		name:  name,
@@ -85,7 +85,7 @@ func (b *BuilderImpl) AddString(name string) Builder {
 	return b
 }
 
-// AddInt returns a Builder that was added a int field named by "name" parameter.
+// AddInt returns a Builder that was added a int field named by name parameter.
 func (b *BuilderImpl) AddInt(name string) Builder {
 	p := &addParam{
 		name:  name,
@@ -97,7 +97,7 @@ func (b *BuilderImpl) AddInt(name string) Builder {
 	return b
 }
 
-// AddFloat returns a Builder that was added a float64 field named by "name" parameter.
+// AddFloat returns a Builder that was added a float64 field named by name parameter.
 func (b *BuilderImpl) AddFloat(name string) Builder {
 	p := &addParam{
 		name:  name,
@@ -109,7 +109,7 @@ func (b *BuilderImpl) AddFloat(name string) Builder {
 	return b
 }
 
-// AddBool returns a Builder that was added a bool field named by "name" parameter.
+// AddBool returns a Builder that was added a bool field named by name parameter.
 func (b *BuilderImpl) AddBool(name string) Builder {
 	p := &addParam{
 		name:  name,
@@ -121,8 +121,9 @@ func (b *BuilderImpl) AddBool(name string) Builder {
 	return b
 }
 
-// AddMap returns a Builder that was added a map field named by "name" parameter.
-// Type of map key is type of "ke" and type of map value is type of "ve".
+// AddMap returns a Builder that was added a map field named by name parameter.
+// Type of map key is type of ke.
+// Type of map value is type of ve.
 func (b *BuilderImpl) AddMap(name string, ke interface{}, ve interface{}) Builder {
 	p := &addParam{
 		name:     name,
@@ -135,8 +136,9 @@ func (b *BuilderImpl) AddMap(name string, ke interface{}, ve interface{}) Builde
 	return b
 }
 
-// AddFunc returns a Builder that was added a func field named by "name" parameter.
-// Types of func args are types of "eargs" and types of func returns are types of "erets".
+// AddFunc returns a Builder that was added a func field named by name parameter.
+// Types of func args are types of eargs.
+// Types of func returns are types of erets.
 func (b *BuilderImpl) AddFunc(name string, eargs []interface{}, erets []interface{}) Builder {
 	p := &addParam{
 		name:     name,
@@ -149,8 +151,8 @@ func (b *BuilderImpl) AddFunc(name string, eargs []interface{}, erets []interfac
 	return b
 }
 
-// AddChanBoth returns a Builder that was added a BothDir chan field named by "name" parameter.
-// Type of chan is type of "e".
+// AddChanBoth returns a Builder that was added a BothDir chan field named by name parameter.
+// Type of chan is type of e.
 func (b *BuilderImpl) AddChanBoth(name string, e interface{}) Builder {
 	p := &addParam{
 		name:  name,
@@ -162,8 +164,8 @@ func (b *BuilderImpl) AddChanBoth(name string, e interface{}) Builder {
 	return b
 }
 
-// AddChanRecv returns a Builder that was added a RecvDir chan field named by "name" parameter.
-// Type of chan is type of "e".
+// AddChanRecv returns a Builder that was added a RecvDir chan field named by name parameter.
+// Type of chan is type of e.
 func (b *BuilderImpl) AddChanRecv(name string, e interface{}) Builder {
 	p := &addParam{
 		name:  name,
@@ -175,8 +177,8 @@ func (b *BuilderImpl) AddChanRecv(name string, e interface{}) Builder {
 	return b
 }
 
-// AddChanSend returns a Builder that was added a SendDir chan field named by "name" parameter.
-// Type of chan is type of "e".
+// AddChanSend returns a Builder that was added a SendDir chan field named by name parameter.
+// Type of chan is type of e.
 func (b *BuilderImpl) AddChanSend(name string, e interface{}) Builder {
 	p := &addParam{
 		name:  name,
@@ -188,8 +190,8 @@ func (b *BuilderImpl) AddChanSend(name string, e interface{}) Builder {
 	return b
 }
 
-// AddStruct returns a Builder that was added a struct field named by "name" parameter.
-// Type of struct is type of "i".
+// AddStruct returns a Builder that was added a struct field named by name parameter.
+// Type of struct is type of i.
 func (b *BuilderImpl) AddStruct(name string, i interface{}, isPtr bool) Builder {
 	p := &addParam{
 		name:  name,
@@ -201,14 +203,14 @@ func (b *BuilderImpl) AddStruct(name string, i interface{}, isPtr bool) Builder 
 	return b
 }
 
-// AddStructPtr returns a Builder that was added a struct pointer field named by "name" parameter.
-// Type of struct is type of "i".
+// AddStructPtr returns a Builder that was added a struct pointer field named by name parameter.
+// Type of struct is type of i.
 func (b *BuilderImpl) AddStructPtr(name string, i interface{}) Builder {
 	return b.AddStruct(name, i, true)
 }
 
-// AddSlice returns a Builder that was added a slice field named by "name" parameter.
-// Type of slice is type of "e".
+// AddSlice returns a Builder that was added a slice field named by name parameter.
+// Type of slice is type of e.
 func (b *BuilderImpl) AddSlice(name string, e interface{}) Builder {
 	p := &addParam{
 		name:  name,
@@ -267,7 +269,7 @@ func (b *BuilderImpl) add(p *addParam) {
 	b.fields[p.name] = typeOf
 }
 
-// Remove returns a Builder that was removed a field named by "name" parameter.
+// Remove returns a Builder that was removed a field named by name parameter.
 func (b *BuilderImpl) Remove(name string) Builder {
 	delete(b.fields, name)
 	return b

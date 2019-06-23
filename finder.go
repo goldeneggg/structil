@@ -70,12 +70,12 @@ func NewFinderWithGetterAndSep(g Getter, sep string) (Finder, error) {
 	return f.Reset(), nil
 }
 
-// FindTop returns a Finder that top level fields in struct are looked up and held named "names".
+// FindTop returns a Finder that top level fields in struct are looked up and held named names.
 func (f *FinderImpl) FindTop(names ...string) Finder {
 	return f.find(topLevelKey, names...)
 }
 
-// Find returns a Finder that fields in struct are looked up and held named "names".
+// Find returns a Finder that fields in struct are looked up and held named names.
 func (f *FinderImpl) Find(names ...string) Finder {
 	return f.find(f.ck, names...)
 }
@@ -91,7 +91,7 @@ func (f *FinderImpl) find(fKey string, names ...string) Finder {
 	return f
 }
 
-// Into returns a Finder that nested struct fields are looked up and held named "names".
+// Into returns a Finder that nested struct fields are looked up and held named names.
 func (f *FinderImpl) Into(names ...string) Finder {
 	if f.HasError() {
 		return f
@@ -273,7 +273,7 @@ type confKeys struct {
 }
 
 // NewFinderKeysFromConf returns a FinderKeys object
-// that is created from configuration file indicated by "dir" and "name" file.
+// that is created from configuration file indicated by dir and name file.
 func NewFinderKeysFromConf(dir string, baseName string) (*FinderKeys, error) {
 	viper.SetConfigName(baseName)
 	viper.AddConfigPath(dir)
