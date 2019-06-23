@@ -9,14 +9,14 @@
    "Map",
    "ChInt",
    "privateString",
-   "TestStruct2",
-   "TestStruct4Slice",
-   "TestStruct4PtrSlice",
+   "FinderTestStruct2",
+   "FinderTestStruct4Slice",
+   "FinderTestStruct4PtrSlice",
     {
-      "TestStruct2Ptr":[
+      "FinderTestStruct2Ptr":[
         "String",
         {
-          "TestStruct3":[
+          "FinderTestStruct3":[
             "String",
             "Int"
           ]

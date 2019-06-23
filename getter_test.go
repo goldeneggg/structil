@@ -1,13 +1,150 @@
 package structil_test
 
 import (
+	"fmt"
 	"reflect"
+	"runtime"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 
 	. "github.com/goldeneggg/structil"
 )
+
+type (
+	GetterTestStruct struct {
+		Byte          byte
+		Bytes         []byte
+		Int           int
+		Int64         int64
+		Uint          uint
+		Uint64        uint64
+		Float32       float32
+		Float64       float64
+		String        string
+		Stringptr     *string
+		Stringslice   []string
+		Bool          bool
+		Map           map[string]interface{}
+		Func          func(string) interface{}
+		ChInt         chan int
+		privateString string
+		GetterTestStruct2
+		GetterTestStruct2Ptr      *GetterTestStruct2
+		GetterTestStruct4Slice    []GetterTestStruct4
+		GetterTestStruct4PtrSlice []*GetterTestStruct4
+	}
+
+	GetterTestStruct2 struct {
+		String string
+		*GetterTestStruct3
+	}
+
+	GetterTestStruct3 struct {
+		String string
+		Int    int
+	}
+
+	GetterTestStruct4 struct {
+		String  string
+		String2 string
+	}
+)
+
+var (
+	getterTestString2 = "test name2"
+	getterTestFunc    = func(s string) interface{} { return s + "-func" }
+	getterTestChan    = make(chan int)
+)
+
+func newGetterTestStruct() GetterTestStruct {
+	return GetterTestStruct{
+		Byte:          0x61,
+		Bytes:         []byte{0x00, 0xFF},
+		Int:           int(-2),
+		Int64:         int64(-1),
+		Uint:          uint(2),
+		Uint64:        uint64(1),
+		Float32:       float32(-1.23),
+		Float64:       float64(-3.45),
+		String:        "test name",
+		Stringptr:     &getterTestString2,
+		Stringslice:   []string{"strslice1", "strslice2"},
+		Bool:          true,
+		Map:           map[string]interface{}{"k1": "v1", "k2": 2},
+		Func:          getterTestFunc,
+		ChInt:         getterTestChan,
+		privateString: "unexported string",
+		GetterTestStruct2: GetterTestStruct2{
+			String: "struct2 string",
+			GetterTestStruct3: &GetterTestStruct3{
+				String: "struct3 string",
+				Int:    -123,
+			},
+		},
+		GetterTestStruct2Ptr: &GetterTestStruct2{
+			String: "struct2 string ptr",
+			GetterTestStruct3: &GetterTestStruct3{
+				String: "struct3 string ptr",
+				Int:    -456,
+			},
+		},
+		GetterTestStruct4Slice: []GetterTestStruct4{
+			{
+				String:  "key100",
+				String2: "value100",
+			},
+			{
+				String:  "key200",
+				String2: "value200",
+			},
+		},
+		GetterTestStruct4PtrSlice: []*GetterTestStruct4{
+			{
+				String:  "key991",
+				String2: "value991",
+			},
+			{
+				String:  "key992",
+				String2: "value992",
+			},
+		},
+	}
+}
+
+func newGetterTestStructPtr() *GetterTestStruct {
+	ts := newGetterTestStruct()
+	return &ts
+}
+
+func newTestGetter() (Getter, error) {
+	return NewGetter(newGetterTestStructPtr())
+}
+
+func deferGetterTestPanic(t *testing.T, wantPanic bool, args interface{}) {
+	r := recover()
+	if r != nil {
+		msg := fmt.Sprintf("\n%v\n", r)
+		for d := 0; ; d++ {
+			pc, file, line, ok := runtime.Caller(d)
+			if !ok {
+				break
+			}
+
+			msg = msg + fmt.Sprintf(" -> %d: %s: %s:%d\n", d, runtime.FuncForPC(pc).Name(), file, line)
+		}
+
+		if wantPanic {
+			t.Logf("OK panic is expected: args: %+v, %s", args, msg)
+		} else {
+			t.Errorf("unexpected panic occured: args: %+v, %s", args, msg)
+		}
+	} else {
+		if wantPanic {
+			t.Errorf("expect to occur panic but does not: args: %+v, %+v", args, r)
+		}
+	}
+}
 
 type getterTestArgs struct {
 	name  string
@@ -80,20 +217,20 @@ func newGetterTests() []*getterTest {
 			args: &getterTestArgs{name: "ChInt"},
 		},
 		{
-			name: "TestStruct2",
-			args: &getterTestArgs{name: "TestStruct2"},
+			name: "GetterTestStruct2",
+			args: &getterTestArgs{name: "GetterTestStruct2"},
 		},
 		{
-			name: "TestStruct2Ptr",
-			args: &getterTestArgs{name: "TestStruct2Ptr"},
+			name: "GetterTestStruct2Ptr",
+			args: &getterTestArgs{name: "GetterTestStruct2Ptr"},
 		},
 		{
-			name: "TestStruct4Slice",
-			args: &getterTestArgs{name: "TestStruct4Slice"},
+			name: "GetterTestStruct4Slice",
+			args: &getterTestArgs{name: "GetterTestStruct4Slice"},
 		},
 		{
-			name: "TestStruct4PtrSlice",
-			args: &getterTestArgs{name: "TestStruct4PtrSlice"},
+			name: "GetterTestStruct4PtrSlice",
+			args: &getterTestArgs{name: "GetterTestStruct4PtrSlice"},
 		},
 		{
 			name: "privateString",
@@ -109,8 +246,8 @@ func newGetterTests() []*getterTest {
 func TestNewGetter(t *testing.T) {
 	t.Parallel()
 
-	testStructVal := newTestStruct()
-	testStructPtr := newTestStructPtr()
+	testStructVal := newGetterTestStruct()
+	testStructPtr := newGetterTestStructPtr()
 
 	type args struct {
 		i interface{}
@@ -132,7 +269,7 @@ func TestNewGetter(t *testing.T) {
 		},
 		{
 			name:    "valid struct ptr nil",
-			args:    args{i: (*TestStruct)(nil)},
+			args:    args{i: (*GetterTestStruct)(nil)},
 			wantErr: true,
 		},
 		{
@@ -179,13 +316,13 @@ func TestNumField(t *testing.T) {
 		want int
 	}{
 		{
-			name: "use TestStruct",
-			args: args{i: &TestStruct{}},
+			name: "use GetterTestStruct",
+			args: args{i: &GetterTestStruct{}},
 			want: 20,
 		},
 		{
-			name: "use TestStruct2",
-			args: args{i: &TestStruct2{}},
+			name: "use GetterTestStruct2",
+			args: args{i: &GetterTestStruct2{}},
 			want: 2,
 		},
 	}
@@ -235,7 +372,7 @@ func TestHas(t *testing.T) {
 func TestGetType(t *testing.T) {
 	t.Parallel()
 
-	testStructPtr := newTestStructPtr()
+	testStructPtr := newGetterTestStructPtr()
 	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() unexpected error [%v] occured.", err)
@@ -272,21 +409,21 @@ func TestGetType(t *testing.T) {
 				tt.wantType = reflect.TypeOf(testStructPtr.Func)
 			case "ChInt":
 				tt.wantType = reflect.TypeOf(testStructPtr.ChInt)
-			case "TestStruct2":
-				tt.wantType = reflect.TypeOf(testStructPtr.TestStruct2)
-			case "TestStruct2Ptr":
-				tt.wantType = reflect.TypeOf(testStructPtr.TestStruct2Ptr)
-			case "TestStruct4Slice":
-				tt.wantType = reflect.TypeOf(testStructPtr.TestStruct4Slice)
-			case "TestStruct4PtrSlice":
-				tt.wantType = reflect.TypeOf(testStructPtr.TestStruct4PtrSlice)
+			case "GetterTestStruct2":
+				tt.wantType = reflect.TypeOf(testStructPtr.GetterTestStruct2)
+			case "GetterTestStruct2Ptr":
+				tt.wantType = reflect.TypeOf(testStructPtr.GetterTestStruct2Ptr)
+			case "GetterTestStruct4Slice":
+				tt.wantType = reflect.TypeOf(testStructPtr.GetterTestStruct4Slice)
+			case "GetterTestStruct4PtrSlice":
+				tt.wantType = reflect.TypeOf(testStructPtr.GetterTestStruct4PtrSlice)
 			case "privateString":
 				tt.wantType = reflect.TypeOf(testStructPtr.privateString)
 			case "NotExist":
 				tt.wantPanic = true
 			}
 
-			defer deferPanic(t, tt.wantPanic, tt.args)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
 			got := g.GetType(tt.args.name)
 			if tt.wantPanic {
@@ -301,7 +438,7 @@ func TestGetType(t *testing.T) {
 func TestGetValue(t *testing.T) {
 	t.Parallel()
 
-	testStructPtr := newTestStructPtr()
+	testStructPtr := newGetterTestStructPtr()
 	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
@@ -338,21 +475,21 @@ func TestGetValue(t *testing.T) {
 				tt.wantValue = reflect.ValueOf(testStructPtr.Func)
 			case "ChInt":
 				tt.wantValue = reflect.ValueOf(testStructPtr.ChInt)
-			case "TestStruct2":
-				tt.wantValue = reflect.ValueOf(testStructPtr.TestStruct2)
-			case "TestStruct2Ptr":
-				tt.wantValue = reflect.ValueOf(testStructPtr.TestStruct2) // Note: *NOT* TestStruct2Ptr
-			case "TestStruct4Slice":
-				tt.wantValue = reflect.ValueOf(testStructPtr.TestStruct4Slice)
-			case "TestStruct4PtrSlice":
-				tt.wantValue = reflect.ValueOf(testStructPtr.TestStruct4PtrSlice)
+			case "GetterTestStruct2":
+				tt.wantValue = reflect.ValueOf(testStructPtr.GetterTestStruct2)
+			case "GetterTestStruct2Ptr":
+				tt.wantValue = reflect.ValueOf(testStructPtr.GetterTestStruct2) // Note: *NOT* GetterTestStruct2Ptr
+			case "GetterTestStruct4Slice":
+				tt.wantValue = reflect.ValueOf(testStructPtr.GetterTestStruct4Slice)
+			case "GetterTestStruct4PtrSlice":
+				tt.wantValue = reflect.ValueOf(testStructPtr.GetterTestStruct4PtrSlice)
 			case "privateString":
 				tt.wantValue = reflect.ValueOf(testStructPtr.privateString)
 			case "NotExist":
 				tt.wantPanic = true
 			}
 
-			defer deferPanic(t, tt.wantPanic, tt.args)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
 			got := g.GetValue(tt.args.name)
 			if tt.wantPanic {
@@ -367,7 +504,7 @@ func TestGetValue(t *testing.T) {
 func TestGet(t *testing.T) {
 	t.Parallel()
 
-	testStructPtr := newTestStructPtr()
+	testStructPtr := newGetterTestStructPtr()
 	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
@@ -403,21 +540,21 @@ func TestGet(t *testing.T) {
 				tt.wantIntf = testStructPtr.Func
 			case "ChInt":
 				tt.wantIntf = testStructPtr.ChInt
-			case "TestStruct2":
-				tt.wantIntf = testStructPtr.TestStruct2
-			case "TestStruct2Ptr":
-				tt.wantIntf = *testStructPtr.TestStruct2Ptr // Note: *NOT* testStructPtr.TestStruct2Ptr
-			case "TestStruct4Slice":
-				tt.wantIntf = testStructPtr.TestStruct4Slice
-			case "TestStruct4PtrSlice":
-				tt.wantIntf = testStructPtr.TestStruct4PtrSlice
+			case "GetterTestStruct2":
+				tt.wantIntf = testStructPtr.GetterTestStruct2
+			case "GetterTestStruct2Ptr":
+				tt.wantIntf = *testStructPtr.GetterTestStruct2Ptr // Note: *NOT* testStructPtr.GetterTestStruct2Ptr
+			case "GetterTestStruct4Slice":
+				tt.wantIntf = testStructPtr.GetterTestStruct4Slice
+			case "GetterTestStruct4PtrSlice":
+				tt.wantIntf = testStructPtr.GetterTestStruct4PtrSlice
 			case "privateString":
 				tt.wantIntf = nil // Note: unexported field is nil
 			case "NotExist":
 				tt.wantPanic = true
 			}
 
-			defer deferPanic(t, tt.wantPanic, tt.args)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
 			got := g.Get(tt.args.name)
 			if tt.wantPanic {
@@ -439,7 +576,7 @@ func TestGet(t *testing.T) {
 func TestEGet(t *testing.T) {
 	t.Parallel()
 
-	testStructPtr := newTestStructPtr()
+	testStructPtr := newGetterTestStructPtr()
 	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
@@ -475,21 +612,21 @@ func TestEGet(t *testing.T) {
 				tt.wantIntf = testStructPtr.Func
 			case "ChInt":
 				tt.wantIntf = testStructPtr.ChInt
-			case "TestStruct2":
-				tt.wantIntf = testStructPtr.TestStruct2
-			case "TestStruct2Ptr":
-				tt.wantIntf = *testStructPtr.TestStruct2Ptr // Note: *NOT* testStructPtr.TestStruct2Ptr
-			case "TestStruct4Slice":
-				tt.wantIntf = testStructPtr.TestStruct4Slice
-			case "TestStruct4PtrSlice":
-				tt.wantIntf = testStructPtr.TestStruct4PtrSlice
+			case "GetterTestStruct2":
+				tt.wantIntf = testStructPtr.GetterTestStruct2
+			case "GetterTestStruct2Ptr":
+				tt.wantIntf = *testStructPtr.GetterTestStruct2Ptr // Note: *NOT* testStructPtr.GetterTestStruct2Ptr
+			case "GetterTestStruct4Slice":
+				tt.wantIntf = testStructPtr.GetterTestStruct4Slice
+			case "GetterTestStruct4PtrSlice":
+				tt.wantIntf = testStructPtr.GetterTestStruct4PtrSlice
 			case "privateString":
 				tt.wantIntf = nil // Note: unexported field is nil
 			case "NotExist":
 				tt.wantError = true
 			}
 
-			defer deferPanic(t, tt.wantPanic, tt.args)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
 			got, err := g.EGet(tt.args.name)
 			if tt.wantPanic {
@@ -523,7 +660,7 @@ func TestEGet(t *testing.T) {
 func TestByte(t *testing.T) {
 	t.Parallel()
 
-	testStructPtr := newTestStructPtr()
+	testStructPtr := newGetterTestStructPtr()
 	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
@@ -539,7 +676,7 @@ func TestByte(t *testing.T) {
 				tt.wantPanic = true
 			}
 
-			defer deferPanic(t, tt.wantPanic, tt.args)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
 			got := g.Byte(tt.args.name)
 			if tt.wantPanic {
@@ -554,7 +691,7 @@ func TestByte(t *testing.T) {
 func TestBytes(t *testing.T) {
 	t.Parallel()
 
-	testStructPtr := newTestStructPtr()
+	testStructPtr := newGetterTestStructPtr()
 	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
@@ -570,7 +707,7 @@ func TestBytes(t *testing.T) {
 				tt.wantPanic = true
 			}
 
-			defer deferPanic(t, tt.wantPanic, tt.args)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
 			got := g.Bytes(tt.args.name)
 			if tt.wantPanic {
@@ -585,7 +722,7 @@ func TestBytes(t *testing.T) {
 func TestString(t *testing.T) {
 	t.Parallel()
 
-	testStructPtr := newTestStructPtr()
+	testStructPtr := newGetterTestStructPtr()
 	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
@@ -601,7 +738,7 @@ func TestString(t *testing.T) {
 				tt.wantPanic = true
 			}
 
-			defer deferPanic(t, tt.wantPanic, tt.args)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
 			got := g.String(tt.args.name)
 			if tt.wantPanic {
@@ -616,7 +753,7 @@ func TestString(t *testing.T) {
 func TestInt(t *testing.T) {
 	t.Parallel()
 
-	testStructPtr := newTestStructPtr()
+	testStructPtr := newGetterTestStructPtr()
 	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
@@ -632,7 +769,7 @@ func TestInt(t *testing.T) {
 				tt.wantPanic = true
 			}
 
-			defer deferPanic(t, tt.wantPanic, tt.args)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
 			got := g.Int(tt.args.name)
 			if tt.wantPanic {
@@ -647,7 +784,7 @@ func TestInt(t *testing.T) {
 func TestInt64(t *testing.T) {
 	t.Parallel()
 
-	testStructPtr := newTestStructPtr()
+	testStructPtr := newGetterTestStructPtr()
 	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
@@ -663,7 +800,7 @@ func TestInt64(t *testing.T) {
 				tt.wantPanic = true
 			}
 
-			defer deferPanic(t, tt.wantPanic, tt.args)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
 			got := g.Int64(tt.args.name)
 			if tt.wantPanic {
@@ -678,7 +815,7 @@ func TestInt64(t *testing.T) {
 func TestUint(t *testing.T) {
 	t.Parallel()
 
-	testStructPtr := newTestStructPtr()
+	testStructPtr := newGetterTestStructPtr()
 	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
@@ -694,7 +831,7 @@ func TestUint(t *testing.T) {
 				tt.wantPanic = true
 			}
 
-			defer deferPanic(t, tt.wantPanic, tt.args)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
 			got := g.Uint(tt.args.name)
 			if tt.wantPanic {
@@ -709,7 +846,7 @@ func TestUint(t *testing.T) {
 func TestUint64(t *testing.T) {
 	t.Parallel()
 
-	testStructPtr := newTestStructPtr()
+	testStructPtr := newGetterTestStructPtr()
 	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
@@ -725,7 +862,7 @@ func TestUint64(t *testing.T) {
 				tt.wantPanic = true
 			}
 
-			defer deferPanic(t, tt.wantPanic, tt.args)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
 			got := g.Uint64(tt.args.name)
 			if tt.wantPanic {
@@ -740,7 +877,7 @@ func TestUint64(t *testing.T) {
 func TestFloat64(t *testing.T) {
 	t.Parallel()
 
-	testStructPtr := newTestStructPtr()
+	testStructPtr := newGetterTestStructPtr()
 	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
@@ -756,7 +893,7 @@ func TestFloat64(t *testing.T) {
 				tt.wantPanic = true
 			}
 
-			defer deferPanic(t, tt.wantPanic, tt.args)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
 			got := g.Float64(tt.args.name)
 			if tt.wantPanic {
@@ -771,7 +908,7 @@ func TestFloat64(t *testing.T) {
 func TestBool(t *testing.T) {
 	t.Parallel()
 
-	testStructPtr := newTestStructPtr()
+	testStructPtr := newGetterTestStructPtr()
 	g, err := NewGetter(testStructPtr)
 	if err != nil {
 		t.Errorf("NewGetter() occurs unexpected error: %v", err)
@@ -787,7 +924,7 @@ func TestBool(t *testing.T) {
 				tt.wantPanic = true
 			}
 
-			defer deferPanic(t, tt.wantPanic, tt.args)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
 			got := g.Bool(tt.args.name)
 			if tt.wantPanic {
@@ -1099,7 +1236,7 @@ func TestIsStruct(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			switch tt.name {
-			case "TestStruct2", "TestStruct2Ptr":
+			case "GetterTestStruct2", "GetterTestStruct2Ptr":
 				tt.wantBool = true
 			}
 
@@ -1123,7 +1260,7 @@ func TestIsSlice(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			switch tt.name {
-			case "Bytes", "TestStruct4Slice", "TestStruct4PtrSlice":
+			case "Bytes", "GetterTestStruct4Slice", "GetterTestStruct4PtrSlice":
 				tt.wantBool = true
 			}
 
@@ -1147,12 +1284,12 @@ func TestMapGet(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			switch tt.name {
-			case "TestStruct4Slice":
+			case "GetterTestStruct4Slice":
 				tt.args.mapfn = func(i int, g Getter) (interface{}, error) {
 					return g.String("String") + "=" + g.String("String2"), nil
 				}
 				tt.wantIntf = []interface{}{string("key100=value100"), string("key200=value200")}
-			case "TestStruct4PtrSlice":
+			case "GetterTestStruct4PtrSlice":
 				tt.args.mapfn = func(i int, g Getter) (interface{}, error) {
 					return g.String("String") + ":" + g.String("String2"), nil
 				}
@@ -1175,5 +1312,162 @@ func TestMapGet(t *testing.T) {
 				t.Errorf("MapGet() unexpected error %v occured. wantErr %v", err, tt.wantError)
 			}
 		})
+	}
+}
+
+// benchmark tests
+
+func BenchmarkNewGetter_Val(b *testing.B) {
+	var g Getter
+	var e error
+
+	testStructVal := newGetterTestStruct()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		g, e = NewGetter(testStructVal)
+		if e == nil {
+			_ = g
+		} else {
+			b.Fatalf("abort benchmark because error %v occurd.", e)
+		}
+	}
+}
+
+func BenchmarkNewGetter_Ptr(b *testing.B) {
+	var g Getter
+	var e error
+
+	testStructPtr := newGetterTestStructPtr()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		g, e = NewGetter(testStructPtr)
+		if e == nil {
+			_ = g
+		} else {
+			b.Fatalf("abort benchmark because error %v occurd.", e)
+		}
+	}
+}
+
+func BenchmarkGetterGetType_String(b *testing.B) {
+	var t reflect.Type
+
+	g, err := newTestGetter()
+	if err != nil {
+		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
+		return
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		t = g.GetType("String")
+		_ = t
+	}
+}
+
+func BenchmarkGetterGetValue_String(b *testing.B) {
+	var v reflect.Value
+
+	g, err := newTestGetter()
+	if err != nil {
+		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
+		return
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		v = g.GetValue("String")
+		_ = v
+	}
+}
+
+func BenchmarkGetterHas_String(b *testing.B) {
+	var bl bool
+
+	g, err := newTestGetter()
+	if err != nil {
+		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
+		return
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		bl = g.Has("String")
+		_ = bl
+	}
+}
+
+func BenchmarkGetterGet_String(b *testing.B) {
+	var it interface{}
+
+	g, err := newTestGetter()
+	if err != nil {
+		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
+		return
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		it = g.Get("String")
+		_ = it
+	}
+}
+
+func BenchmarkGetterEGet_String(b *testing.B) {
+	var it interface{}
+
+	g, err := newTestGetter()
+	if err != nil {
+		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
+		return
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		it, err = g.EGet("String")
+		if err == nil {
+			_ = it
+		} else {
+			b.Fatalf("abort benchmark because error %v occurd.", err)
+		}
+	}
+}
+
+func BenchmarkGetterString(b *testing.B) {
+	var str string
+
+	g, err := newTestGetter()
+	if err != nil {
+		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
+		return
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		str = g.String("String")
+		_ = str
+	}
+}
+
+func BenchmarkGetterMapGet(b *testing.B) {
+	var ia []interface{}
+
+	g, err := newTestGetter()
+	if err != nil {
+		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
+		return
+	}
+	fn := func(i int, g Getter) (interface{}, error) {
+		return g.String("String") + ":" + g.String("String2"), nil
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ia, err = g.MapGet("GetterTestStruct4PtrSlice", fn)
+		if err == nil {
+			_ = ia
+		} else {
+			b.Fatalf("abort benchmark because error %v occurd.", err)
+		}
 	}
 }

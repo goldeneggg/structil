@@ -55,7 +55,7 @@ func main() {
 	}
 
 	m, err := finder.
-		Find("Name", "School").
+		FindTop("Name", "School").
 		Into("Company").Find("Address").
 		Into("Company", "Group").Find("Name", "Boss").
 		ToMap()

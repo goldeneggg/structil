@@ -17,6 +17,8 @@ __Table of Contents__
   - [With config? use `FinderKeys`](#with-config-use-finderkeys)
 - [`Getter`](#getter)
   - [`MapGet` method](#mapget-method)
+- [`DynamicStruct`](#dynamicstruct)
+  - [JSON unmershal with `DynamicStructMap`](#json-unmershal-with-dynamicstruct)
 
 <!-- /TOC -->
 
@@ -313,7 +315,7 @@ Name: "Mike Davis", Age: 27, Company: main.company{Name:"Scott inc.", Address:"O
 ### `MapGet` method
 `MapGet` method provides the __Map__ collection function for slice of struct
 
-Sample script on playground is https://play.golang.org/p/98wCWCrs0vf .
+[Sample script on playground](https://play.golang.org/p/98wCWCrs0vf).
 
 ```go
 package main
@@ -382,3 +384,139 @@ Result as follows.
 []interface {}{"You worked for 3 years since you joined the company Dragons inc.", "You worked for 2 years since you joined the company Swallows inc."}
 ```
 
+## `DynamicStruct`
+We can create dynamic and runtime struct.
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/goldeneggg/structil"
+	"github.com/goldeneggg/structil/dynamicstruct"
+)
+
+// Hoge is test struct
+type Hoge struct {
+	Key   string
+	Value interface{}
+}
+
+var (
+	hoge    Hoge
+	hogePtr *Hoge
+)
+
+func main() {
+  // Add fields using Builder. We can use AddXXX method chain.
+	b := dynamicstruct.NewBuilder().
+		AddString("StringField").
+		AddInt("IntField").
+		AddFloat("FloatField").
+		AddBool("BoolField").
+		AddMap("MapField", dynamicstruct.SampleString, dynamicstruct.SampleFloat).
+		AddChanBoth("ChanBothField", dynamicstruct.SampleInt).
+		AddStructPtr("StructPtrField", hogePtr).
+		AddSlice("SliceField", hogePtr)
+
+  // Available for remove field by Remove method
+	b = b.Remove("FloatField")
+
+  // Build method generates a DynamicStruct
+	ds := b.Build()
+
+	// Decode from map to DynamicStruct
+	input := map[string]interface{}{
+		"StringField": "Test String Field",
+		"IntField":    12345,
+		"BoolField":   true,
+	}
+	dec, err := ds.DecodeMap(input)
+	if err != nil {
+		panic(err)
+	}
+
+  // confirm decoded result using Getter
+	g, err := structil.NewGetter(dec)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("String: %v, Int: %v, Bool: %v\n", g.String("StringField"), g.Int("IntField"), g.Get("BoolField"))
+}
+```
+
+Result as follows.
+
+```
+String: Test String Field, Int: 12345, Bool: true
+```
+
+### JSON unmershal with `DynamicStruct`
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+
+	"github.com/goldeneggg/structil"
+	"github.com/goldeneggg/structil/dynamicstruct"
+)
+
+// Hoge is test struct
+type Hoge struct {
+	Key   string      `json:"key"`
+	Value interface{} `json:"value"`
+}
+
+var (
+	hoge    Hoge
+	hogePtr *Hoge
+)
+
+func main() {
+	b := dynamicstruct.NewBuilder().
+		AddStringWithTag("StringField", `json:"string_field"`).
+		AddIntWithTag("IntField", `json:"int_field"`).
+		AddFloatWithTag("FloatField", `json:"float_field"`).
+		AddBoolWithTag("BoolField", `json:"bool_field"`).
+		AddStructPtrWithTag("StructPtrField", hogePtr, `json:"struct_ptr_field"`)
+
+	// Get interface of DynamicStruct using Interface() method
+	ds := b.Build()
+	intf := ds.Interface()
+
+	// try json unmarshal
+	input := []byte(`
+{
+	"string_field":"あいうえお",
+	"int_field":9876,
+	"float_field":5.67,
+	"bool_field":true,
+	"struct_ptr_field":{
+		"key":"hogekey",
+		"value":"hogevalue"
+	}
+}
+`)
+
+	err := json.Unmarshal(input, &intf)
+	if err != nil {
+		panic(err)
+	}
+
+	g, err := structil.NewGetter(intf)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("String: %v, Float: %v, StructPtr: %+v\n", g.String("StringField"), g.Float64("FloatField"), g.Get("StructPtrField"))
+}
+```
+
+Result as follows.
+
+```
+String: あいうえお, Float: 5.67, StructPtr: {Key:hogekey Value:hogevalue}
+```

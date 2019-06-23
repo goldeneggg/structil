@@ -12,6 +12,25 @@ func ToI(rv reflect.Value) interface{} {
 	return nil
 }
 
+// ElemTypeOf returns a element Type from i.
+// If the i's type's Kind is Array, Chan, Map, Ptr, or Slice then this returns the element Type.
+// Otherwise this returns i's original Type.
+func ElemTypeOf(i interface{}) reflect.Type {
+	if i == nil {
+		return nil
+	}
+
+	t := reflect.TypeOf(i)
+	k := t.Kind()
+
+	switch k {
+	case reflect.Array, reflect.Chan, reflect.Ptr, reflect.Slice:
+		return t.Elem()
+	default:
+		return t
+	}
+}
+
 /*
 // Note: Publicize candidate
 func elemOf(i interface{}) reflect.Value {
