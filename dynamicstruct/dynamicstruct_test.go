@@ -2,6 +2,7 @@ package dynamicstruct_test
 
 import (
 	"fmt"
+	"reflect"
 	"runtime"
 	"testing"
 
@@ -47,6 +48,10 @@ type (
 		String  string
 		String2 string
 	}
+)
+
+const (
+	stringFieldWithTagTag = `json:"string_field_with_tag"`
 )
 
 var (
@@ -117,6 +122,7 @@ func newDynamicTestStructPtr() *DynamicTestStruct {
 func newDynamicTestBuilder() Builder {
 	return NewBuilder().
 		AddString("StringField").
+		AddStringWithTag("StringFieldWithTag", stringFieldWithTagTag).
 		AddInt("IntField").
 		AddFloat("FloatField").
 		AddBool("BoolField").
@@ -172,13 +178,13 @@ func TestBuilderAddRemoveExistsNumField(t *testing.T) {
 			name:               "have fields set by newDynamicTestBuilder()",
 			args:               args{builder: newDynamicTestBuilder()},
 			wantExistsIntField: true,
-			wantNumField:       12, // See: newDynamicTestBuilder()
+			wantNumField:       13, // See: newDynamicTestBuilder()
 		},
 		{
 			name:               "have fields set by newDynamicTestBuilder() and Remove(IntField)",
 			args:               args{builder: newDynamicTestBuilder().Remove("IntField")},
 			wantExistsIntField: false,
-			wantNumField:       11,
+			wantNumField:       12,
 		},
 	}
 
@@ -525,14 +531,14 @@ func TestBuilderBuild(t *testing.T) {
 			name:         "Build() with valid Builder",
 			args:         args{builder: newDynamicTestBuilder(), isPtr: true},
 			wantIsPtr:    true,
-			wantNumField: 12, // See: newDynamicTestBuilder()
+			wantNumField: 13, // See: newDynamicTestBuilder()
 			testMap:      testMap,
 		},
 		{
 			name:               "BuildNonPtr() with valid Builder",
 			args:               args{builder: newDynamicTestBuilder().Remove("ChanBothField"), isPtr: false},
 			wantIsPtr:          false,
-			wantNumField:       11,
+			wantNumField:       12,
 			testMap:            testMap,
 			wantErrorDecodeMap: true, // Note: can't execute DecodeMap if dynamic struct is NOT pointer.
 		},
@@ -561,6 +567,17 @@ func TestBuilderBuild(t *testing.T) {
 
 			if _, ok := got.FieldByName("StringField"); !ok {
 				t.Errorf("FieldByName(StringField) returns unexpected false result.")
+				return
+			}
+
+			sft, ok := got.FieldByName("StringFieldWithTag")
+			if ok {
+				if d := cmp.Diff(sft.Tag, reflect.StructTag(stringFieldWithTagTag)); d != "" {
+					t.Errorf("unexpected mismatch StringFieldWithTag.Tag: (-got +want)\n%s", d)
+					return
+				}
+			} else {
+				t.Errorf("FieldByName(StringFieldWithTag) returns unexpected false result.")
 				return
 			}
 

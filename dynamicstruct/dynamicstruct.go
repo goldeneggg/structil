@@ -37,6 +37,7 @@ var (
 // Builder is the interface that builds a dynamic and runtime struct.
 type Builder interface {
 	AddString(name string) Builder
+	AddStringWithTag(name string, tag string) Builder
 	AddInt(name string) Builder
 	AddFloat(name string) Builder
 	AddBool(name string) Builder
@@ -58,28 +59,39 @@ type Builder interface {
 // BuilderImpl is the default Builder implementation.
 type BuilderImpl struct {
 	fields map[string]reflect.Type
+	tags   map[string]reflect.StructTag
 }
 
 // NewBuilder returns a concrete Builder
 func NewBuilder() Builder {
-	return &BuilderImpl{fields: map[string]reflect.Type{}}
+	return &BuilderImpl{fields: map[string]reflect.Type{}, tags: map[string]reflect.StructTag{}}
 }
 
 type addParam struct {
-	name     string
-	intfs    []interface{}
-	keyIntfs []interface{}
-	ot       ofType
-	isPtr    bool
+	name                 string
+	intfs                []interface{}
+	intfTypesIsInterface bool
+	keyIntfs             []interface{}
+	keyTypesIsInterface  bool
+	ot                   ofType
+	isPtr                bool
+	tag                  string
 }
 
 // AddString returns a Builder that was added a string field named by name parameter.
 func (b *BuilderImpl) AddString(name string) Builder {
+	b.AddStringWithTag(name, "")
+	return b
+}
+
+// AddStringWithTag returns a Builder that was added a string field with tag named by name parameter.
+func (b *BuilderImpl) AddStringWithTag(name string, tag string) Builder {
 	p := &addParam{
 		name:  name,
 		intfs: []interface{}{SampleString},
 		ot:    tPrmtv,
 		isPtr: false,
+		tag:   tag,
 	}
 	b.add(p)
 	return b
@@ -267,6 +279,7 @@ func (b *BuilderImpl) add(p *addParam) {
 	}
 
 	b.fields[p.name] = typeOf
+	b.tags[p.name] = reflect.StructTag(p.tag)
 }
 
 // Remove returns a Builder that was removed a field named by name parameter.
@@ -300,7 +313,7 @@ func (b *BuilderImpl) build(isPtr bool) DynamicStruct {
 	var i int
 	fs := make([]reflect.StructField, len(b.fields))
 	for name, typ := range b.fields {
-		fs[i] = reflect.StructField{Name: name, Type: typ}
+		fs[i] = reflect.StructField{Name: name, Type: typ, Tag: b.tags[name]}
 		i++
 	}
 
