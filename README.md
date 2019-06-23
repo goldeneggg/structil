@@ -17,6 +17,7 @@ __Table of Contents__
   - [With config? use `FinderKeys`](#with-config-use-finderkeys)
 - [`Getter`](#getter)
   - [`MapGet` method](#mapget-method)
+- [`DynamicStruct`](#dynamicstruct)
 
 <!-- /TOC -->
 
@@ -380,5 +381,73 @@ Result as follows.
 
 ```
 []interface {}{"You worked for 3 years since you joined the company Dragons inc.", "You worked for 2 years since you joined the company Swallows inc."}
+```
+
+## `DynamicStruct`
+We can create dynamic and runtime struct.
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/goldeneggg/structil"
+	"github.com/goldeneggg/structil/dynamicstruct"
+)
+
+// Hoge is test struct
+type Hoge struct {
+	Key   string
+	Value interface{}
+}
+
+var (
+	hoge    Hoge
+	hogePtr *Hoge
+)
+
+func main() {
+  // Add fields using Builder. We can use AddXXX method chain.
+	b := dynamicstruct.NewBuilder().
+		AddString("StringField").
+		AddInt("IntField").
+		AddFloat("FloatField").
+		AddBool("BoolField").
+		AddMap("MapField", dynamicstruct.SampleString, dynamicstruct.SampleFloat).
+		AddChanBoth("ChanBothField", dynamicstruct.SampleInt).
+		AddStructPtr("StructPtrField", hogePtr).
+		AddSlice("SliceField", hogePtr)
+
+  // Available for remove field by Remove method
+	b = b.Remove("FloatField")
+
+  // Build method generates a DynamicStruct
+	ds := b.Build()
+
+	// Decode from map to DynamicStruct
+	input := map[string]interface{}{
+		"StringField": "Test String Field",
+		"IntField":    12345,
+		"BoolField":   true,
+	}
+	dec, err := ds.DecodeMap(input)
+	if err != nil {
+		panic(err)
+	}
+
+  // confirm decoded result using Getter
+	g, err := structil.NewGetter(dec)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("String: %v, Int: %v, Bool: %v\n", g.String("StringField"), g.Int("IntField"), g.Get("BoolField"))
+}
+```
+
+Result as follows.
+
+```
+String: Test String Field, Int: 12345, Bool: true
 ```
 

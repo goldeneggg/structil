@@ -25,25 +25,19 @@ func main() {
 		AddFloat("FloatField").
 		AddBool("BoolField").
 		AddMap("MapField", dynamicstruct.SampleString, dynamicstruct.SampleFloat).
-		AddFunc("FuncField", []interface{}{dynamicstruct.SampleInt, dynamicstruct.SampleInt}, []interface{}{dynamicstruct.SampleBool}).
 		AddChanBoth("ChanBothField", dynamicstruct.SampleInt).
-		AddChanRecv("ChanRecvField", dynamicstruct.SampleInt).
-		AddChanSend("ChanSendField", dynamicstruct.SampleInt).
-		AddStruct("StructField", hoge, false).
 		AddStructPtr("StructPtrField", hogePtr).
 		AddSlice("SliceField", hogePtr)
+
 	b = b.Remove("FloatField")
+
 	ds := b.Build()
-	fmt.Printf("ds: %#v\n", ds)
 
 	// try mapstructure.Decode using dynamic struct
 	input := map[string]interface{}{
-		"StringField": "@@@!!!@@@",
+		"StringField": "Test String Field",
 		"IntField":    12345,
 		"BoolField":   true,
-		"extra": map[string]float64{
-			"twitter": 3.14,
-		},
 	}
 
 	// 2nd arg need to be a pointer of dynamic struct
@@ -51,11 +45,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Decoded intf: %#v\n", dec)
 
 	g, err := structil.NewGetter(dec)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("String: %v, Int: %v, Map: %#v, Struct: %#v\n", g.String("StringField"), g.Int("IntField"), g.Get("MapField"), g.Get("StructField"))
+	fmt.Printf("String: %v, Int: %v, Bool: %v\n", g.String("StringField"), g.Int("IntField"), g.Get("BoolField"))
 }
