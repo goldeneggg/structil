@@ -272,9 +272,9 @@ type confKeys struct {
 	Keys []interface{}
 }
 
-// NewFinderKeysFromConf returns a FinderKeys object
+// NewFinderKeys returns a FinderKeys object
 // that is created from configuration file indicated by dir and name file.
-func NewFinderKeysFromConf(dir string, baseName string) (*FinderKeys, error) {
+func NewFinderKeys(dir string, baseName string) (*FinderKeys, error) {
 	viper.SetConfigName(baseName)
 	viper.AddConfigPath(dir)
 

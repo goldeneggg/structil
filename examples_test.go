@@ -355,7 +355,7 @@ func ExampleFinderImpl_FromKeys_yml() {
 	//   - Name
 	//   - Age
 
-	fks, err := NewFinderKeysFromConf("examples/finder_from_conf", "ex_yml")
+	fks, err := NewFinderKeys("examples/finder_from_conf", "ex_yml")
 	if err != nil {
 		panic(err)
 	}
@@ -438,7 +438,7 @@ func ExampleFinderImpl_FromKeys_json() {
 	//     "Age"
 	//   ]
 	// }
-	fks, err := NewFinderKeysFromConf("examples/finder_from_conf", "ex_json")
+	fks, err := NewFinderKeys("examples/finder_from_conf", "ex_json")
 	if err != nil {
 		panic(err)
 	}
