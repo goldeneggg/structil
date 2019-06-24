@@ -542,9 +542,9 @@ func TestFromKeys(t *testing.T) {
 	fks := make([]*FinderKeys, 5)
 
 	for i := 0; i < len(fs); i++ {
-		fk, err = NewFinderKeysFromConf("examples/finder_from_conf", fmt.Sprintf("ex_test%s_yml", strconv.Itoa(i+1)))
+		fk, err = NewFinderKeys("examples/finder_from_conf", fmt.Sprintf("ex_test%s_yml", strconv.Itoa(i+1)))
 		if err != nil {
-			t.Errorf("NewFinderKeysFromConf() error = %v", err)
+			t.Errorf("NewFinderKeys() error = %v", err)
 			return
 		}
 		fks[i] = fk
@@ -683,7 +683,7 @@ func TestFromKeys(t *testing.T) {
 	}
 }
 
-func TestNewFinderKeysFromConf(t *testing.T) {
+func TestNewFinderKeys(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
@@ -767,24 +767,24 @@ func TestNewFinderKeysFromConf(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewFinderKeysFromConf(tt.args.d, tt.args.n)
+			got, err := NewFinderKeys(tt.args.d, tt.args.n)
 
 			if err == nil {
 				if tt.wantError {
-					t.Errorf("NewFinderKeysFromConf() error did not occur. got: %v", got)
+					t.Errorf("NewFinderKeys() error did not occur. got: %v", got)
 					return
 				}
 
 				if got.Len() != tt.wantLen {
-					t.Errorf("NewFinderKeysFromConf() unexpected len. got: %d, want: %d", got.Len(), tt.wantLen)
+					t.Errorf("NewFinderKeys() unexpected len. got: %d, want: %d", got.Len(), tt.wantLen)
 				}
 
 				if d := cmp.Diff(got.Keys(), tt.wantKeys); d != "" {
-					t.Errorf("NewFinderKeysFromConf() unexpected keys. (-got +want)\n%s", d)
+					t.Errorf("NewFinderKeys() unexpected keys. (-got +want)\n%s", d)
 				}
 
 			} else if !tt.wantError {
-				t.Errorf("NewFinderKeysFromConf() unexpected error [%v] occured. wantError: %v", err, tt.wantError)
+				t.Errorf("NewFinderKeys() unexpected error [%v] occured. wantError: %v", err, tt.wantError)
 			}
 		})
 	}
@@ -944,7 +944,7 @@ func BenchmarkToMap_2Struct_2Find(b *testing.B) {
 	}
 }
 
-func BenchmarkNewFinderKeysFromConf_yml(b *testing.B) {
+func BenchmarkNewFinderKeys_yml(b *testing.B) {
 	f, err := NewFinder(newFinderTestStructPtr())
 	if err != nil {
 		b.Fatalf("NewFinder() occurs unexpected error: %v", err)
@@ -953,7 +953,7 @@ func BenchmarkNewFinderKeysFromConf_yml(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		fks, err := NewFinderKeysFromConf("examples/finder_from_conf", "ex_test1_yml")
+		fks, err := NewFinderKeys("examples/finder_from_conf", "ex_test1_yml")
 		if err == nil {
 			_ = f.FromKeys(fks)
 			f.Reset()
@@ -963,7 +963,7 @@ func BenchmarkNewFinderKeysFromConf_yml(b *testing.B) {
 	}
 }
 
-func BenchmarkNewFinderKeysFromConf_json(b *testing.B) {
+func BenchmarkNewFinderKeys_json(b *testing.B) {
 	f, err := NewFinder(newFinderTestStructPtr())
 	if err != nil {
 		b.Fatalf("NewFinder() occurs unexpected error: %v", err)
@@ -972,7 +972,7 @@ func BenchmarkNewFinderKeysFromConf_json(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		fks, err := NewFinderKeysFromConf("examples/finder_from_conf", "ex_test1_json")
+		fks, err := NewFinderKeys("examples/finder_from_conf", "ex_test1_json")
 		if err == nil {
 			_ = f.FromKeys(fks)
 			f.Reset()
