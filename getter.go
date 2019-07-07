@@ -159,9 +159,7 @@ func (g *GetterImpl) Get(name string) interface{} {
 // It returns an error if the original struct does not have a field named name.
 func (g *GetterImpl) EGet(name string) (intf interface{}, err error) {
 	defer func() {
-		if r := recover(); r != nil {
-			err = reflectil.RecoverToError(r)
-		}
+		err = reflectil.RecoverToError(recover())
 	}()
 
 	intf = g.Get(name)

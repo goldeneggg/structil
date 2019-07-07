@@ -2,7 +2,6 @@ package structil_test
 
 import (
 	"fmt"
-	"runtime"
 	"strconv"
 	"testing"
 
@@ -115,31 +114,6 @@ func newFinderTestStruct() FinderTestStruct {
 func newFinderTestStructPtr() *FinderTestStruct {
 	ts := newFinderTestStruct()
 	return &ts
-}
-
-func deferFinderTestPanic(t *testing.T, wantPanic bool, args interface{}) {
-	r := recover()
-	if r != nil {
-		msg := fmt.Sprintf("\n%v\n", r)
-		for d := 0; ; d++ {
-			pc, file, line, ok := runtime.Caller(d)
-			if !ok {
-				break
-			}
-
-			msg = msg + fmt.Sprintf(" -> %d: %s: %s:%d\n", d, runtime.FuncForPC(pc).Name(), file, line)
-		}
-
-		if wantPanic {
-			t.Logf("OK panic is expected: args: %+v, %s", args, msg)
-		} else {
-			t.Errorf("unexpected panic occured: args: %+v, %s", args, msg)
-		}
-	} else {
-		if wantPanic {
-			t.Errorf("expect to occur panic but does not: args: %+v, %+v", args, r)
-		}
-	}
 }
 
 func TestNewFinder(t *testing.T) {
@@ -281,7 +255,6 @@ func TestToMap(t *testing.T) {
 		args            args
 		wantError       bool
 		wantErrorString string
-		wantPanic       bool
 		wantMap         map[string]interface{}
 		cmpopts         []cmp.Option
 	}{
@@ -487,8 +460,6 @@ func TestToMap(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			defer deferFinderTestPanic(t, tt.wantPanic, tt.args)
-
 			got, err := tt.args.chain.ToMap()
 
 			if err == nil {
@@ -565,7 +536,6 @@ func TestFromKeys(t *testing.T) {
 		args            args
 		wantError       bool
 		wantErrorString string
-		wantPanic       bool
 		wantMap         map[string]interface{}
 		cmpopts         []cmp.Option
 	}{
@@ -637,8 +607,6 @@ func TestFromKeys(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			defer deferFinderTestPanic(t, tt.wantPanic, tt.args)
-
 			got, err := tt.args.chain.ToMap()
 
 			if err == nil {
