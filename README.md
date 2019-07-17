@@ -84,7 +84,7 @@ We can create a Finder from the configuration file that have some finding target
 
 Thanks for the awesome configuration management library [spf13/viper](https://github.com/spf13/viper).
 
-File `examples/finder_from_conf/ex_yml.yml` as follows:
+File `examples/finder_from_conf/keys.yml` as follows:
 
 ```yml
 # "Keys" is required field for top level.
@@ -134,7 +134,7 @@ if err != nil {
 }
 
 // Get `FinderKeys` object by calling `NewFinderKeys` with config file dir and baseName
-fks, err := structil.NewFinderKeys("examples/finder_from_conf", "ex_yml")
+fks, err := structil.NewFinderKeys("examples/finder_from_conf", "keys")
 if err != nil {
 	fmt.Printf("error: %v\n", err)
 	return
@@ -242,19 +242,9 @@ Result as follows.
 We can create dynamic and runtime struct.
 
 ```go
-type Hoge struct {
-	Key   string
-	Value interface{}
-}
-
-var (
-	hoge    Hoge
-	hogePtr *Hoge
-)
-
 // Add fields using Builder.
 // We can use AddXXX method chain.
-b := dynamicstruct.NewBuilder().
+builder := dynamicstruct.NewBuilder().
 	AddString("StringField").
 	AddInt("IntField").
 	AddFloat("FloatField").
@@ -265,10 +255,10 @@ b := dynamicstruct.NewBuilder().
 	AddSlice("SliceField", hogePtr)
 
 // Remove removes a field by assigned name.
-b = b.Remove("FloatField")
+builder = builder.Remove("FloatField")
 
 // Build generates a DynamicStruct
-ds := b.Build()
+ds := builder.Build()
 
 // DecodeMap decodes from map to DynamicStruct
 input := map[string]interface{}{
@@ -296,7 +286,7 @@ A decoding example from JSON to `DynamicStruct` with `StructTag` using `json.Unm
 This example works correctly not only JSON but also YAML, TOML and more.
 
 ```go
-b := dynamicstruct.NewBuilder().
+builder := dynamicstruct.NewBuilder().
 	AddStringWithTag("StringField", `json:"string_field"`).
 	AddIntWithTag("IntField", `json:"int_field"`).
 	AddFloatWithTag("FloatField", `json:"float_field"`).
@@ -304,7 +294,7 @@ b := dynamicstruct.NewBuilder().
 	AddStructPtrWithTag("StructPtrField", hogePtr, `json:"struct_ptr_field"`)
 
 // Get interface of DynamicStruct using Interface() method
-ds := b.Build()
+ds := builder.Build()
 intf := ds.Interface()
 
 // try json unmarshal
