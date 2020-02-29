@@ -21,10 +21,11 @@ type (
 		Uint64        uint64
 		Float32       float32
 		Float64       float64
+		Bool          bool
+		Complex128    complex128
 		String        string
 		Stringptr     *string
 		Stringslice   []string
-		Bool          bool
 		Map           map[string]interface{}
 		Func          func(string) interface{}
 		ChInt         chan int
@@ -67,10 +68,11 @@ func newGetterTestStruct() GetterTestStruct {
 		Uint64:        uint64(1),
 		Float32:       float32(-1.23),
 		Float64:       float64(-3.45),
+		Bool:          true,
+		Complex128:    1i,
 		String:        "test name",
 		Stringptr:     &getterTestString2,
 		Stringslice:   []string{"strslice1", "strslice2"},
-		Bool:          true,
 		Map:           map[string]interface{}{"k1": "v1", "k2": 2},
 		Func:          getterTestFunc,
 		ChInt:         getterTestChan,
@@ -205,6 +207,10 @@ func newGetterTests() []*getterTest {
 			args: &getterTestArgs{name: "Bool"},
 		},
 		{
+			name: "Complex128",
+			args: &getterTestArgs{name: "Complex128"},
+		},
+		{
 			name: "Map",
 			args: &getterTestArgs{name: "Map"},
 		},
@@ -318,7 +324,7 @@ func TestNumField(t *testing.T) {
 		{
 			name: "use GetterTestStruct",
 			args: args{i: &GetterTestStruct{}},
-			want: 20,
+			want: 21,
 		},
 		{
 			name: "use GetterTestStruct2",
@@ -403,6 +409,8 @@ func TestGetType(t *testing.T) {
 				tt.wantType = reflect.TypeOf(testStructPtr.Float64)
 			case "Bool":
 				tt.wantType = reflect.TypeOf(testStructPtr.Bool)
+			case "Complex128":
+				tt.wantType = reflect.TypeOf(testStructPtr.Complex128)
 			case "Map":
 				tt.wantType = reflect.TypeOf(testStructPtr.Map)
 			case "Func":
@@ -469,6 +477,8 @@ func TestGetValue(t *testing.T) {
 				tt.wantValue = reflect.ValueOf(testStructPtr.Float64)
 			case "Bool":
 				tt.wantValue = reflect.ValueOf(testStructPtr.Bool)
+			case "Complex128":
+				tt.wantValue = reflect.ValueOf(testStructPtr.Complex128)
 			case "Map":
 				tt.wantValue = reflect.ValueOf(testStructPtr.Map)
 			case "Func":
@@ -534,6 +544,8 @@ func TestGet(t *testing.T) {
 				tt.wantIntf = testStructPtr.Float64
 			case "Bool":
 				tt.wantIntf = testStructPtr.Bool
+			case "Complex128":
+				tt.wantIntf = testStructPtr.Complex128
 			case "Map":
 				tt.wantIntf = testStructPtr.Map
 			case "Func":
@@ -606,6 +618,8 @@ func TestEGet(t *testing.T) {
 				tt.wantIntf = testStructPtr.Float64
 			case "Bool":
 				tt.wantIntf = testStructPtr.Bool
+			case "Complex128":
+				tt.wantIntf = testStructPtr.Complex128
 			case "Map":
 				tt.wantIntf = testStructPtr.Map
 			case "Func":
@@ -936,6 +950,37 @@ func TestBool(t *testing.T) {
 	}
 }
 
+func TestComplex128(t *testing.T) {
+	t.Parallel()
+
+	testStructPtr := newGetterTestStructPtr()
+	g, err := NewGetter(testStructPtr)
+	if err != nil {
+		t.Errorf("NewGetter() occurs unexpected error: %v", err)
+	}
+
+	tests := newGetterTests()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch tt.name {
+			case "Complex128":
+				tt.wantIntf = testStructPtr.Complex128
+			default:
+				tt.wantPanic = true
+			}
+
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
+
+			got := g.Complex128(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
+			}
+		})
+	}
+}
+
 func TestIsByte(t *testing.T) {
 	t.Parallel()
 
@@ -1145,6 +1190,30 @@ func TestIsBool(t *testing.T) {
 			}
 
 			got := g.IsBool(tt.args.name)
+			if got != tt.wantBool {
+				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+			}
+		})
+	}
+}
+
+func TestIsComplex128(t *testing.T) {
+	t.Parallel()
+
+	g, err := newTestGetter()
+	if err != nil {
+		t.Errorf("NewGetter() occurs unexpected error: %v", err)
+	}
+
+	tests := newGetterTests()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch tt.name {
+			case "Complex128":
+				tt.wantBool = true
+			}
+
+			got := g.IsComplex128(tt.args.name)
 			if got != tt.wantBool {
 				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
 			}
