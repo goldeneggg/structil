@@ -22,6 +22,7 @@ type (
 		Float32       float32
 		Float64       float64
 		Bool          bool
+		Complex64     complex64
 		Complex128    complex128
 		String        string
 		Stringptr     *string
@@ -69,7 +70,8 @@ func newGetterTestStruct() GetterTestStruct {
 		Float32:       float32(-1.23),
 		Float64:       float64(-3.45),
 		Bool:          true,
-		Complex128:    1i,
+		Complex64:     complex64(1),
+		Complex128:    complex128(1),
 		String:        "test name",
 		Stringptr:     &getterTestString2,
 		Stringslice:   []string{"strslice1", "strslice2"},
@@ -207,6 +209,10 @@ func newGetterTests() []*getterTest {
 			args: &getterTestArgs{name: "Bool"},
 		},
 		{
+			name: "Complex64",
+			args: &getterTestArgs{name: "Complex64"},
+		},
+		{
 			name: "Complex128",
 			args: &getterTestArgs{name: "Complex128"},
 		},
@@ -324,7 +330,7 @@ func TestNumField(t *testing.T) {
 		{
 			name: "use GetterTestStruct",
 			args: args{i: &GetterTestStruct{}},
-			want: 21,
+			want: 22,
 		},
 		{
 			name: "use GetterTestStruct2",
@@ -409,6 +415,8 @@ func TestGetType(t *testing.T) {
 				tt.wantType = reflect.TypeOf(testStructPtr.Float64)
 			case "Bool":
 				tt.wantType = reflect.TypeOf(testStructPtr.Bool)
+			case "Complex64":
+				tt.wantType = reflect.TypeOf(testStructPtr.Complex64)
 			case "Complex128":
 				tt.wantType = reflect.TypeOf(testStructPtr.Complex128)
 			case "Map":
@@ -477,6 +485,8 @@ func TestGetValue(t *testing.T) {
 				tt.wantValue = reflect.ValueOf(testStructPtr.Float64)
 			case "Bool":
 				tt.wantValue = reflect.ValueOf(testStructPtr.Bool)
+			case "Complex64":
+				tt.wantValue = reflect.ValueOf(testStructPtr.Complex64)
 			case "Complex128":
 				tt.wantValue = reflect.ValueOf(testStructPtr.Complex128)
 			case "Map":
@@ -544,6 +554,8 @@ func TestGet(t *testing.T) {
 				tt.wantIntf = testStructPtr.Float64
 			case "Bool":
 				tt.wantIntf = testStructPtr.Bool
+			case "Complex64":
+				tt.wantIntf = testStructPtr.Complex64
 			case "Complex128":
 				tt.wantIntf = testStructPtr.Complex128
 			case "Map":
@@ -618,6 +630,8 @@ func TestEGet(t *testing.T) {
 				tt.wantIntf = testStructPtr.Float64
 			case "Bool":
 				tt.wantIntf = testStructPtr.Bool
+			case "Complex64":
+				tt.wantIntf = testStructPtr.Complex64
 			case "Complex128":
 				tt.wantIntf = testStructPtr.Complex128
 			case "Map":
@@ -950,6 +964,37 @@ func TestBool(t *testing.T) {
 	}
 }
 
+func TestComplex64(t *testing.T) {
+	t.Parallel()
+
+	testStructPtr := newGetterTestStructPtr()
+	g, err := NewGetter(testStructPtr)
+	if err != nil {
+		t.Errorf("NewGetter() occurs unexpected error: %v", err)
+	}
+
+	tests := newGetterTests()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch tt.name {
+			case "Complex64":
+				tt.wantIntf = testStructPtr.Complex64
+			default:
+				tt.wantPanic = true
+			}
+
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
+
+			got := g.Complex64(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
+			}
+		})
+	}
+}
+
 func TestComplex128(t *testing.T) {
 	t.Parallel()
 
@@ -1190,6 +1235,30 @@ func TestIsBool(t *testing.T) {
 			}
 
 			got := g.IsBool(tt.args.name)
+			if got != tt.wantBool {
+				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+			}
+		})
+	}
+}
+
+func TestIsComplex64(t *testing.T) {
+	t.Parallel()
+
+	g, err := newTestGetter()
+	if err != nil {
+		t.Errorf("NewGetter() occurs unexpected error: %v", err)
+	}
+
+	tests := newGetterTests()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch tt.name {
+			case "Complex64":
+				tt.wantBool = true
+			}
+
+			got := g.IsComplex64(tt.args.name)
 			if got != tt.wantBool {
 				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
 			}

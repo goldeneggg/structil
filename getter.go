@@ -24,6 +24,7 @@ type Getter interface {
 	Uint64(name string) uint64
 	Float64(name string) float64
 	Bool(name string) bool
+	Complex64(name string) complex64
 	Complex128(name string) complex128
 	IsByte(name string) bool
 	IsBytes(name string) bool
@@ -34,6 +35,7 @@ type Getter interface {
 	IsUint64(name string) bool
 	IsFloat64(name string) bool
 	IsBool(name string) bool
+	IsComplex64(name string) bool
 	IsComplex128(name string) bool
 	IsMap(name string) bool
 	IsFunc(name string) bool
@@ -259,6 +261,16 @@ func (g *GetterImpl) Bool(name string) bool {
 	panic(fmt.Sprintf("field name %s is not bool type. value kind: %v", name, g.GetValue(name).Kind()))
 }
 
+// Complex64 returns the []byte of the original struct field named name.
+// It panics if the original struct does not have a field named name.
+// It panics if type of the original struct field named name is not []byte.
+func (g *GetterImpl) Complex64(name string) complex64 {
+	if v, ok := g.Get(name).(complex64); ok {
+		return v
+	}
+	panic(fmt.Sprintf("field name %s is not complex64 type. value kind: %v", name, g.GetValue(name).Kind()))
+}
+
 // Complex128 returns the []byte of the original struct field named name.
 // It panics if the original struct does not have a field named name.
 // It panics if type of the original struct field named name is not []byte.
@@ -312,6 +324,11 @@ func (g *GetterImpl) IsFloat64(name string) bool {
 // IsBool reports whether type of the original struct field named name is bool.
 func (g *GetterImpl) IsBool(name string) bool {
 	return g.is(name, reflect.Bool)
+}
+
+// IsComplex64 reports whether type of the original struct field named name is []byte.
+func (g *GetterImpl) IsComplex64(name string) bool {
+	return g.is(name, reflect.Complex64)
 }
 
 // IsComplex128 reports whether type of the original struct field named name is []byte.
