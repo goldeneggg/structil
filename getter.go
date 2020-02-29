@@ -44,6 +44,7 @@ type Getter interface {
 	IsChan(name string) bool
 	IsStruct(name string) bool
 	IsSlice(name string) bool
+	IsArray(name string) bool
 	MapGet(name string, f func(int, Getter) (interface{}, error)) ([]interface{}, error)
 }
 
@@ -376,6 +377,11 @@ func (g *GetterImpl) IsStruct(name string) bool {
 // IsSlice reports whether type of the original struct field named name is slice.
 func (g *GetterImpl) IsSlice(name string) bool {
 	return g.is(name, reflect.Slice)
+}
+
+// IsArray reports whether type of the original struct field named name is slice.
+func (g *GetterImpl) IsArray(name string) bool {
+	return g.is(name, reflect.Array)
 }
 
 func (g *GetterImpl) is(name string, exp reflect.Kind) bool {

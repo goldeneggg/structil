@@ -28,6 +28,7 @@ type (
 		String        string
 		Stringptr     *string
 		Stringslice   []string
+		Stringarray   [2]string
 		Map           map[string]interface{}
 		Func          func(string) interface{}
 		ChInt         chan int
@@ -77,6 +78,7 @@ func newGetterTestStruct() GetterTestStruct {
 		String:        "test name",
 		Stringptr:     &getterTestString2,
 		Stringslice:   []string{"strslice1", "strslice2"},
+		Stringarray:   [2]string{"strarray1", "strarray2"},
 		Map:           map[string]interface{}{"k1": "v1", "k2": 2},
 		Func:          getterTestFunc,
 		ChInt:         getterTestChan,
@@ -336,7 +338,7 @@ func TestNumField(t *testing.T) {
 		{
 			name: "use GetterTestStruct",
 			args: args{i: &GetterTestStruct{}},
-			want: 23,
+			want: 24,
 		},
 		{
 			name: "use GetterTestStruct2",
@@ -1472,6 +1474,30 @@ func TestIsSlice(t *testing.T) {
 			}
 
 			got := g.IsSlice(tt.args.name)
+			if got != tt.wantBool {
+				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+			}
+		})
+	}
+}
+
+func TestIsArray(t *testing.T) {
+	t.Parallel()
+
+	g, err := newTestGetter()
+	if err != nil {
+		t.Errorf("NewGetter() occurs unexpected error: %v", err)
+	}
+
+	tests := newGetterTests()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch tt.name {
+			case "Stringarray":
+				tt.wantBool = true
+			}
+
+			got := g.IsArray(tt.args.name)
 			if got != tt.wantBool {
 				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
 			}
