@@ -22,6 +22,7 @@ type Getter interface {
 	Int64(name string) int64
 	Uint(name string) uint
 	Uint64(name string) uint64
+	Uintptr(name string) uintptr
 	Float64(name string) float64
 	Bool(name string) bool
 	Complex64(name string) complex64
@@ -33,6 +34,7 @@ type Getter interface {
 	IsInt64(name string) bool
 	IsUint(name string) bool
 	IsUint64(name string) bool
+	IsUintptr(name string) bool
 	IsFloat64(name string) bool
 	IsBool(name string) bool
 	IsComplex64(name string) bool
@@ -241,6 +243,16 @@ func (g *GetterImpl) Uint64(name string) uint64 {
 	panic(fmt.Sprintf("field name %s is not uint64 type. value kind: %v", name, g.GetValue(name).Kind()))
 }
 
+// Uintptr returns the uintptr of the original struct field named name.
+// It panics if the original struct does not have a field named name.
+// It panics if type of the original struct field named name is not uintptr.
+func (g *GetterImpl) Uintptr(name string) uintptr {
+	if v, ok := g.Get(name).(uintptr); ok {
+		return v
+	}
+	panic(fmt.Sprintf("field name %s is not uintptr type. value kind: %v", name, g.GetValue(name).Kind()))
+}
+
 // Float64 returns the float64 of the original struct field named name.
 // It panics if the original struct does not have a field named name.
 // It panics if type of the original struct field named name is not float64.
@@ -314,6 +326,11 @@ func (g *GetterImpl) IsUint(name string) bool {
 // IsUint64 reports whether type of the original struct field named name is uint64.
 func (g *GetterImpl) IsUint64(name string) bool {
 	return g.is(name, reflect.Uint64)
+}
+
+// IsUintptr reports whether type of the original struct field named name is uintptr.
+func (g *GetterImpl) IsUintptr(name string) bool {
+	return g.is(name, reflect.Uintptr)
 }
 
 // IsFloat64 reports whether type of the original struct field named name is float64.
