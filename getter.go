@@ -3,6 +3,7 @@ package structil
 import (
 	"fmt"
 	"reflect"
+	"unsafe"
 
 	"github.com/goldeneggg/structil/reflectil"
 )
@@ -27,6 +28,7 @@ type Getter interface {
 	Bool(name string) bool
 	Complex64(name string) complex64
 	Complex128(name string) complex128
+	UnsafePointer(name string) unsafe.Pointer
 	IsByte(name string) bool
 	IsBytes(name string) bool
 	IsString(name string) bool
@@ -39,6 +41,7 @@ type Getter interface {
 	IsBool(name string) bool
 	IsComplex64(name string) bool
 	IsComplex128(name string) bool
+	IsUnsafePointer(name string) bool
 	IsMap(name string) bool
 	IsFunc(name string) bool
 	IsChan(name string) bool
@@ -274,9 +277,9 @@ func (g *GetterImpl) Bool(name string) bool {
 	panic(fmt.Sprintf("field name %s is not bool type. value kind: %v", name, g.GetValue(name).Kind()))
 }
 
-// Complex64 returns the []byte of the original struct field named name.
+// Complex64 returns the complex64 of the original struct field named name.
 // It panics if the original struct does not have a field named name.
-// It panics if type of the original struct field named name is not []byte.
+// It panics if type of the original struct field named name is not complex64.
 func (g *GetterImpl) Complex64(name string) complex64 {
 	if v, ok := g.Get(name).(complex64); ok {
 		return v
@@ -284,11 +287,21 @@ func (g *GetterImpl) Complex64(name string) complex64 {
 	panic(fmt.Sprintf("field name %s is not complex64 type. value kind: %v", name, g.GetValue(name).Kind()))
 }
 
-// Complex128 returns the []byte of the original struct field named name.
+// Complex128 returns the complex128 of the original struct field named name.
 // It panics if the original struct does not have a field named name.
-// It panics if type of the original struct field named name is not []byte.
+// It panics if type of the original struct field named name is not complex128.
 func (g *GetterImpl) Complex128(name string) complex128 {
 	if v, ok := g.Get(name).(complex128); ok {
+		return v
+	}
+	panic(fmt.Sprintf("field name %s is not complex128 type. value kind: %v", name, g.GetValue(name).Kind()))
+}
+
+// UnsafePointer returns the unsafe.Pointer of the original struct field named name.
+// It panics if the original struct does not have a field named name.
+// It panics if type of the original struct field named name is not unsafe.Pointer.
+func (g *GetterImpl) UnsafePointer(name string) unsafe.Pointer {
+	if v, ok := g.Get(name).(unsafe.Pointer); ok {
 		return v
 	}
 	panic(fmt.Sprintf("field name %s is not complex128 type. value kind: %v", name, g.GetValue(name).Kind()))
@@ -352,6 +365,11 @@ func (g *GetterImpl) IsComplex64(name string) bool {
 // IsComplex128 reports whether type of the original struct field named name is []byte.
 func (g *GetterImpl) IsComplex128(name string) bool {
 	return g.is(name, reflect.Complex128)
+}
+
+// IsUnsafePointer reports whether type of the original struct field named name is []byte.
+func (g *GetterImpl) IsUnsafePointer(name string) bool {
+	return g.is(name, reflect.UnsafePointer)
 }
 
 // IsMap reports whether type of the original struct field named name is map.

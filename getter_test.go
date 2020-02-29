@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"runtime"
 	"testing"
+	"unsafe"
 
 	"github.com/google/go-cmp/cmp"
 
@@ -27,6 +28,7 @@ type (
 		Bool          bool
 		Complex64     complex64
 		Complex128    complex128
+		Unsafeptr     unsafe.Pointer
 		Stringslice   []string
 		Stringarray   [2]string
 		Map           map[string]interface{}
@@ -77,6 +79,7 @@ func newGetterTestStruct() GetterTestStruct {
 		Bool:          true,
 		Complex64:     complex64(1),
 		Complex128:    complex128(1),
+		Unsafeptr:     unsafe.Pointer(new(int)),
 		Stringslice:   []string{"strslice1", "strslice2"},
 		Stringarray:   [2]string{"strarray1", "strarray2"},
 		Map:           map[string]interface{}{"k1": "v1", "k2": 2},
@@ -225,6 +228,10 @@ func newGetterTests() []*getterTest {
 			args: &getterTestArgs{name: "Complex128"},
 		},
 		{
+			name: "Unsafeptr",
+			args: &getterTestArgs{name: "Unsafeptr"},
+		},
+		{
 			name: "Map",
 			args: &getterTestArgs{name: "Map"},
 		},
@@ -342,7 +349,7 @@ func TestNumField(t *testing.T) {
 		{
 			name: "use GetterTestStruct",
 			args: args{i: &GetterTestStruct{}},
-			want: 24,
+			want: 25,
 		},
 		{
 			name: "use GetterTestStruct2",
@@ -433,6 +440,8 @@ func TestGetType(t *testing.T) {
 				tt.wantType = reflect.TypeOf(testStructPtr.Complex64)
 			case "Complex128":
 				tt.wantType = reflect.TypeOf(testStructPtr.Complex128)
+			case "Unsafeptr":
+				tt.wantType = reflect.TypeOf(testStructPtr.Unsafeptr)
 			case "Map":
 				tt.wantType = reflect.TypeOf(testStructPtr.Map)
 			case "Func":
@@ -507,6 +516,8 @@ func TestGetValue(t *testing.T) {
 				tt.wantValue = reflect.ValueOf(testStructPtr.Complex64)
 			case "Complex128":
 				tt.wantValue = reflect.ValueOf(testStructPtr.Complex128)
+			case "Unsafeptr":
+				tt.wantValue = reflect.ValueOf(testStructPtr.Unsafeptr)
 			case "Map":
 				tt.wantValue = reflect.ValueOf(testStructPtr.Map)
 			case "Func":
@@ -580,6 +591,8 @@ func TestGet(t *testing.T) {
 				tt.wantIntf = testStructPtr.Complex64
 			case "Complex128":
 				tt.wantIntf = testStructPtr.Complex128
+			case "Unsafeptr":
+				tt.wantIntf = testStructPtr.Unsafeptr
 			case "Map":
 				tt.wantIntf = testStructPtr.Map
 			case "Func":
@@ -660,6 +673,8 @@ func TestEGet(t *testing.T) {
 				tt.wantIntf = testStructPtr.Complex64
 			case "Complex128":
 				tt.wantIntf = testStructPtr.Complex128
+			case "Unsafeptr":
+				tt.wantIntf = testStructPtr.Unsafeptr
 			case "Map":
 				tt.wantIntf = testStructPtr.Map
 			case "Func":
@@ -1085,6 +1100,37 @@ func TestComplex128(t *testing.T) {
 	}
 }
 
+func TestUnsafePointer(t *testing.T) {
+	t.Parallel()
+
+	testStructPtr := newGetterTestStructPtr()
+	g, err := NewGetter(testStructPtr)
+	if err != nil {
+		t.Errorf("NewGetter() occurs unexpected error: %v", err)
+	}
+
+	tests := newGetterTests()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch tt.name {
+			case "Unsafeptr":
+				tt.wantIntf = testStructPtr.Unsafeptr
+			default:
+				tt.wantPanic = true
+			}
+
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
+
+			got := g.UnsafePointer(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
+			}
+		})
+	}
+}
+
 func TestIsByte(t *testing.T) {
 	t.Parallel()
 
@@ -1366,6 +1412,30 @@ func TestIsComplex128(t *testing.T) {
 			}
 
 			got := g.IsComplex128(tt.args.name)
+			if got != tt.wantBool {
+				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+			}
+		})
+	}
+}
+
+func TestIsUnsafePointer(t *testing.T) {
+	t.Parallel()
+
+	g, err := newTestGetter()
+	if err != nil {
+		t.Errorf("NewGetter() occurs unexpected error: %v", err)
+	}
+
+	tests := newGetterTests()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch tt.name {
+			case "Unsafeptr":
+				tt.wantBool = true
+			}
+
+			got := g.IsUnsafePointer(tt.args.name)
 			if got != tt.wantBool {
 				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
 			}
