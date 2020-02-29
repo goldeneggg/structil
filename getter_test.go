@@ -15,6 +15,8 @@ type (
 	GetterTestStruct struct {
 		Byte          byte
 		Bytes         []byte
+		String        string
+		Stringptr     *string
 		Int           int
 		Int64         int64
 		Uint          uint
@@ -25,8 +27,6 @@ type (
 		Bool          bool
 		Complex64     complex64
 		Complex128    complex128
-		String        string
-		Stringptr     *string
 		Stringslice   []string
 		Stringarray   [2]string
 		Map           map[string]interface{}
@@ -65,6 +65,8 @@ func newGetterTestStruct() GetterTestStruct {
 	return GetterTestStruct{
 		Byte:          0x61,
 		Bytes:         []byte{0x00, 0xFF},
+		String:        "test name",
+		Stringptr:     &getterTestString2,
 		Int:           int(-2),
 		Int64:         int64(-1),
 		Uint:          uint(2),
@@ -75,8 +77,6 @@ func newGetterTestStruct() GetterTestStruct {
 		Bool:          true,
 		Complex64:     complex64(1),
 		Complex128:    complex128(1),
-		String:        "test name",
-		Stringptr:     &getterTestString2,
 		Stringslice:   []string{"strslice1", "strslice2"},
 		Stringarray:   [2]string{"strarray1", "strarray2"},
 		Map:           map[string]interface{}{"k1": "v1", "k2": 2},
@@ -251,6 +251,10 @@ func newGetterTests() []*getterTest {
 		{
 			name: "GetterTestStruct4PtrSlice",
 			args: &getterTestArgs{name: "GetterTestStruct4PtrSlice"},
+		},
+		{
+			name: "Stringarray",
+			args: &getterTestArgs{name: "Stringarray"},
 		},
 		{
 			name: "privateString",
@@ -443,6 +447,8 @@ func TestGetType(t *testing.T) {
 				tt.wantType = reflect.TypeOf(testStructPtr.GetterTestStruct4Slice)
 			case "GetterTestStruct4PtrSlice":
 				tt.wantType = reflect.TypeOf(testStructPtr.GetterTestStruct4PtrSlice)
+			case "Stringarray":
+				tt.wantType = reflect.TypeOf(testStructPtr.Stringarray)
 			case "privateString":
 				tt.wantType = reflect.TypeOf(testStructPtr.privateString)
 			case "NotExist":
@@ -515,6 +521,8 @@ func TestGetValue(t *testing.T) {
 				tt.wantValue = reflect.ValueOf(testStructPtr.GetterTestStruct4Slice)
 			case "GetterTestStruct4PtrSlice":
 				tt.wantValue = reflect.ValueOf(testStructPtr.GetterTestStruct4PtrSlice)
+			case "Stringarray":
+				tt.wantValue = reflect.ValueOf(testStructPtr.Stringarray)
 			case "privateString":
 				tt.wantValue = reflect.ValueOf(testStructPtr.privateString)
 			case "NotExist":
@@ -586,6 +594,8 @@ func TestGet(t *testing.T) {
 				tt.wantIntf = testStructPtr.GetterTestStruct4Slice
 			case "GetterTestStruct4PtrSlice":
 				tt.wantIntf = testStructPtr.GetterTestStruct4PtrSlice
+			case "Stringarray":
+				tt.wantIntf = testStructPtr.Stringarray
 			case "privateString":
 				tt.wantIntf = nil // Note: unexported field is nil
 			case "NotExist":
@@ -664,6 +674,8 @@ func TestEGet(t *testing.T) {
 				tt.wantIntf = testStructPtr.GetterTestStruct4Slice
 			case "GetterTestStruct4PtrSlice":
 				tt.wantIntf = testStructPtr.GetterTestStruct4PtrSlice
+			case "Stringarray":
+				tt.wantIntf = testStructPtr.Stringarray
 			case "privateString":
 				tt.wantIntf = nil // Note: unexported field is nil
 			case "NotExist":
