@@ -22,6 +22,7 @@ type Getter interface {
 	Int(name string) int
 	Int8(name string) int8
 	Int16(name string) int16
+	Int32(name string) int32
 	Int64(name string) int64
 	Uint(name string) uint
 	Uint64(name string) uint64
@@ -37,6 +38,7 @@ type Getter interface {
 	IsInt(name string) bool
 	IsInt8(name string) bool
 	IsInt16(name string) bool
+	IsInt32(name string) bool
 	IsInt64(name string) bool
 	IsUint(name string) bool
 	IsUint64(name string) bool
@@ -241,6 +243,16 @@ func (g *GetterImpl) Int16(name string) int16 {
 	panic(fmt.Sprintf("field name %s is not int16 type. value kind: %v", name, g.GetValue(name).Kind()))
 }
 
+// Int32 returns the int32 of the original struct field named name.
+// It panics if the original struct does not have a field named name.
+// It panics if type of the original struct field named name is not int32.
+func (g *GetterImpl) Int32(name string) int32 {
+	if v, ok := g.Get(name).(int32); ok {
+		return v
+	}
+	panic(fmt.Sprintf("field name %s is not int32 type. value kind: %v", name, g.GetValue(name).Kind()))
+}
+
 // Int64 returns the int64 of the original struct field named name.
 // It panics if the original struct does not have a field named name.
 // It panics if type of the original struct field named name is not int64.
@@ -359,6 +371,11 @@ func (g *GetterImpl) IsInt8(name string) bool {
 // IsInt16 reports whether type of the original struct field named name is int16.
 func (g *GetterImpl) IsInt16(name string) bool {
 	return g.is(name, reflect.Int16)
+}
+
+// IsInt32 reports whether type of the original struct field named name is int32.
+func (g *GetterImpl) IsInt32(name string) bool {
+	return g.is(name, reflect.Int32)
 }
 
 // IsInt64 reports whether type of the original struct field named name is int64.

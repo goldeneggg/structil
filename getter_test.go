@@ -22,6 +22,7 @@ type (
 		Int           int
 		Int8          int8
 		Int16         int16
+		Int32         int32
 		Int64         int64
 		Uint          uint
 		Uint64        uint64
@@ -75,6 +76,7 @@ func newGetterTestStruct() GetterTestStruct {
 		Int:           math.MinInt32,
 		Int8:          math.MinInt8,
 		Int16:         math.MinInt16,
+		Int32:         math.MinInt32,
 		Int64:         math.MinInt64,
 		Uint:          math.MaxUint32,
 		Uint64:        math.MaxUint64,
@@ -203,6 +205,10 @@ func newGetterTests() []*getterTest {
 		{
 			name: "Int16",
 			args: &getterTestArgs{name: "Int16"},
+		},
+		{
+			name: "Int32",
+			args: &getterTestArgs{name: "Int32"},
 		},
 		{
 			name: "Int64",
@@ -362,7 +368,7 @@ func TestNumField(t *testing.T) {
 		{
 			name: "use GetterTestStruct",
 			args: args{i: &GetterTestStruct{}},
-			want: 27,
+			want: 28,
 		},
 		{
 			name: "use GetterTestStruct2",
@@ -451,6 +457,10 @@ func testGetSeries(t *testing.T, wantPanic bool, wantError bool, fn func(*testin
 				tt.wantType = reflect.TypeOf(testStructPtr.Int16)
 				tt.wantValue = reflect.ValueOf(testStructPtr.Int16)
 				tt.wantIntf = testStructPtr.Int16
+			case "Int32":
+				tt.wantType = reflect.TypeOf(testStructPtr.Int32)
+				tt.wantValue = reflect.ValueOf(testStructPtr.Int32)
+				tt.wantIntf = testStructPtr.Int32
 			case "Int64":
 				tt.wantType = reflect.TypeOf(testStructPtr.Int64)
 				tt.wantValue = reflect.ValueOf(testStructPtr.Int64)
@@ -794,6 +804,37 @@ func TestInt16(t *testing.T) {
 			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
 			got := g.Int16(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
+			}
+		})
+	}
+}
+
+func TestInt32(t *testing.T) {
+	t.Parallel()
+
+	testStructPtr := newGetterTestStructPtr()
+	g, err := NewGetter(testStructPtr)
+	if err != nil {
+		t.Errorf("NewGetter() occurs unexpected error: %v", err)
+	}
+
+	tests := newGetterTests()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch tt.name {
+			case "Int32":
+				tt.wantIntf = testStructPtr.Int32
+			default:
+				tt.wantPanic = true
+			}
+
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
+
+			got := g.Int32(tt.args.name)
 			if tt.wantPanic {
 				t.Errorf("expected panic did not occur. args: %+v", tt.args)
 			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
@@ -1219,6 +1260,30 @@ func TestIsInt16(t *testing.T) {
 			}
 
 			got := g.IsInt16(tt.args.name)
+			if got != tt.wantBool {
+				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+			}
+		})
+	}
+}
+
+func TestIsInt32(t *testing.T) {
+	t.Parallel()
+
+	g, err := newTestGetter()
+	if err != nil {
+		t.Errorf("NewGetter() occurs unexpected error: %v", err)
+	}
+
+	tests := newGetterTests()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch tt.name {
+			case "Int32":
+				tt.wantBool = true
+			}
+
+			got := g.IsInt32(tt.args.name)
 			if got != tt.wantBool {
 				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
 			}
