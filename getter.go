@@ -25,6 +25,9 @@ type Getter interface {
 	Int32(name string) int32
 	Int64(name string) int64
 	Uint(name string) uint
+	Uint8(name string) uint8
+	Uint16(name string) uint16
+	Uint32(name string) uint32
 	Uint64(name string) uint64
 	Uintptr(name string) uintptr
 	Float64(name string) float64
@@ -41,6 +44,9 @@ type Getter interface {
 	IsInt32(name string) bool
 	IsInt64(name string) bool
 	IsUint(name string) bool
+	IsUint8(name string) bool
+	IsUint16(name string) bool
+	IsUint32(name string) bool
 	IsUint64(name string) bool
 	IsUintptr(name string) bool
 	IsFloat64(name string) bool
@@ -273,6 +279,36 @@ func (g *GetterImpl) Uint(name string) uint {
 	panic(fmt.Sprintf("field name %s is not uint type. value kind: %v", name, g.GetValue(name).Kind()))
 }
 
+// Uint8 returns the uint8 of the original struct field named name.
+// It panics if the original struct does not have a field named name.
+// It panics if type of the original struct field named name is not uint8.
+func (g *GetterImpl) Uint8(name string) uint8 {
+	if v, ok := g.Get(name).(uint8); ok {
+		return v
+	}
+	panic(fmt.Sprintf("field name %s is not uint8 type. value kind: %v", name, g.GetValue(name).Kind()))
+}
+
+// Uint16 returns the uint16 of the original struct field named name.
+// It panics if the original struct does not have a field named name.
+// It panics if type of the original struct field named name is not uint16.
+func (g *GetterImpl) Uint16(name string) uint16 {
+	if v, ok := g.Get(name).(uint16); ok {
+		return v
+	}
+	panic(fmt.Sprintf("field name %s is not uint16 type. value kind: %v", name, g.GetValue(name).Kind()))
+}
+
+// Uint32 returns the uint32 of the original struct field named name.
+// It panics if the original struct does not have a field named name.
+// It panics if type of the original struct field named name is not uint32.
+func (g *GetterImpl) Uint32(name string) uint32 {
+	if v, ok := g.Get(name).(uint32); ok {
+		return v
+	}
+	panic(fmt.Sprintf("field name %s is not uint32 type. value kind: %v", name, g.GetValue(name).Kind()))
+}
+
 // Uint64 returns the uint64 of the original struct field named name.
 // It panics if the original struct does not have a field named name.
 // It panics if type of the original struct field named name is not uint64.
@@ -386,6 +422,21 @@ func (g *GetterImpl) IsInt64(name string) bool {
 // IsUint reports whether type of the original struct field named name is uint.
 func (g *GetterImpl) IsUint(name string) bool {
 	return g.is(name, reflect.Uint)
+}
+
+// IsUint8 reports whether type of the original struct field named name is uint8.
+func (g *GetterImpl) IsUint8(name string) bool {
+	return g.is(name, reflect.Uint8)
+}
+
+// IsUint16 reports whether type of the original struct field named name is uint16.
+func (g *GetterImpl) IsUint16(name string) bool {
+	return g.is(name, reflect.Uint16)
+}
+
+// IsUint32 reports whether type of the original struct field named name is uint32.
+func (g *GetterImpl) IsUint32(name string) bool {
+	return g.is(name, reflect.Uint32)
 }
 
 // IsUint64 reports whether type of the original struct field named name is uint64.
