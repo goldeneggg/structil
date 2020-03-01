@@ -2086,6 +2086,22 @@ func BenchmarkGetterString(b *testing.B) {
 	}
 }
 
+func BenchmarkGetterUintptr(b *testing.B) {
+	var up uintptr
+
+	g, err := newTestGetter()
+	if err != nil {
+		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
+		return
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		up = g.Uintptr("Uintptr")
+		_ = up
+	}
+}
+
 func BenchmarkGetterUnsafePointer(b *testing.B) {
 	var up unsafe.Pointer
 
