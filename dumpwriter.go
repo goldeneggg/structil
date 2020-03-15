@@ -28,7 +28,7 @@ type Param struct {
 	Flags    uint
 }
 
-// New returns a new default DumpWriter that wraps tabwriter.
+// NewDumpWriter returns a new default DumpWriter that wraps tabwriter.
 func NewDumpWriter() DumpWriter {
 	dwp := &Param{
 		MinWidth: 0,
