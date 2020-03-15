@@ -3,7 +3,6 @@ structil  [![GoDoc](https://godoc.org/github.com/goldeneggg/structil?status.png)
 
 [![Build Status](https://travis-ci.org/goldeneggg/structil.svg?branch=master)](https://travis-ci.org/goldeneggg/structil)
 [![Go Report Card](https://goreportcard.com/badge/github.com/goldeneggg/structil)](https://goreportcard.com/report/github.com/goldeneggg/structil)
-[![GolangCI](https://golangci.com/badges/github.com/goldeneggg/gat.svg)](https://golangci.com/r/github.com/goldeneggg/structil)
 [![Codecov](https://codecov.io/github/goldeneggg/structil/coverage.svg?branch=master)](https://codecov.io/github/goldeneggg/structil?branch=master)
 [![MIT License](http://img.shields.io/badge/license-MIT-lightgrey.svg)](https://github.com/goldeneggg/structil/blob/master/LICENSE)
 
@@ -13,12 +12,13 @@ __Table of Contents__
 
 <!-- TOC depthFrom:1 -->
 
-- [`Finder`](#finder)
-  - [With config file? use `FinderKeys`](#with-config-file-use-finderkeys)
-- [`Getter`](#getter)
-  - [`MapGet` method](#mapget-method)
-- [`DynamicStruct`](#dynamicstruct)
-  - [JSON unmershal with `DynamicStruct`](#json-unmershal-with-dynamicstruct)
+- [structil  ![GoDoc](https://godoc.org/github.com/goldeneggg/structil)](#structil-img-src%22httpsgodocorggithubcomgoldenegggstructil%22-alt%22godoc%22)
+  - [`Finder`](#finder)
+    - [With config file? use `FinderKeys`](#with-config-file-use-finderkeys)
+  - [`Getter`](#getter)
+    - [`MapGet` method](#mapget-method)
+  - [`DynamicStruct`](#dynamicstruct)
+    - [JSON unmershal with `DynamicStruct`](#json-unmershal-with-dynamicstruct)
 
 <!-- /TOC -->
 
