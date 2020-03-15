@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"reflect"
 	"unsafe"
-
-	"github.com/goldeneggg/structil/reflectil"
 )
 
 // Getter is the interface that wraps the basic Getter method.
@@ -131,7 +129,7 @@ func (g *GetterImpl) cache(name string) {
 	frv = reflect.Indirect(frv)
 	g.values[name] = frv
 
-	g.intfs[name] = reflectil.ToI(frv)
+	g.intfs[name] = ToI(frv)
 }
 
 // GetType returns the reflect.Type object of the original struct field named name.
@@ -183,7 +181,7 @@ func (g *GetterImpl) Get(name string) interface{} {
 // It returns an error if the original struct does not have a field named name.
 func (g *GetterImpl) EGet(name string) (intf interface{}, err error) {
 	defer func() {
-		err = reflectil.RecoverToError(recover())
+		err = RecoverToError(recover())
 	}()
 
 	intf = g.Get(name)
@@ -546,7 +544,7 @@ func (g *GetterImpl) MapGet(name string, f func(int, Getter) (interface{}, error
 
 	for i := 0; i < srv.Len(); i++ {
 		vi = srv.Index(i)
-		eg, err = NewGetter(reflectil.ToI(vi))
+		eg, err = NewGetter(ToI(vi))
 		if err != nil {
 			return nil, err
 		}
