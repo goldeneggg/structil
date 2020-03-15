@@ -1,4 +1,4 @@
-structil  [![GoDoc](https://godoc.org/github.com/goldeneggg/structil?status.png)](https://godoc.org/github.com/goldeneggg/structil)
+structil  [![GoDoc](https://godoc.org/github.com/goldeneggg/structil?status.png)](https://pkg.go.dev/github.com/goldeneggg/structil?tab=doc)
 ==========
 
 [![Build Status](https://travis-ci.org/goldeneggg/structil.svg?branch=master)](https://travis-ci.org/goldeneggg/structil)
@@ -12,7 +12,7 @@ __Table of Contents__
 
 <!-- TOC depthFrom:1 -->
 
-- [structil  ![GoDoc](https://godoc.org/github.com/goldeneggg/structil)](#structil-img-src%22httpsgodocorggithubcomgoldenegggstructil%22-alt%22godoc%22)
+- [structil  ![GoDoc](https://pkg.go.dev/github.com/goldeneggg/structil?tab=doc)](#structil-img-src%22httpspkggodevgithubcomgoldenegggstructiltabdoc%22-alt%22godoc%22)
   - [`Finder`](#finder)
     - [With config file? use `FinderKeys`](#with-config-file-use-finderkeys)
   - [`Getter`](#getter)
