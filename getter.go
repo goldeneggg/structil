@@ -524,8 +524,7 @@ func (g *GetterImpl) is(name string, exp reflect.Kind) bool {
 		return false
 	}
 
-	frv := g.GetValue(name)
-	return frv.Kind() == exp
+	return g.values[name].Kind() == exp
 }
 
 // MapGet returns the interface slice of mapped values of the original struct field named name.
