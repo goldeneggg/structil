@@ -247,7 +247,7 @@ We can create dynamic and runtime struct.
 builder := dynamicstruct.NewBuilder().
 	AddString("StringField").
 	AddInt("IntField").
-	AddFloat("FloatField").
+	AddFloat64("Float64Field").
 	AddBool("BoolField").
 	AddMap("MapField", dynamicstruct.SampleString, dynamicstruct.SampleFloat).
 	AddChanBoth("ChanBothField", dynamicstruct.SampleInt).
@@ -255,7 +255,7 @@ builder := dynamicstruct.NewBuilder().
 	AddSlice("SliceField", hogePtr)
 
 // Remove removes a field by assigned name.
-builder = builder.Remove("FloatField")
+builder = builder.Remove("Float64Field")
 
 // Build generates a DynamicStruct
 ds := builder.Build()
@@ -289,7 +289,7 @@ This example works correctly not only JSON but also YAML, TOML and more.
 builder := dynamicstruct.NewBuilder().
 	AddStringWithTag("StringField", `json:"string_field"`).
 	AddIntWithTag("IntField", `json:"int_field"`).
-	AddFloatWithTag("FloatField", `json:"float_field"`).
+	AddFloat64WithTag("Float64Field", `json:"float64_field"`).
 	AddBoolWithTag("BoolField", `json:"bool_field"`).
 	AddStructPtrWithTag("StructPtrField", hogePtr, `json:"struct_ptr_field"`)
 
@@ -302,7 +302,7 @@ input := []byte(`
 {
 	"string_field":"あいうえお",
 	"int_field":9876,
-	"float_field":5.67,
+	"float64_field":5.67,
 	"bool_field":true,
 	"struct_ptr_field":{
 		"key":"hogekey",
@@ -318,11 +318,11 @@ if err != nil {
 
 g, err := structil.NewGetter(intf)
 
-fmt.Printf("String: %v, Float: %v, StructPtr: %+v\n", g.String("StringField"), g.Float64("FloatField"), g.Get("StructPtrField"))
+fmt.Printf("String: %v, Float64: %v, StructPtr: %+v\n", g.String("StringField"), g.Float64("Float64Field"), g.Get("StructPtrField"))
 ```
 
 Result as follows.
 
 ```
-String: あいうえお, Float: 5.67, StructPtr: {Key:hogekey Value:hogevalue}
+String: あいうえお, Float64: 5.67, StructPtr: {Key:hogekey Value:hogevalue}
 ```
