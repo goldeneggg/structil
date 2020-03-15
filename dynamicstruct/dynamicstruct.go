@@ -10,13 +10,15 @@ import (
 type ofType int
 
 const (
-	// SampleString is sample init string value
+	// SampleString is sample string value
 	SampleString = ""
-	// SampleInt is sample init int value
+	// SampleInt is sample int value
 	SampleInt = 0
-	// SampleFloat is sample init float value
+	// SampleByte is sample byte value
+	SampleByte = byte(0)
+	// SampleFloat is sample float value
 	SampleFloat = 0.0
-	// SampleBool is sample init bool value
+	// SampleBool is sample bool value
 	SampleBool = false
 
 	tMap ofType = iota
@@ -40,6 +42,8 @@ type Builder interface {
 	AddStringWithTag(name string, tag string) Builder
 	AddInt(name string) Builder
 	AddIntWithTag(name string, tag string) Builder
+	AddByte(name string) Builder
+	AddByteWithTag(name string, tag string) Builder
 	AddFloat(name string) Builder
 	AddFloatWithTag(name string, tag string) Builder
 	AddBool(name string) Builder
@@ -119,6 +123,25 @@ func (b *BuilderImpl) AddIntWithTag(name string, tag string) Builder {
 	p := &addParam{
 		name:  name,
 		intfs: []interface{}{SampleInt},
+		ot:    tPrmtv,
+		isPtr: false,
+		tag:   tag,
+	}
+	b.add(p)
+	return b
+}
+
+// AddByte returns a Builder that was added a byte field named by name parameter.
+func (b *BuilderImpl) AddByte(name string) Builder {
+	b.AddByteWithTag(name, "")
+	return b
+}
+
+// AddByteWithTag returns a Builder that was added a byte field with tag named by name parameter.
+func (b *BuilderImpl) AddByteWithTag(name string, tag string) Builder {
+	p := &addParam{
+		name:  name,
+		intfs: []interface{}{SampleByte},
 		ot:    tPrmtv,
 		isPtr: false,
 		tag:   tag,
