@@ -13,11 +13,11 @@ const (
 	// SampleString is sample string value
 	SampleString = ""
 	// SampleInt is sample int value
-	SampleInt = 0
+	SampleInt = int(1)
 	// SampleByte is sample byte value
-	SampleByte = byte(0)
-	// SampleFloat is sample float value
-	SampleFloat = 0.0
+	SampleByte = byte(1)
+	// SampleFloat32 is sample float32 value
+	SampleFloat32 = float32(1)
 	// SampleBool is sample bool value
 	SampleBool = false
 
@@ -44,8 +44,8 @@ type Builder interface {
 	AddIntWithTag(name string, tag string) Builder
 	AddByte(name string) Builder
 	AddByteWithTag(name string, tag string) Builder
-	AddFloat(name string) Builder
-	AddFloatWithTag(name string, tag string) Builder
+	AddFloat32(name string) Builder
+	AddFloat32WithTag(name string, tag string) Builder
 	AddBool(name string) Builder
 	AddBoolWithTag(name string, tag string) Builder
 	AddMap(name string, ke interface{}, ve interface{}) Builder
@@ -150,17 +150,17 @@ func (b *BuilderImpl) AddByteWithTag(name string, tag string) Builder {
 	return b
 }
 
-// AddFloat returns a Builder that was added a float64 field named by name parameter.
-func (b *BuilderImpl) AddFloat(name string) Builder {
-	b.AddFloatWithTag(name, "")
+// AddFloat32 returns a Builder that was added a float32 field named by name parameter.
+func (b *BuilderImpl) AddFloat32(name string) Builder {
+	b.AddFloat32WithTag(name, "")
 	return b
 }
 
-// AddFloatWithTag returns a Builder that was added a float64 field with tag named by name parameter.
-func (b *BuilderImpl) AddFloatWithTag(name string, tag string) Builder {
+// AddFloat32WithTag returns a Builder that was added a float32 field with tag named by name parameter.
+func (b *BuilderImpl) AddFloat32WithTag(name string, tag string) Builder {
 	p := &addParam{
 		name:  name,
-		intfs: []interface{}{SampleFloat},
+		intfs: []interface{}{SampleFloat32},
 		ot:    tPrmtv,
 		isPtr: false,
 		tag:   tag,

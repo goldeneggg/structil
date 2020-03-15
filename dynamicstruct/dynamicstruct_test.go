@@ -54,7 +54,7 @@ const (
 	stringFieldTag    = `json:"string_field_with_tag"`
 	intFieldTag       = `json:"int_field_with_tag"`
 	byteFieldTag      = `json:"byte_field_with_tag"`
-	floatFieldTag     = `json:"float_field_with_tag"`
+	float32FieldTag   = `json:"float32_field_with_tag"`
 	boolFieldTag      = `json:"bool_field_with_tag"`
 	mapFieldTag       = `json:"map_field_with_tag"`
 	funcFieldTag      = `json:"func_field_with_tag"`
@@ -139,12 +139,12 @@ func newDynamicTestBuilder() Builder {
 		AddIntWithTag("IntFieldWithTag", intFieldTag).
 		AddByte("ByteField").
 		AddByteWithTag("ByteFieldWithTag", byteFieldTag).
-		AddFloat("FloatField").
-		AddFloatWithTag("FloatFieldWithTag", floatFieldTag).
+		AddFloat32("Float32Field").
+		AddFloat32WithTag("Float32FieldWithTag", float32FieldTag).
 		AddBool("BoolField").
 		AddBoolWithTag("BoolFieldWithTag", boolFieldTag).
-		AddMap("MapField", SampleString, SampleFloat).
-		AddMapWithTag("MapFieldWithTag", SampleString, SampleFloat, mapFieldTag).
+		AddMap("MapField", SampleString, SampleFloat32).
+		AddMapWithTag("MapFieldWithTag", SampleString, SampleFloat32, mapFieldTag).
 		AddFunc("FuncField", []interface{}{SampleInt, SampleInt}, []interface{}{SampleBool, ErrSample}).
 		AddFuncWithTag("FuncFieldWithTag", []interface{}{SampleInt, SampleInt}, []interface{}{SampleBool, ErrSample}, funcFieldTag).
 		AddChanBoth("ChanBothField", SampleInt).
@@ -279,7 +279,7 @@ func TestBuilderAddMapWithNilKey(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			defer deferDynamicTestPanic(t, tt.wantPanic, tt.args)
 
-			tt.args.builder.AddMap("MapFieldWithNilKey", nil, SampleFloat)
+			tt.args.builder.AddMap("MapFieldWithNilKey", nil, SampleFloat32)
 		})
 	}
 }
@@ -546,12 +546,12 @@ func TestBuilderBuild(t *testing.T) {
 	t.Parallel()
 
 	testMap := map[string]interface{}{
-		"StringField": "ABCDEFGH",
-		"IntField":    987,
-		"ByteField":   byte(1),
-		"FloatField":  1.23,
-		"BoolField":   true,
-		"MapField":    map[string]float64{"mfkey": 4.56},
+		"StringField":  "ABCDEFGH",
+		"IntField":     987,
+		"ByteField":    byte(1),
+		"Float32Field": float32(1.23),
+		"BoolField":    true,
+		"MapField":     map[string]float32{"mfkey": float32(4.56)},
 		//"FuncField":   func(i1 int, i2 int) (bool, error) { return true, nil },  // FIXME
 		"StructField": DynamicTestStruct{String: "Hoge"},
 		"SliceField":  []*DynamicTestStruct{{String: "Huga1"}, {String: "Huga2"}},
@@ -622,7 +622,7 @@ func testBuilderBuildTag(t *testing.T, got DynamicStruct, tt buildTest) bool {
 		"String":    stringFieldTag,
 		"Int":       intFieldTag,
 		"Byte":      byteFieldTag,
-		"Float":     floatFieldTag,
+		"Float32":   float32FieldTag,
 		"Bool":      boolFieldTag,
 		"Map":       mapFieldTag,
 		"Func":      funcFieldTag,
@@ -738,10 +738,10 @@ func BenchmarkAddInt(b *testing.B) {
 	}
 }
 
-func BenchmarkAddFloat(b *testing.B) {
+func BenchmarkAddFloa32(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = NewBuilder().AddFloat("FloatField")
+		_ = NewBuilder().AddFloat32("Float32Field")
 	}
 }
 
@@ -756,7 +756,7 @@ func BenchmarkAddBool(b *testing.B) {
 func BenchmarkAddMap(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = NewBuilder().AddMap("MapField", SampleString, SampleFloat)
+		_ = NewBuilder().AddMap("MapField", SampleString, SampleFloat32)
 	}
 }
 

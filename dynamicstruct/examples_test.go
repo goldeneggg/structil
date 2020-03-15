@@ -18,14 +18,14 @@ func ExampleImpl_DecodeMap() {
 	b := NewBuilder().
 		AddString("StringField").
 		AddInt("IntField").
-		AddFloat("FloatField").
+		AddFloat32("Float32Field").
 		AddBool("BoolField").
-		AddMap("MapField", SampleString, SampleFloat).
+		AddMap("MapField", SampleString, SampleFloat32).
 		AddStructPtr("StructPtrField", hogePtr).
 		AddSlice("SliceField", hogePtr)
 
 	// Remove one field
-	b = b.Remove("FloatField")
+	b = b.Remove("Float32Field")
 
 	// Build returns a DynamicStruct
 	ds := b.Build()
@@ -33,9 +33,9 @@ func ExampleImpl_DecodeMap() {
 	// Decode to struct from map
 	input := map[string]interface{}{
 		"StringField": "Abc Def",
-		"IntField":    12345,
+		"IntField":    int(123),
 		"BoolField":   true,
-		"MapField":    map[string]float64{"mkey1": 1.23, "mkey2": 4.56},
+		"MapField":    map[string]float32{"mkey1": float32(1.23), "mkey2": float32(4.56)},
 	}
 	dec, err := ds.DecodeMap(input)
 	if err != nil {
@@ -56,5 +56,5 @@ func ExampleImpl_DecodeMap() {
 		g.Get("MapField"),
 	)
 	// Output:
-	// NumField: 6, String: Abc Def, Int: 12345, Bool: true, Map: map[mkey1:1.23 mkey2:4.56]
+	// NumField: 6, String: Abc Def, Int: 123, Bool: true, Map: map[mkey1:1.23 mkey2:4.56]
 }
