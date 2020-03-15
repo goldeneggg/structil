@@ -23,7 +23,7 @@ func main() {
 	b := dynamicstruct.NewBuilder().
 		AddStringWithTag("StringField", `json:"string_field"`).
 		AddIntWithTag("IntField", `json:"int_field"`).
-		AddFloatWithTag("FloatField", `json:"float_field"`).
+		AddFloat32WithTag("Float32Field", `json:"float32_field"`).
 		AddBoolWithTag("BoolField", `json:"bool_field"`).
 		AddStructPtrWithTag("StructPtrField", hogePtr, `json:"struct_ptr_field"`)
 
@@ -36,7 +36,7 @@ func main() {
 {
 	"string_field":"あいうえお",
 	"int_field":9876,
-	"float_field":5.67,
+	"float32_field":5.67,
 	"bool_field":true,
 	"struct_ptr_field":{
 		"key":"hogekey",
@@ -54,5 +54,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("String: %v, Float: %v, StructPtr: %+v\n", g.String("StringField"), g.Float64("FloatField"), g.Get("StructPtrField"))
+	fmt.Printf("String: %v, Float: %v, StructPtr: %+v\n", g.String("StringField"), g.Float32("Float32Field"), g.Get("StructPtrField"))
 }

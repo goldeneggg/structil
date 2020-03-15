@@ -22,21 +22,21 @@ func main() {
 	b := dynamicstruct.NewBuilder().
 		AddString("StringField").
 		AddInt("IntField").
-		AddFloat("FloatField").
+		AddFloat32("Float32Field").
 		AddBool("BoolField").
-		AddMap("MapField", dynamicstruct.SampleString, dynamicstruct.SampleFloat).
+		AddMap("MapField", dynamicstruct.SampleString, dynamicstruct.SampleFloat32).
 		AddChanBoth("ChanBothField", dynamicstruct.SampleInt).
 		AddStructPtr("StructPtrField", hogePtr).
 		AddSlice("SliceField", hogePtr)
 
-	b = b.Remove("FloatField")
+	b = b.Remove("Float32Field")
 
 	ds := b.Build()
 
 	// try mapstructure.Decode using dynamic struct
 	input := map[string]interface{}{
 		"StringField": "Test String Field",
-		"IntField":    12345,
+		"IntField":    int(12),
 		"BoolField":   true,
 	}
 

@@ -53,7 +53,9 @@ type (
 const (
 	stringFieldTag    = `json:"string_field_with_tag"`
 	intFieldTag       = `json:"int_field_with_tag"`
-	floatFieldTag     = `json:"float_field_with_tag"`
+	byteFieldTag      = `json:"byte_field_with_tag"`
+	float32FieldTag   = `json:"float32_field_with_tag"`
+	float64FieldTag   = `json:"float64_field_with_tag"`
 	boolFieldTag      = `json:"bool_field_with_tag"`
 	mapFieldTag       = `json:"map_field_with_tag"`
 	funcFieldTag      = `json:"func_field_with_tag"`
@@ -136,12 +138,16 @@ func newDynamicTestBuilder() Builder {
 		AddStringWithTag("StringFieldWithTag", stringFieldTag).
 		AddInt("IntField").
 		AddIntWithTag("IntFieldWithTag", intFieldTag).
-		AddFloat("FloatField").
-		AddFloatWithTag("FloatFieldWithTag", floatFieldTag).
+		AddByte("ByteField").
+		AddByteWithTag("ByteFieldWithTag", byteFieldTag).
+		AddFloat32("Float32Field").
+		AddFloat32WithTag("Float32FieldWithTag", float32FieldTag).
+		AddFloat64("Float64Field").
+		AddFloat64WithTag("Float64FieldWithTag", float64FieldTag).
 		AddBool("BoolField").
 		AddBoolWithTag("BoolFieldWithTag", boolFieldTag).
-		AddMap("MapField", SampleString, SampleFloat).
-		AddMapWithTag("MapFieldWithTag", SampleString, SampleFloat, mapFieldTag).
+		AddMap("MapField", SampleString, SampleFloat32).
+		AddMapWithTag("MapFieldWithTag", SampleString, SampleFloat32, mapFieldTag).
 		AddFunc("FuncField", []interface{}{SampleInt, SampleInt}, []interface{}{SampleBool, ErrSample}).
 		AddFuncWithTag("FuncFieldWithTag", []interface{}{SampleInt, SampleInt}, []interface{}{SampleBool, ErrSample}, funcFieldTag).
 		AddChanBoth("ChanBothField", SampleInt).
@@ -200,13 +206,13 @@ func TestBuilderAddRemoveExistsNumField(t *testing.T) {
 			name:               "have fields set by newDynamicTestBuilder()",
 			args:               args{builder: newDynamicTestBuilder()},
 			wantExistsIntField: true,
-			wantNumField:       24, // See: newDynamicTestBuilder()
+			wantNumField:       28, // See: newDynamicTestBuilder()
 		},
 		{
 			name:               "have fields set by newDynamicTestBuilder() and Remove(IntField)",
 			args:               args{builder: newDynamicTestBuilder().Remove("IntField")},
 			wantExistsIntField: false,
-			wantNumField:       23,
+			wantNumField:       27,
 		},
 	}
 
@@ -276,7 +282,7 @@ func TestBuilderAddMapWithNilKey(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			defer deferDynamicTestPanic(t, tt.wantPanic, tt.args)
 
-			tt.args.builder.AddMap("MapFieldWithNilKey", nil, SampleFloat)
+			tt.args.builder.AddMap("MapFieldWithNilKey", nil, SampleFloat32)
 		})
 	}
 }
@@ -543,11 +549,13 @@ func TestBuilderBuild(t *testing.T) {
 	t.Parallel()
 
 	testMap := map[string]interface{}{
-		"StringField": "ABCDEFGH",
-		"IntField":    987,
-		"FloatField":  1.23,
-		"BoolField":   true,
-		"MapField":    map[string]float64{"mfkey": 4.56},
+		"StringField":  "ABCDEFGH",
+		"IntField":     987,
+		"ByteField":    byte(1),
+		"Float32Field": float32(1.23),
+		"Float64Field": float64(2.3),
+		"BoolField":    true,
+		"MapField":     map[string]float32{"mfkey": float32(4.56)},
 		//"FuncField":   func(i1 int, i2 int) (bool, error) { return true, nil },  // FIXME
 		"StructField": DynamicTestStruct{String: "Hoge"},
 		"SliceField":  []*DynamicTestStruct{{String: "Huga1"}, {String: "Huga2"}},
@@ -558,14 +566,14 @@ func TestBuilderBuild(t *testing.T) {
 			name:         "Build() with valid Builder",
 			args:         buildArgs{builder: newDynamicTestBuilder(), isPtr: true},
 			wantIsPtr:    true,
-			wantNumField: 24, // See: newDynamicTestBuilder()
+			wantNumField: 28, // See: newDynamicTestBuilder()
 			testMap:      testMap,
 		},
 		{
 			name:               "BuildNonPtr() with valid Builder",
 			args:               buildArgs{builder: newDynamicTestBuilder(), isPtr: false},
 			wantIsPtr:          false,
-			wantNumField:       24,
+			wantNumField:       28,
 			testMap:            testMap,
 			wantErrorDecodeMap: true, // Note: can't execute DecodeMap if dynamic struct is NOT pointer.
 		},
@@ -617,7 +625,9 @@ func testBuilderBuildTag(t *testing.T, got DynamicStruct, tt buildTest) bool {
 	prefixes := map[string]string{
 		"String":    stringFieldTag,
 		"Int":       intFieldTag,
-		"Float":     floatFieldTag,
+		"Byte":      byteFieldTag,
+		"Float32":   float32FieldTag,
+		"Float64":   float64FieldTag,
 		"Bool":      boolFieldTag,
 		"Map":       mapFieldTag,
 		"Func":      funcFieldTag,
@@ -733,10 +743,17 @@ func BenchmarkAddInt(b *testing.B) {
 	}
 }
 
-func BenchmarkAddFloat(b *testing.B) {
+func BenchmarkAddFloa32(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = NewBuilder().AddFloat("FloatField")
+		_ = NewBuilder().AddFloat32("Float32Field")
+	}
+}
+
+func BenchmarkAddFloa64(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = NewBuilder().AddFloat64("Float64Field")
 	}
 }
 
@@ -751,7 +768,7 @@ func BenchmarkAddBool(b *testing.B) {
 func BenchmarkAddMap(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = NewBuilder().AddMap("MapField", SampleString, SampleFloat)
+		_ = NewBuilder().AddMap("MapField", SampleString, SampleFloat32)
 	}
 }
 

@@ -10,13 +10,17 @@ import (
 type ofType int
 
 const (
-	// SampleString is sample init string value
+	// SampleString is sample string value
 	SampleString = ""
-	// SampleInt is sample init int value
-	SampleInt = 0
-	// SampleFloat is sample init float value
-	SampleFloat = 0.0
-	// SampleBool is sample init bool value
+	// SampleInt is sample int value
+	SampleInt = int(1)
+	// SampleByte is sample byte value
+	SampleByte = byte(1)
+	// SampleFloat32 is sample float32 value
+	SampleFloat32 = float32(1.1)
+	// SampleFloat64 is sample float64 value
+	SampleFloat64 = float64(1.1)
+	// SampleBool is sample bool value
 	SampleBool = false
 
 	tMap ofType = iota
@@ -40,8 +44,12 @@ type Builder interface {
 	AddStringWithTag(name string, tag string) Builder
 	AddInt(name string) Builder
 	AddIntWithTag(name string, tag string) Builder
-	AddFloat(name string) Builder
-	AddFloatWithTag(name string, tag string) Builder
+	AddByte(name string) Builder
+	AddByteWithTag(name string, tag string) Builder
+	AddFloat32(name string) Builder
+	AddFloat32WithTag(name string, tag string) Builder
+	AddFloat64(name string) Builder
+	AddFloat64WithTag(name string, tag string) Builder
 	AddBool(name string) Builder
 	AddBoolWithTag(name string, tag string) Builder
 	AddMap(name string, ke interface{}, ve interface{}) Builder
@@ -127,17 +135,55 @@ func (b *BuilderImpl) AddIntWithTag(name string, tag string) Builder {
 	return b
 }
 
-// AddFloat returns a Builder that was added a float64 field named by name parameter.
-func (b *BuilderImpl) AddFloat(name string) Builder {
-	b.AddFloatWithTag(name, "")
+// AddByte returns a Builder that was added a byte field named by name parameter.
+func (b *BuilderImpl) AddByte(name string) Builder {
+	b.AddByteWithTag(name, "")
 	return b
 }
 
-// AddFloatWithTag returns a Builder that was added a float64 field with tag named by name parameter.
-func (b *BuilderImpl) AddFloatWithTag(name string, tag string) Builder {
+// AddByteWithTag returns a Builder that was added a byte field with tag named by name parameter.
+func (b *BuilderImpl) AddByteWithTag(name string, tag string) Builder {
 	p := &addParam{
 		name:  name,
-		intfs: []interface{}{SampleFloat},
+		intfs: []interface{}{SampleByte},
+		ot:    tPrmtv,
+		isPtr: false,
+		tag:   tag,
+	}
+	b.add(p)
+	return b
+}
+
+// AddFloat32 returns a Builder that was added a float32 field named by name parameter.
+func (b *BuilderImpl) AddFloat32(name string) Builder {
+	b.AddFloat32WithTag(name, "")
+	return b
+}
+
+// AddFloat32WithTag returns a Builder that was added a float32 field with tag named by name parameter.
+func (b *BuilderImpl) AddFloat32WithTag(name string, tag string) Builder {
+	p := &addParam{
+		name:  name,
+		intfs: []interface{}{SampleFloat32},
+		ot:    tPrmtv,
+		isPtr: false,
+		tag:   tag,
+	}
+	b.add(p)
+	return b
+}
+
+// AddFloat64 returns a Builder that was added a float64 field named by name parameter.
+func (b *BuilderImpl) AddFloat64(name string) Builder {
+	b.AddFloat64WithTag(name, "")
+	return b
+}
+
+// AddFloat64WithTag returns a Builder that was added a float64 field with tag named by name parameter.
+func (b *BuilderImpl) AddFloat64WithTag(name string, tag string) Builder {
+	p := &addParam{
+		name:  name,
+		intfs: []interface{}{SampleFloat64},
 		ot:    tPrmtv,
 		isPtr: false,
 		tag:   tag,

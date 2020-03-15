@@ -1,4 +1,4 @@
-package dumpwriter
+package structil
 
 import (
 	"fmt"
@@ -28,8 +28,8 @@ type Param struct {
 	Flags    uint
 }
 
-// New returns a new default DumpWriter that wraps tabwriter.
-func New() DumpWriter {
+// NewDumpWriter returns a new default DumpWriter that wraps tabwriter.
+func NewDumpWriter() DumpWriter {
 	dwp := &Param{
 		MinWidth: 0,
 		TabWidth: 4,
@@ -38,11 +38,11 @@ func New() DumpWriter {
 		Flags:    0,
 	}
 
-	return NewWithSetupInfo(dwp, os.Stdout)
+	return NewDumpWriterWithSetupInfo(dwp, os.Stdout)
 }
 
-// NewWithSetupInfo returns a new default DumpWriter that wraps the Writer assigned by "wrap" arg.
-func NewWithSetupInfo(dwp *Param, wrap io.Writer) DumpWriter {
+// NewDumpWriterWithSetupInfo returns a new default DumpWriter that wraps the Writer assigned by "wrap" arg.
+func NewDumpWriterWithSetupInfo(dwp *Param, wrap io.Writer) DumpWriter {
 	dw := &dwImpl{}
 
 	dw.tw = tabwriter.NewWriter(
