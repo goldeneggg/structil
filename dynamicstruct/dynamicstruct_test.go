@@ -55,6 +55,7 @@ const (
 	intFieldTag       = `json:"int_field_with_tag"`
 	byteFieldTag      = `json:"byte_field_with_tag"`
 	float32FieldTag   = `json:"float32_field_with_tag"`
+	float64FieldTag   = `json:"float64_field_with_tag"`
 	boolFieldTag      = `json:"bool_field_with_tag"`
 	mapFieldTag       = `json:"map_field_with_tag"`
 	funcFieldTag      = `json:"func_field_with_tag"`
@@ -141,6 +142,8 @@ func newDynamicTestBuilder() Builder {
 		AddByteWithTag("ByteFieldWithTag", byteFieldTag).
 		AddFloat32("Float32Field").
 		AddFloat32WithTag("Float32FieldWithTag", float32FieldTag).
+		AddFloat64("Float64Field").
+		AddFloat64WithTag("Float64FieldWithTag", float64FieldTag).
 		AddBool("BoolField").
 		AddBoolWithTag("BoolFieldWithTag", boolFieldTag).
 		AddMap("MapField", SampleString, SampleFloat32).
@@ -203,13 +206,13 @@ func TestBuilderAddRemoveExistsNumField(t *testing.T) {
 			name:               "have fields set by newDynamicTestBuilder()",
 			args:               args{builder: newDynamicTestBuilder()},
 			wantExistsIntField: true,
-			wantNumField:       26, // See: newDynamicTestBuilder()
+			wantNumField:       28, // See: newDynamicTestBuilder()
 		},
 		{
 			name:               "have fields set by newDynamicTestBuilder() and Remove(IntField)",
 			args:               args{builder: newDynamicTestBuilder().Remove("IntField")},
 			wantExistsIntField: false,
-			wantNumField:       25,
+			wantNumField:       27,
 		},
 	}
 
@@ -550,6 +553,7 @@ func TestBuilderBuild(t *testing.T) {
 		"IntField":     987,
 		"ByteField":    byte(1),
 		"Float32Field": float32(1.23),
+		"Float64Field": float64(2.3),
 		"BoolField":    true,
 		"MapField":     map[string]float32{"mfkey": float32(4.56)},
 		//"FuncField":   func(i1 int, i2 int) (bool, error) { return true, nil },  // FIXME
@@ -562,14 +566,14 @@ func TestBuilderBuild(t *testing.T) {
 			name:         "Build() with valid Builder",
 			args:         buildArgs{builder: newDynamicTestBuilder(), isPtr: true},
 			wantIsPtr:    true,
-			wantNumField: 26, // See: newDynamicTestBuilder()
+			wantNumField: 28, // See: newDynamicTestBuilder()
 			testMap:      testMap,
 		},
 		{
 			name:               "BuildNonPtr() with valid Builder",
 			args:               buildArgs{builder: newDynamicTestBuilder(), isPtr: false},
 			wantIsPtr:          false,
-			wantNumField:       26,
+			wantNumField:       28,
 			testMap:            testMap,
 			wantErrorDecodeMap: true, // Note: can't execute DecodeMap if dynamic struct is NOT pointer.
 		},
@@ -623,6 +627,7 @@ func testBuilderBuildTag(t *testing.T, got DynamicStruct, tt buildTest) bool {
 		"Int":       intFieldTag,
 		"Byte":      byteFieldTag,
 		"Float32":   float32FieldTag,
+		"Float64":   float64FieldTag,
 		"Bool":      boolFieldTag,
 		"Map":       mapFieldTag,
 		"Func":      funcFieldTag,
@@ -742,6 +747,13 @@ func BenchmarkAddFloa32(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_ = NewBuilder().AddFloat32("Float32Field")
+	}
+}
+
+func BenchmarkAddFloa64(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = NewBuilder().AddFloat64("Float64Field")
 	}
 }
 
