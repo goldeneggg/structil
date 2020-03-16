@@ -4,14 +4,12 @@ PKG_DYNAMICSTRUCT := github.com/goldeneggg/structil/dynamicstruct
 PROFDIR := ./.prof
 BENCH_RESULT_OLD := $(PROFDIR)/bench.old
 BENCH_RESULT_NEW := $(PROFDIR)/bench.new
-CPU_PROF := $(PROFDIR)/cpu.out
-MEM_PROF := $(PROFDIR)/mem.out
 TRACE := $(PROFDIR)/trace.out
 TESTBIN_STRUCTIL := $(PROFDIR)/structil.test
 TESTBIN_DYNAMICSTRUCT := $(PROFDIR)/dynamicstruct.test
 
 SRCS = $(shell find . -type f -name '*.go' | \grep -v 'vendor')
-PKGS = $(shell go list ./... | \grep -v 'vendor')
+PKGS = $(shell go list ./... | \grep -v 'vendor' | \grep -v 'examples')
 
 
 .PHONY: pkgs
@@ -40,43 +38,34 @@ bench: -mk-profdir -mv-bench-result
 benchcmp:
 	@benchcmp $(BENCH_RESULT_OLD) $(BENCH_RESULT_NEW)
 
-benchmark-pprof = $(call benchmark,-cpuprofile $(CPU_PROF) -memprofile $(MEM_PROF),$1)
+benchmark-pprof = $(call benchmark,-cpuprofile $(PROFDIR)/$1.cpu.out -memprofile $(PROFDIR)/$1.mem.out -o $(PROFDIR)/$1.test,$2)
 
-.PHONY: bench-prof-structil
-bench-prof-structil: -mk-profdir -mv-bench-result
-	@$(call benchmark-pprof,$(PKG_STRUCTIL))
+.PHONY: bench-prof
+bench-prof: -mk-profdir -mv-bench-result
+	@for pkg in $(PKGS); do echo ">>>>> Start: bench-prof for $${pkg}" && $(call benchmark-pprof,`basename $${pkg}`,$${pkg}); done
 
-.PHONY: bench-prof-dynamicstruct
-bench-prof-dynamicstruct: -mk-profdir -mv-bench-result
-	@$(call benchmark-pprof,$(PKG_DYNAMICSTRUCT))
+pprof = go tool pprof $1 $2
 
-pprof = go tool pprof $1
+# pprof-cpu-structil OR pprof-cpu-dynamicstruct
+.PHONY: pprof-cpu-%
+pprof-cpu-%:
+	@$(call pprof,$(PROFDIR)/$*.test,$(PROFDIR)/$*.cpu.out)
 
-.PHONY: pprof-cpu
-pprof-cpu:
-	@$(call pprof,$(CPU_PROF))
+# pprof-mem-structil OR pprof-mem-dynamicstruct
+.PHONY: pprof-mem-%
+pprof-mem-%:
+	@$(call pprof,$(PROFDIR)/$*.test,$(PROFDIR)/$*.mem.out)
 
-.PHONY: pprof-mem
-pprof-mem:
-	@$(call pprof,$(MEM_PROF))
+test-trace = go test -trace=$(PROFDIR)/$1.trace.out -o $(PROFDIR)/$1.test $2
 
-test-trace = go test -trace=$(TRACE) -o $1 $2
+test-trace: -mk-profdir
+	@for pkg in $(PKGS); do echo ">>>>> Start: test-trace for $${pkg}" && $(call test-trace,`basename $${pkg}`,$${pkg}); done
 
-test-trace-structil: -mk-profdir
-	@$(call test-trace,$(TESTBIN_STRUCTIL),$(PKG_STRUCTIL))
+trace = go tool trace $(PROFDIR)/$1.test $(PROFDIR)/$1.trace.out
 
-test-trace-dynamicstruct: -mk-profdir
-	@$(call test-trace,$(TESTBIN_DYNAMICSTRUCT),$(PKG_DYNAMICSTRUCT))
-
-trace = go tool trace $1 $(TRACE)
-
-.PHONY: trace-structil
-trace-structil:
-	@$(call trace,$(TESTBIN_STRUCTIL))
-
-.PHONY: trace-dynamicstruct
-trace-dynamicstruct:
-	@$(call trace,$(TESTBIN_DYNAMICSTRUCT))
+.PHONY: trace-%
+trace-%:
+	@$(call trace,$*)
 
 .PHONY: lint
 lint:
