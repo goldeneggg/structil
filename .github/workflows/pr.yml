@@ -26,6 +26,9 @@ jobs:
     - name: Confirm Go version
       run: go version
 
+    - name: Confirm envs
+      run: env
+
     - name: Install golint
       run: |
         go install golang.org/x/lint/golint
