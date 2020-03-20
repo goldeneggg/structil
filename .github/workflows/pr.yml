@@ -50,5 +50,11 @@ jobs:
     - name: Add HOME/bin into PATH
       run: echo "::add-path::$(pwd)/bin"
 
-    - name: Build
+    - name: Run tests and lints
       run: make ci
+
+    - name: Run benchmark
+      run: make bench
+
+    - name: Show benchmark result
+      run: make show-latest-bench

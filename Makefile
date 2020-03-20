@@ -44,6 +44,10 @@ benchmark = GOMAXPROCS=1 go test -run=NONE -bench . -benchmem -benchtime=100ms $
 bench: -mk-profdir -mv-bench-result
 	@$(call benchmark,,$(PKGS))
 
+.PHONY: show-latest-bench
+show-latest-bench:
+	@cat $(BENCH_RESULT_NEW)
+
 .PHONY: benchcmp
 benchcmp:
 	@benchcmp $(BENCH_RESULT_OLD) $(BENCH_RESULT_NEW)
