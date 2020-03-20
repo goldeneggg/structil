@@ -12,6 +12,7 @@ jobs:
     strategy:
       matrix:
         go: [ '1.13', '1.12' ]
+
     name: CI for pull request with version ${{ matrix.go }}
     steps:
     - name: Check out code into the Go module directory
@@ -25,9 +26,12 @@ jobs:
     - name: Confirm Go version
       run: go version
 
-    - name: Get dependencies
+    - name: Install golint
       run: |
         go install golang.org/x/lint/golint
+
+    - name: Download dependency go modules
+      run: |
         go mod download
 
     - name: Build
