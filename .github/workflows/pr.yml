@@ -27,8 +27,8 @@ jobs:
 
     - name: Get dependencies
       run: |
-        go mod download
         go install golang.org/x/lint/golint
+        go mod download
 
     - name: Build
       run: make ci
