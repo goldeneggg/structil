@@ -10,11 +10,21 @@ TESTBIN_DYNAMICSTRUCT := $(PROFDIR)/dynamicstruct.test
 
 SRCS = $(shell find . -type f -name '*.go' | \grep -v 'vendor')
 PKGS = $(shell ./scripts/_packages.sh)
+TOOL_PKGS = $(shell ./scripts/_tool_packages.sh)
 
+.DEFAULT_GOAL := test
+
+.PHONY: version
+version:
+	@echo $(shell ./scripts/_version.sh)
 
 .PHONY: pkgs
 pkgs:
 	@echo $(PKGS)
+
+.PHONY: tool-pkgs
+tool-pkgs:
+	@echo $(TOOL_PKGS)
 
 .PHONY: test
 test:
@@ -44,28 +54,22 @@ benchmark-pprof = $(call benchmark,-cpuprofile $(PROFDIR)/$1.cpu.out -memprofile
 bench-prof: -mk-profdir -mv-bench-result
 	@for pkg in $(PKGS); do echo ">>>>> Start: bench-prof for $${pkg}" && $(call benchmark-pprof,`basename $${pkg}`,$${pkg}); done
 
-pprof = go tool pprof $1 $2
-
 # pprof-cpu-structil OR pprof-cpu-dynamicstruct
 .PHONY: pprof-cpu-%
 pprof-cpu-%:
-	@$(call pprof,$(PROFDIR)/$*.test,$(PROFDIR)/$*.cpu.out)
+	@go tool pprof $(PROFDIR)/$*.test $(PROFDIR)/$*.cpu.out
 
 # pprof-mem-structil OR pprof-mem-dynamicstruct
 .PHONY: pprof-mem-%
 pprof-mem-%:
-	@$(call pprof,$(PROFDIR)/$*.test,$(PROFDIR)/$*.mem.out)
-
-test-trace = go test -trace=$(PROFDIR)/$1.trace.out -o $(PROFDIR)/$1.test $2
+	@go tool pprof $(PROFDIR)/$*.test $(PROFDIR)/$*.mem.out
 
 test-trace: -mk-profdir
-	@for pkg in $(PKGS); do echo ">>>>> Start: test-trace for $${pkg}" && $(call test-trace,`basename $${pkg}`,$${pkg}); done
-
-trace = go tool trace $(PROFDIR)/$1.test $(PROFDIR)/$1.trace.out
+	@for pkg in $(PKGS); do echo ">>>>> Start: test-trace for $${pkg}" && go test -trace=$(PROFDIR)/`basename $${pkg}`.trace.out -o $(PROFDIR)/`basename $${pkg}`.test $${pkg}; done
 
 .PHONY: trace-%
 trace-%:
-	@$(call trace,$*)
+	@go tool trace $(PROFDIR)/$*.test $(PROFDIR)/$*.trace.out
 
 .PHONY: lint
 lint:
@@ -94,6 +98,25 @@ mod-dl:
 mod-tidy:
 	@GO111MODULE=on go mod tidy
 
+# Note: tools additional process as follows
+#  - Add pacakge into tools.go
+#  - Run "make mod-tidy"
+#  - Run "make mod-tool-install"
+mod-tool-install:
+	@GO111MODULE=on go install $(TOOL_PKGS)
+
 .PHONY: vendor
 vendor:
 	@GO111MODULE=on go mod vendor
+
+clean = go clean -i -n -x $1 $(PKGS) $(TOOL_PKGS)
+
+.PHONY: clean
+clean:
+	@$(call clean,)
+
+# go clean including all caches
+.PHONY: clean-with-caches
+clean-with-caches:
+	@$(call clean,-cache -testcache)
+	@go clean -modcache
