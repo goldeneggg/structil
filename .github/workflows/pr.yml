@@ -26,13 +26,6 @@ jobs:
     - name: Confirm Go env
       run: go env
 
-    #   env:
-    #     GO111MODULE: off
-    #     GOBIN: ${{ env.HOME }}/bin
-
-    # - name: Add HOME/bin into PATH
-    #   run: echo "::add-path::${{ env.HOME }}/bin"
-
     - name: Confirm system env
       run: env
 
@@ -44,8 +37,6 @@ jobs:
 
     - name: Install go tools from go module
       run: GOBIN=$(pwd)/bin make mod-tool-install
-      # env:
-      #   GOBIN: $GITHUB_WORKSPACE/bin
 
     - name: Add HOME/bin into PATH
       run: echo "::add-path::$(pwd)/bin"
@@ -55,6 +46,3 @@ jobs:
 
     - name: Run benchmark
       run: make bench
-
-    - name: Show benchmark result
-      run: make show-latest-bench
