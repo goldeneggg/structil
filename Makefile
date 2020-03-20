@@ -9,7 +9,7 @@ TESTBIN_STRUCTIL := $(PROFDIR)/structil.test
 TESTBIN_DYNAMICSTRUCT := $(PROFDIR)/dynamicstruct.test
 
 SRCS = $(shell find . -type f -name '*.go' | \grep -v 'vendor')
-PKGS = $(shell go list ./... | \grep -v 'vendor' | \grep -v 'examples')
+PKGS = $(shell ./scripts/_packages.sh)
 
 
 .PHONY: pkgs
