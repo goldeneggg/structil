@@ -113,14 +113,15 @@ mod-tool-install:
 vendor:
 	@GO111MODULE=on go mod vendor
 
-clean = go clean -i -n -x $1 $(PKGS) $(TOOL_PKGS)
-
 .PHONY: clean
 clean:
-	@$(call clean,)
+	@go clean -i -x -cache -testcache $(PKGS) $(TOOL_PKGS)
+	rm -f $(BENCH_RESULT_OLD)
+	rm -f $(BENCH_RESULT_NEW)
+	rm -f $(PROFDIR)/*.test
+	rm -f $(PROFDIR)/*.out
 
-# go clean including all caches
-.PHONY: clean-with-caches
-clean-with-caches:
-	@$(call clean,-cache -testcache)
-	@go clean -modcache
+# CAUTION: this target removes all mod-caches
+.PHONY: clean-mod-cache
+clean-mod-cache:
+	@go clean -i -x -modcache $(PKGS) $(TOOL_PKGS)
