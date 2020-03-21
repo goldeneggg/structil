@@ -13,7 +13,7 @@ jobs:
       matrix:
         go: [ '1.13', '1.12' ]
 
-    name: CI for pull request with version ${{ matrix.go }}
+    name: Tests with Go version ${{ matrix.go }}
     steps:
     - name: Set up Go ${{ matrix.go }}
       uses: actions/setup-go@v2-beta
@@ -35,14 +35,14 @@ jobs:
     - name: Download dependency go modules
       run: make mod-dl
 
-    - name: Install go tools from go module
+    - name: Install go tools on module-aware mode
       run: GOBIN=$(pwd)/bin make mod-tool-install
 
-    - name: Add HOME/bin into PATH
+    - name: Add PWD/bin into PATH
       run: echo "::add-path::$(pwd)/bin"
 
-    - name: Run tests and lints
+    - name: Run tests and linters
       run: make ci
 
-    - name: Run benchmark
+    - name: Run benchmarks
       run: make bench
