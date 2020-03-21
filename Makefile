@@ -2,8 +2,8 @@ PKG_STRUCTIL := github.com/goldeneggg/structil
 PKG_DYNAMICSTRUCT := github.com/goldeneggg/structil/dynamicstruct
 
 PROFDIR := ./.prof
-BENCH_RESULT_OLD := $(PROFDIR)/bench.old
-BENCH_RESULT_NEW := $(PROFDIR)/bench.new
+BENCH_OLD := $(PROFDIR)/bench.old
+BENCH_NEW := $(PROFDIR)/bench.new
 TRACE := $(PROFDIR)/trace.out
 TESTBIN_STRUCTIL := $(PROFDIR)/structil.test
 TESTBIN_DYNAMICSTRUCT := $(PROFDIR)/dynamicstruct.test
@@ -36,9 +36,9 @@ test:
 
 .PHONY: -mv-bench-result
 -mv-bench-result:
-	@[ ! -f $(BENCH_RESULT_NEW) ] || mv $(BENCH_RESULT_NEW) $(BENCH_RESULT_OLD)
+	@[ ! -f $(BENCH_NEW) ] || mv $(BENCH_NEW) $(BENCH_OLD)
 
-benchmark = GOMAXPROCS=1 go test -run=NONE -bench . -benchmem -benchtime=100ms $1 $2 | tee $(BENCH_RESULT_NEW)
+benchmark = GOMAXPROCS=1 go test -run=NONE -bench . -benchmem -benchtime=100ms $1 $2 | tee $(BENCH_NEW)
 
 .PHONY: bench
 bench: -mk-profdir -mv-bench-result
@@ -46,11 +46,16 @@ bench: -mk-profdir -mv-bench-result
 
 .PHONY: show-latest-bench
 show-latest-bench:
-	@cat $(BENCH_RESULT_NEW)
+	@cat $(BENCH_NEW)
 
 .PHONY: benchstat
 benchstat:
-	@benchstat $(BENCH_RESULT_OLD) $(BENCH_RESULT_NEW)
+	@benchstat $(BENCH_OLD) $(BENCH_NEW)
+
+# WIP
+.PHONY: benchstat-gist
+benchstat-gist:
+	@bash -c "benchstat <(curl -sSL $${BENCH_OLD_GIST_URL}) <(curl -sSL $${BENCH_NEW_GIST_URL})"
 
 benchmark-pprof = $(call benchmark,-cpuprofile $(PROFDIR)/$1.cpu.out -memprofile $(PROFDIR)/$1.mem.out -o $(PROFDIR)/$1.test,$2)
 
@@ -122,8 +127,8 @@ vendor:
 .PHONY: clean
 clean:
 	@go clean -i -x -cache -testcache $(PKGS) $(TOOL_PKGS)
-	rm -f $(BENCH_RESULT_OLD)
-	rm -f $(BENCH_RESULT_NEW)
+	rm -f $(BENCH_OLD)
+	rm -f $(BENCH_NEW)
 	rm -f $(PROFDIR)/*.test
 	rm -f $(PROFDIR)/*.out
 
