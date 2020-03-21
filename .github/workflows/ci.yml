@@ -53,7 +53,7 @@ jobs:
         file: ./coverage.txt
         flags: unittests
         name: codecov
-        fail_ci_if_error: true
+        fail_ci_if_error: false
 
     - name: Run benchmarks
       run: make bench
