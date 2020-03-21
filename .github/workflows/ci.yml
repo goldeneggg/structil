@@ -32,19 +32,17 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
 
+    - name: Debug PWD
+      run: echo "PWD=$(pwd), GITHUB_WORKSPACE=${GITHUB_WORKSPACE}"
+
     - name: Download dependency go modules
       run: make mod-dl
 
-    - name: Set PWD env from env.GITHUB_WORKSPACE
-      env:
-        PWD: ${{ env.GITHUB_WORKSPACE }}
-      run: echo "GITHUB_WORKSPACE=${GITHUB_WORKSPACE}, PWD=${PWD}"
-
     - name: Install go tools on module-aware mode
-      run: GOBIN=${PWD}/bin make mod-tool-install
+      run: GOBIN=${GITHUB_WORKSPACE}/bin make mod-tool-install
 
-    - name: Add PWD/bin into PATH
-      run: echo "::add-path::${PWD}/bin"
+    - name: Add GITHUB_WORKSPACE/bin into PATH
+      run: echo "::add-path::${GITHUB_WORKSPACE}/bin"
 
     - name: Run tests and linters
       run: make ci
@@ -52,7 +50,7 @@ jobs:
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
       with:
-        file: ./coverage.txt
+        file: ${{ env.GITHUB_WORKSPACE }}/coverage.txt
         flags: unittests
         name: codecov
         fail_ci_if_error: true
