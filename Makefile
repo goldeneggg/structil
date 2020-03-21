@@ -48,9 +48,9 @@ bench: -mk-profdir -mv-bench-result
 show-latest-bench:
 	@cat $(BENCH_RESULT_NEW)
 
-.PHONY: benchcmp
-benchcmp:
-	@benchcmp $(BENCH_RESULT_OLD) $(BENCH_RESULT_NEW)
+.PHONY: benchstat
+benchstat:
+	@benchstat $(BENCH_RESULT_OLD) $(BENCH_RESULT_NEW)
 
 benchmark-pprof = $(call benchmark,-cpuprofile $(PROFDIR)/$1.cpu.out -memprofile $(PROFDIR)/$1.mem.out -o $(PROFDIR)/$1.test,$2)
 
@@ -112,8 +112,8 @@ mod-tools-install:
 mod-golint-install:
 	@GO111MODULE=on go install golang.org/x/lint/golint
 
-mod-benchcmp-install:
-	@GO111MODULE=on go install golang.org/x/tools/cmd/benchcmp
+mod-benchstat-install:
+	@GO111MODULE=on go install golang.org/x/perf/cmd/benchstat
 
 .PHONY: vendor
 vendor:
