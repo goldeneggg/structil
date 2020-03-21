@@ -47,7 +47,10 @@ jobs:
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
       with:
-        file: ${GITHUB_WORKSPACE}/coverage.txt
+        # Note: file does not support environment value, context, and expression
+        #file: ${{ .env.GITHUB_WORKSPACE }}/coverage.txt
+        #file: ${GITHUB_WORKSPACE}/coverage.txt
+        file: ./coverage.txt
         flags: unittests
         name: codecov
         fail_ci_if_error: true
