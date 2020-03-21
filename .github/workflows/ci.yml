@@ -38,6 +38,14 @@ jobs:
     - name: Install go tools on module-aware mode
       run: GOBIN=${GITHUB_WORKSPACE}/bin make mod-tools-install
 
+    - name: Cache dependencies and tools
+      uses: actions/cache@v1
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
     - name: Add GITHUB_WORKSPACE/bin into PATH
       run: echo "::add-path::${GITHUB_WORKSPACE}/bin"
 
