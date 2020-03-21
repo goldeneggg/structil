@@ -38,15 +38,12 @@ test:
 -mv-bench-result:
 	@[ ! -f $(BENCH_NEW) ] || mv $(BENCH_NEW) $(BENCH_OLD)
 
-benchmark = GOMAXPROCS=1 go test -run=NONE -bench . -benchmem -benchtime=100ms $1 $2 | tee $(BENCH_NEW)
+benchmark = go test -run=NONE -bench . -benchmem -cpu 1,2 -benchtime=500ms -count=5 $1 $2 | tee $(BENCH_NEW)
 
 .PHONY: bench
 bench: -mk-profdir -mv-bench-result
 	@$(call benchmark,,$(PKGS))
-
-.PHONY: show-latest-bench
-show-latest-bench:
-	@cat $(BENCH_NEW)
+	@benchstat $(BENCH_NEW)
 
 .PHONY: benchstat
 benchstat:
