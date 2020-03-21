@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go: [ '1.13', '1.12' ]
+
+    name: Tests with Go version ${{ matrix.go }}
+    steps:
+    - name: Set up Go ${{ matrix.go }}
+      uses: actions/setup-go@v2-beta
+      with:
+        go-version: ${{ matrix.go }}
+
+    - name: Confirm Go version
+      run: go version
+
+    - name: Confirm Go env
+      run: go env
+
+    - name: Confirm system env
+      run: env
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+
+    - name: Download dependency go modules
+      run: make mod-dl
+
+    - name: Install go tools on module-aware mode
+      run: GOBIN=${GITHUB_WORKSPACE}/bin make mod-tool-install
+
+    - name: Add GITHUB_WORKSPACE/bin into PATH
+      run: echo "::add-path::${GITHUB_WORKSPACE}/bin"
+
+    - name: Run tests and linters
+      run: make ci
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        # Note: file does not support environment value, context, and expression
+        #file: ${{ .env.GITHUB_WORKSPACE }}/coverage.txt
+        #file: ${GITHUB_WORKSPACE}/coverage.txt
+        file: ./coverage.txt
+        flags: unittests
+        name: codecov
+        fail_ci_if_error: true
+
+    - name: Run benchmarks
+      run: make bench
