@@ -106,8 +106,14 @@ mod-tidy:
 #  - Add pacakge into tools.go
 #  - Run "make mod-tidy"
 #  - Run "make mod-tool-install"
-mod-tool-install:
+mod-tools-install:
 	@GO111MODULE=on go install $(TOOL_PKGS)
+
+mod-golint-install:
+	@GO111MODULE=on go install golang.org/x/lint/golint
+
+mod-benchcmp-install:
+	@GO111MODULE=on go install golang.org/x/tools/cmd/benchcmp
 
 .PHONY: vendor
 vendor:
