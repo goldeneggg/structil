@@ -12,8 +12,8 @@ jobs:
     strategy:
       matrix:
         go: [ '1.13', '1.12' ]
+    name: Prepare with Go version ${{ matrix.go }}
 
-    name: Tests with Go version ${{ matrix.go }}
     steps:
     - name: Set up Go ${{ matrix.go }}
       uses: actions/setup-go@v2-beta
@@ -35,8 +35,14 @@ jobs:
     - name: Download dependency go modules
       run: make mod-dl
 
+  # build:
+  #   runs-on: ubuntu-latest
+  #   needs: [prepare]
+  #   name: Prepare with Go version ${{ matrix.go }}
+
+  #   steps:
     - name: Install go tools on module-aware mode
-      run: GOBIN=${GITHUB_WORKSPACE}/bin make mod-tool-install
+      run: GOBIN=${GITHUB_WORKSPACE}/bin make mod-tools-install
 
     - name: Add GITHUB_WORKSPACE/bin into PATH
       run: echo "::add-path::${GITHUB_WORKSPACE}/bin"
@@ -44,7 +50,7 @@ jobs:
     - name: Run tests and linters
       run: make ci
 
-    - name: Upload coverage to Codecov
+    - name: Send a coverage to Codecov
       uses: codecov/codecov-action@v1
       with:
         # Note: file does not support environment value, context, and expression
@@ -57,3 +63,9 @@ jobs:
 
     - name: Run benchmarks
       run: make bench
+
+    - name: Upload a current benchmark result
+      uses: actions/upload-artifact@v1
+      with:
+        name: benchmark-result
+        path: ./.prof/bench.new
