@@ -4,47 +4,69 @@ on:
   push:
     branches:
       - master
+    paths-ignore:
+      - '**/*.md'
+      - 'LICENSE'
+      - '**/.gitignore'
+      - 'Dockerfile'
+      - '.dockerignore'
   pull_request:
+    paths-ignore:
+      - '**/*.md'
+      - 'LICENSE'
+      - '**/.gitignore'
+      - 'Dockerfile'
+      - '.dockerignore'
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: Build with Go version ${{ matrix.go }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        os: [ 'ubuntu-latest' ]
         go: [ '1.13', '1.12' ]
+    env:
+      CI_BENCH_RESULT: .test/bench.new
 
-    name: Tests with Go version ${{ matrix.go }}
     steps:
     - name: Set up Go ${{ matrix.go }}
+      id: setup-go
       uses: actions/setup-go@v2-beta
       with:
         go-version: ${{ matrix.go }}
 
-    - name: Confirm Go version
-      run: go version
-
-    - name: Confirm Go env
-      run: go env
-
-    - name: Confirm system env
-      run: env
-
     - name: Check out code into the Go module directory
+      id: checkout
       uses: actions/checkout@v2
 
+    - name: Cache dependencies and tools
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
     - name: Download dependency go modules
+      id: mod-dl
       run: make mod-dl
 
     - name: Install go tools on module-aware mode
-      run: GOBIN=${GITHUB_WORKSPACE}/bin make mod-tool-install
+      id: mod-tools-install
+      run: GOBIN=${GITHUB_WORKSPACE}/bin make mod-tools-install
 
     - name: Add GITHUB_WORKSPACE/bin into PATH
+      id: add-gobin-path
       run: echo "::add-path::${GITHUB_WORKSPACE}/bin"
 
     - name: Run tests and linters
+      id: ci
       run: make ci
 
-    - name: Upload coverage to Codecov
+    - name: Send a coverage to Codecov
+      id: codecov
       uses: codecov/codecov-action@v1
       with:
         # Note: file does not support environment value, context, and expression
@@ -53,7 +75,33 @@ jobs:
         file: ./coverage.txt
         flags: unittests
         name: codecov
-        fail_ci_if_error: true
+        fail_ci_if_error: false
 
-    - name: Run benchmarks
-      run: make bench
+    - name: Dump contexts
+      env:
+        RUNNER_CONTEXT: ${{ toJson(runner) }}
+        STRATEGY_CONTEXT: ${{ toJson(strategy) }}
+        MATRIX_CONTEXT: ${{ toJson(matrix) }}
+        JOB_CONTEXT: ${{ toJson(job) }}
+        STEPS_CONTEXT: ${{ toJson(steps) }}
+      run: |
+        echo "RUNNER_CONTEXT = $RUNNER_CONTEXT"
+        echo "----------"
+        echo "STRATEGY_CONTEXT = $STRATEGY_CONTEXT"
+        echo "----------"
+        echo "MATRIX_CONTEXT = $MATRIX_CONTEXT"
+        echo "----------"
+        echo "JOB_CONTEXT = $JOB_CONTEXT"
+        echo "----------"
+        echo "STEPS_CONTEXT = $STEPS_CONTEXT"
+
+    # - name: Run benchmarks
+    #   id: bench
+    #   run: make bench
+
+    # - name: Upload a current benchmark result
+    #   id: upload-bench-result
+    #   uses: actions/upload-artifact@v1
+    #   with:
+    #     name: benchmark-result
+    #     path: ${{ env.CI_BENCH_RESULT }}
