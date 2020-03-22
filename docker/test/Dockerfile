@@ -1,0 +1,13 @@
+FROM golang:1.13
+
+ENV CGO_ENABLED=1
+ENV APP_DIR /go/src/github.com/goldeneggg/structil
+
+WORKDIR ${APP_DIR}
+
+COPY --from=structil/mod:latest /go/pkg/mod /go/pkg/mod
+
+COPY . ${APP_DIR}
+
+ENTRYPOINT ["make"]
+CMD ["test"]

@@ -1,8 +1,4 @@
-.git
-.github
-.test
+.git/
+.github/
+.test/
 .envrc
-.idea
-*.swp
-*.log
-.DS_STORE

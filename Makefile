@@ -117,21 +117,6 @@ godoc:
 vendor:
 	@GO111MODULE=on go mod vendor
 
-docker-build:
-	@docker image build -t structil/dev .
-
-docker-test: docker-build
-	@docker container run structil/dev test
-
-docker-lint: docker-build
-	@docker container run structil/dev lint
-
-docker-bench: docker-build
-	@docker container run -v `pwd`/.test:/go/src/github.com/goldeneggg/structil/.test:cached structil/dev bench
-
-hadolint: 
-	@hadolint Dockerfile
-
 .PHONY: clean
 clean:
 	@go clean -i -x -cache -testcache $(PKGS) $(TOOL_PKGS)
@@ -144,3 +129,32 @@ clean:
 .PHONY: clean-mod-cache
 clean-mod-cache:
 	@go clean -i -x -modcache $(PKGS) $(TOOL_PKGS)
+
+
+#####
+#
+# for Docker
+#
+#####
+
+DOCKER_DIR := ./docker
+DOCKER_IMAGE_MOD := structil/mod
+DOCKER_IMAGE_TEST := structil/test
+
+-docker-build-for-mod:
+	@docker image build -t $(DOCKER_IMAGE_MOD) -f $(DOCKER_DIR)/mod/Dockerfile .
+
+-docker-build-for-test: -docker-build-for-mod
+	@docker image build -t $(DOCKER_IMAGE_TEST) -f $(DOCKER_DIR)/test/Dockerfile .
+
+docker-test: -docker-build-for-test
+	@docker container run --rm --cpus 2 $(DOCKER_IMAGE_TEST) test
+
+docker-lint: -docker-build-for-test
+	@docker container run --rm $(DOCKER_IMAGE_TEST) lint
+
+docker-bench: -docker-build-for-test
+	@docker container run --rm --cpus 2 -v `pwd`/.test:/go/src/github.com/goldeneggg/structil/.test:cached $(DOCKER_IMAGE_TEST) bench
+
+hadolint: 
+	@hadolint Dockerfile
