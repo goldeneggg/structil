@@ -141,10 +141,12 @@ DOCKER_DIR := ./docker
 DOCKER_IMAGE_MOD := structil/mod
 DOCKER_IMAGE_TEST := structil/test
 
+# PENDING
 -docker-build-for-mod:
 	@docker image build -t $(DOCKER_IMAGE_MOD) -f $(DOCKER_DIR)/mod/Dockerfile .
 
--docker-build-for-test: -docker-build-for-mod
+# -docker-build-for-test: -docker-build-for-mod
+-docker-build-for-test:
 	@docker image build -t $(DOCKER_IMAGE_TEST) -f $(DOCKER_DIR)/test/Dockerfile .
 
 docker-test: -docker-build-for-test
