@@ -47,12 +47,6 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
 
-    - name: Download dependency go modules
-      run: make mod-dl
-
-    - name: Install go tools on module-aware mode
-      run: GOBIN=${GITHUB_WORKSPACE}/bin make mod-tools-install
-
     - name: Cache dependencies and tools
       uses: actions/cache@v1
       with:
@@ -60,6 +54,12 @@ jobs:
         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-
+
+    - name: Download dependency go modules
+      run: make mod-dl
+
+    - name: Install go tools on module-aware mode
+      run: GOBIN=${GITHUB_WORKSPACE}/bin make mod-tools-install
 
     - name: Add GITHUB_WORKSPACE/bin into PATH
       run: echo "::add-path::${GITHUB_WORKSPACE}/bin"
