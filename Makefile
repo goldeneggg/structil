@@ -130,6 +130,9 @@ docker-lint: docker-build
 docker-bench: docker-build
 	@docker container run structil/dev bench
 
+hadolint: 
+	@hadolint Dockerfile
+
 .PHONY: clean
 clean:
 	@go clean -i -x -cache -testcache $(PKGS) $(TOOL_PKGS)
