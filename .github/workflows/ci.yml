@@ -30,42 +30,15 @@ jobs:
       CI_BENCH_RESULT: .test/bench.new
 
     steps:
-    - name: Confirm environment information
-      id: confirm-env
-      run: |
-        uname -a
-        id
-        env
-
-    - name: Dump env context
-      id: dump-env-context
-      env:
-        ENV_CONTEXT: ${{ toJson(env) }}
-      run: echo "$ENV_CONTEXT"
-
     - name: Set up Go ${{ matrix.go }}
       id: setup-go
       uses: actions/setup-go@v2-beta
       with:
         go-version: ${{ matrix.go }}
 
-    - name: Confirm Go version
-      id: confirm-go-version
-      run: go version
-
-    - name: Confirm Go env
-      id: confirm-go-env
-      run: go env
-
     - name: Check out code into the Go module directory
       id: checkout
       uses: actions/checkout@v2
-
-    - name: DEBUG Dump steps context after checkout
-      id: debug-steps-context-checkout
-      env:
-        STEPS_CONTEXT: ${{ toJson(steps) }}
-      run: echo "$STEPS_CONTEXT"
 
     - name: Cache dependencies and tools
       id: cache
@@ -104,13 +77,31 @@ jobs:
         name: codecov
         fail_ci_if_error: false
 
-    - name: Run benchmarks
-      id: bench
-      run: make bench
+    - name: Dump contexts
+      env:
+        RUNNER_CONTEXT: ${{ toJson(runner) }}
+        STRATEGY_CONTEXT: ${{ toJson(strategy) }}
+        MATRIX_CONTEXT: ${{ toJson(matrix) }}
+        JOB_CONTEXT: ${{ toJson(job) }}
+        STEPS_CONTEXT: ${{ toJson(steps) }}
+      run: |
+        echo "RUNNER_CONTEXT = $RUNNER_CONTEXT"
+        echo "----------"
+        echo "STRATEGY_CONTEXT = $STRATEGY_CONTEXT"
+        echo "----------"
+        echo "MATRIX_CONTEXT = $MATRIX_CONTEXT"
+        echo "----------"
+        echo "JOB_CONTEXT = $JOB_CONTEXT"
+        echo "----------"
+        echo "STEPS_CONTEXT = $STEPS_CONTEXT"
 
-    - name: Upload a current benchmark result
-      id: upload-bench-result
-      uses: actions/upload-artifact@v1
-      with:
-        name: benchmark-result
-        path: ${{ env.CI_BENCH_RESULT }}
+    # - name: Run benchmarks
+    #   id: bench
+    #   run: make bench
+
+    # - name: Upload a current benchmark result
+    #   id: upload-bench-result
+    #   uses: actions/upload-artifact@v1
+    #   with:
+    #     name: benchmark-result
+    #     path: ${{ env.CI_BENCH_RESULT }}
