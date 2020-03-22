@@ -76,7 +76,6 @@ benchmark = go test -run=NONE -bench . -benchmem -cpu 1,2 -benchtime=500ms -coun
 .PHONY: bench
 bench: -mk-testdir -mv-bench-result
 	@$(call benchmark,,$(PKGS))
-	@benchstat $(BENCH_NEW)
 
 .PHONY: benchstat
 benchstat: mod-benchstat-install $(BENCH_OLD) $(BENCH_NEW)
@@ -128,7 +127,7 @@ docker-lint: docker-build
 	@docker container run structil/dev lint
 
 docker-bench: docker-build
-	@docker container run structil/dev bench
+	@docker container run -v `pwd`/.test:/go/src/github.com/goldeneggg/structil/.test:cached structil/dev bench
 
 hadolint: 
 	@hadolint Dockerfile
