@@ -75,6 +75,7 @@ jobs:
         name: codecov
         fail_ci_if_error: false
 
+    # TODO: 内容確認用（後で消す）
     - name: Dump context envs
       id: dump-context-envs
       env:
@@ -138,6 +139,8 @@ jobs:
       id: bench
       run: make bench
 
+    # FIXME: artifactにuploadしても新旧のベンチマーク比較は行えないので、
+    # continuous benchmarkingの対策は別途必要
     - name: Upload a current benchmark result
       id: upload-bench-result
       uses: actions/upload-artifact@v1
@@ -145,6 +148,7 @@ jobs:
         name: benchmark-result
         path: ${{ env.CI_BENCH_RESULT }}
 
+    # TODO: 内容確認用（後で消す）
     - name: Dump context envs
       id: dump-context-envs
       env:
