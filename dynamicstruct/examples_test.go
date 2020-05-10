@@ -6,7 +6,7 @@ import (
 	"github.com/goldeneggg/structil"
 )
 
-func ExampleDynamicStruct_DecodeMap() {
+func Example() {
 	type Hoge struct {
 		Key   string
 		Value interface{}
