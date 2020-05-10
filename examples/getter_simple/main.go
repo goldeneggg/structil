@@ -35,4 +35,6 @@ func main() {
 	}
 
 	fmt.Printf("Name: %#v, Age: %#v, Company: %#v\n", getter.String("Name"), getter.Int("Age"), getter.Get("Company"))
+	// Output:
+	// Name: "Mike Davis", Age: 27, Company: main.company{Name:"Scott inc.", Address:"Osaka", Period:2}
 }

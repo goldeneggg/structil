@@ -41,6 +41,7 @@ func main() {
 		panic(err)
 	}
 
+	// Each of Companies field are applied map function as follows.
 	fn := func(i int, g structil.Getter) (interface{}, error) {
 		return fmt.Sprintf(
 			"You worked for %d years since you joined the company %s",
@@ -55,4 +56,6 @@ func main() {
 	}
 
 	fmt.Printf("%#v", intfs)
+	// Output:
+	// []interface {}{"You worked for 3 years since you joined the company Dragons inc.", "You worked for 2 years since you joined the company Swallows inc."}
 }

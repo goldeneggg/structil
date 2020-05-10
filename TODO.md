@@ -11,7 +11,7 @@ __TODO list__
 
 ## `Finder`
 - [ ] performance tuning (by using `FieldByIndex` ?)
-
+- [ ] may be deprecated `FindTop`
 
 ## `Getter`
 - [ ] add `Names` method

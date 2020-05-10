@@ -20,11 +20,11 @@ Object conversion examples as follows
 - etc
 
 ```
-JSON →↓                 struct  →→→→→→→↓
-      ↓                                ↓
-YAML →→→→ map →→→→ "DynamicStruct" →→→→→ ”Getter" / "Finder"
+JSON →↓                 struct  →→→→↓
+      ↓                             ↓
+      ↓→→ map →→→ "DynamicStruct" →→→ ”Getter" / "Finder"
       ↑
-map →→↑
+YAML →↑
 ```
 
 Please see [my medium post](https://medium.com/@s0k0mata/dynamic-and-runtime-struct-utilities-in-go-go-golang-reflection-25c154335185) as well.

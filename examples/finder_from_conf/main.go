@@ -59,26 +59,50 @@ func main() {
 		},
 	}
 
+	// Get `FinderKeys` object by calling `NewFinderKeys` with config file dir and baseName
+	// This config file path is "examples/finder_from_conf/ex_json.json"
 	fks, err := structil.NewFinderKeys("examples/finder_from_conf", "ex_json")
 	if err != nil {
 		panic(err)
 	}
+
 	fmt.Printf("fks.Keys(json): %#v\n", fks.Keys())
+	// Output:
+	// fks.Keys(json): []string{"Company.Group.Name", "Company.Group.Boss", "Company.Address", "Company.Period", "Name", "Age"}
 
 	finder, err := structil.NewFinder(i)
 	if err != nil {
 		panic(err)
 	}
 
-	m, err := finder.FromKeys(fks).ToMap()
-	fmt.Printf("Found Map(json): %#v, err: %v\n", m, err)
+	// And build `Finder` object using `FromKeys` method with `FinderKeys` object
+	finder = finder.FromKeys(fks)
+	// This returns same result as follows:
+	//
+	// finder = finder.FindTop("Name", "Age").
+	//   Into("Company").Find("Address", "Period").
+	//   Into("Company", "Group").Find("Name", "Boss")
 
+	// ToMap converts from found struct fields to map.
+	m, err := finder.ToMap()
+
+	fmt.Printf("Found Map(json): %#v, err: %v\n", m, err)
+	// Output:
+	// Found Map(json): map[string]interface {}{"Age":34, "Company.Address":"Boston", "Company.Group.Boss":"Donald Mac", "Company.Group.Name":"ZZZZZZ Holdings", "Company.Period":11, "Name":"Lisa Mary"}, err: <nil>
+
+	// YAML example as follows
 	fks, err = structil.NewFinderKeys("examples/finder_from_conf", "ex_yml")
 	if err != nil {
 		panic(err)
 	}
+
 	fmt.Printf("fks.Keys(yml): %#v\n", fks.Keys())
+	// Output:
+	// fks.Keys(yml): []string{"Company.Group.Name", "Company.Group.Boss", "Company.Address", "Company.Period", "Name", "Age"}
 
 	m, err = finder.Reset().FromKeys(fks).ToMap()
+
 	fmt.Printf("Found Map(yml): %#v, err: %v\n", m, err)
+	// Output:
+	// Found Map(yml): map[string]interface {}{"Age":34, "Company.Address":"Boston", "Company.Group.Boss":"Donald Mac", "Company.Group.Name":"ZZZZZZ Holdings", "Company.Period":11, "Name":"Lisa Mary"}, err: <nil>
 }
