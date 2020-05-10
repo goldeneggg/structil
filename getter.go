@@ -10,6 +10,7 @@ import (
 type Getter interface {
 	NumField() int
 	Has(name string) bool
+	Names() []string
 	GetType(name string) reflect.Type
 	GetValue(name string) reflect.Value
 	Get(name string) interface{}
@@ -67,6 +68,7 @@ type Getter interface {
 type GetterImpl struct {
 	rv     reflect.Value // Value of input interface
 	numf   int
+	names  []string
 	hases  map[string]bool
 	types  map[string]reflect.Type  // Type map of struct fields
 	values map[string]reflect.Value // Value map of indirected struct fields
@@ -91,9 +93,12 @@ func NewGetter(i interface{}) (Getter, error) {
 		return nil, fmt.Errorf("%+v is invalid argument. value: %+v", i, rv)
 	}
 
+	numf := rv.NumField()
+
 	return &GetterImpl{
 		rv:     rv,
-		numf:   rv.NumField(),
+		numf:   numf,
+		names:  make([]string, 0, numf),
 		hases:  map[string]bool{},
 		values: map[string]reflect.Value{},
 		types:  map[string]reflect.Type{},
@@ -114,6 +119,19 @@ func (g *GetterImpl) Has(name string) bool {
 	}
 
 	return g.hases[name]
+}
+
+// Names returns names of struct field.
+func (g *GetterImpl) Names() []string {
+	if g.numf > 0 && len(g.names) == 0 {
+		var sf reflect.StructField
+		for i := 0; i < g.numf; i++ {
+			sf = g.rv.Type().Field(i)
+			g.names = append(g.names, sf.Name)
+		}
+	}
+
+	return g.names
 }
 
 func (g *GetterImpl) cache(name string) {
