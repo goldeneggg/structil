@@ -15,6 +15,7 @@ __TODO list__
 
 ## `Getter`
 - [ ] add `Names` method
+- [ ] current Getter is unsafe because panic is occured. So add safe Getter that returns an error instead of causing a panic ___This is large refactoring___
 
 
 ## `DynamicStruct`
