@@ -14,7 +14,7 @@ __TODO list__
 - [ ] may be deprecated `FindTop`
 
 ## `Getter`
-- [ ] add `Names` method
+- [x] add `Names` method
 - [ ] current Getter is unsafe because panic is occured. So add safe Getter that returns an error instead of causing a panic ___This is large refactoring___
 
 
@@ -23,5 +23,4 @@ __TODO list__
 
 ## Other
 - [ ] performance benchmark comparing on CI workflow with Github Actions
-- [ ] add usage image
-  - `JSON/YAML => map => DynamicStruct => Getter/Finder`
+- [x] add usage image

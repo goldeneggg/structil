@@ -13,16 +13,18 @@ Struct Utilities for runtime and dynamic environment in Go.
 
 I'd like to ...
 
-- handle conveniently not only known formatted JSON/YAML ___but also "UN"known formatted___ JSON/YAML __by field name access (like map)__
-- dive into the specific field in nested struct __by field name access (like map)__ conveniently
-Object conversion examples as follows
-- verify simply if a field with the specified name exists
+- conveniently handle known ___and unknown___ formatted JSON/YAML
+- conveniently dive into the specific field in nested struct
+- simply verify if a field with the specified name exists in object
 - etc
 
 ```
-JSON →↓        →→→→→→→   struct  →→→→↓
-      ↓        ↑                    ↓
-      ↓→→ map →→→ "DynamicStruct" →→→ ”Getter" / "Finder"
+*** JSON and YAML format is known or unknown ***
+
+
+JSON →↓        →→ (known case) struct  →→→→→→→→→↓→→ (use struct directly)
+      ↓        ↑                                ↓
+      ↓→→ map →→→ (unknown case) DynamicStruct →→→ Getter, Finder
       ↑
 YAML →↑
 ```
