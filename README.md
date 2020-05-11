@@ -6,7 +6,7 @@ structil  [![GoDoc](https://godoc.org/github.com/goldeneggg/structil?status.png)
 [![Codecov](https://codecov.io/github/goldeneggg/structil/coverage.svg?branch=master)](https://codecov.io/github/goldeneggg/structil?branch=master)
 [![MIT License](http://img.shields.io/badge/license-MIT-lightgrey.svg)](https://github.com/goldeneggg/structil/blob/master/LICENSE)
 
-Struct Utilities for runtime and dynamic environment in Go.
+struct + util = __structil__, for runtime and dynamic environment in Go.
 
 
 ## Why?
@@ -33,4 +33,4 @@ Please see [my medium post](https://medium.com/@s0k0mata/dynamic-and-runtime-str
 
 
 ## Examples
-is [here](/examples).
+are [here](/examples).
