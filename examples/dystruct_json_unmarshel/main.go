@@ -54,5 +54,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	fmt.Printf("String: %v, Float: %v, StructPtr: %+v\n", g.String("StringField"), g.Float32("Float32Field"), g.Get("StructPtrField"))
+	// Output:
+	// String: あいうえお, Float: 5.67, StructPtr: {Key:hogekey Value:hogevalue}
 }

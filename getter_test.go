@@ -71,6 +71,7 @@ var (
 )
 
 func newGetterTestStruct() GetterTestStruct {
+	// top level struct has 30 public fields and 1 private fields
 	return GetterTestStruct{
 		Byte:          math.MaxUint8,
 		Bytes:         []byte{0x00, 0xFF},
@@ -432,6 +433,50 @@ func TestHas(t *testing.T) {
 			got := g.Has(tt.args.name)
 			if got != tt.wantBool {
 				t.Errorf("unexpected mismatch: got: %v, want: %v. args: %+v", got, tt.wantBool, tt.args)
+			}
+		})
+	}
+}
+
+func TestNames(t *testing.T) {
+	t.Parallel()
+
+	type args struct {
+		i interface{}
+	}
+	tests := []struct {
+		name                string
+		args                args
+		wantSecondFieldName string
+		wantNamesLength     int
+	}{
+		{
+			name:                "use GetterTestStruct",
+			args:                args{i: &GetterTestStruct{}},
+			wantSecondFieldName: "Bytes",
+			wantNamesLength:     31,
+		},
+		{
+			name:                "use GetterTestStruct2",
+			args:                args{i: &GetterTestStruct2{}},
+			wantSecondFieldName: "GetterTestStruct3",
+			wantNamesLength:     2,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g, err := NewGetter(tt.args.i)
+			if err != nil {
+				t.Errorf("NewGetter() unexpected error [%v] occured", err)
+			}
+
+			names := g.Names()
+			if len(names) != tt.wantNamesLength {
+				t.Errorf("unmatch NumField. got: %d, want: %d", len(names), tt.wantNamesLength)
+			}
+			if names[1] != tt.wantSecondFieldName {
+				t.Errorf("unmatch second field name. got: %s, want: %s", names[1], tt.wantSecondFieldName)
 			}
 		})
 	}
