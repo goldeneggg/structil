@@ -76,22 +76,22 @@ jobs:
         fail_ci_if_error: false
 
     # TODO: 内容確認用（後で消す）
-    - name: Dump context envs
-      id: dump-context-envs
-      env:
-        JOB_CONTEXT: ${{ toJson(job) }}
-        STEPS_CONTEXT: ${{ toJson(steps) }}
-      run: |
-        echo GITHUB_ACTOR=$GITHUB_ACTOR
-        echo GITHUB_REPOSITORY=$GITHUB_REPOSITORY
-        echo GITHUB_EVENT_NAME=$GITHUB_EVENT_NAME
-        echo GITHUB_WORKSPACE=$GITHUB_WORKSPACE
-        echo GITHUB_SHA=$GITHUB_SHA
-        echo GITHUB_REF=$GITHUB_REF
-        echo GITHUB_HEAD_REF=$GITHUB_HEAD_REF
-        echo GITHUB_BASE_REF=$GITHUB_BASE_REF
-        echo JOB_CONTEXT=$JOB_CONTEXT
-        echo STEPS_CONTEXT=$STEPS_CONTEXT
+    # - name: Dump context envs
+    #   id: dump-context-envs
+    #   env:
+    #     JOB_CONTEXT: ${{ toJson(job) }}
+    #     STEPS_CONTEXT: ${{ toJson(steps) }}
+    #   run: |
+    #     echo GITHUB_ACTOR=$GITHUB_ACTOR
+    #     echo GITHUB_REPOSITORY=$GITHUB_REPOSITORY
+    #     echo GITHUB_EVENT_NAME=$GITHUB_EVENT_NAME
+    #     echo GITHUB_WORKSPACE=$GITHUB_WORKSPACE
+    #     echo GITHUB_SHA=$GITHUB_SHA
+    #     echo GITHUB_REF=$GITHUB_REF
+    #     echo GITHUB_HEAD_REF=$GITHUB_HEAD_REF
+    #     echo GITHUB_BASE_REF=$GITHUB_BASE_REF
+    #     echo JOB_CONTEXT=$JOB_CONTEXT
+    #     echo STEPS_CONTEXT=$STEPS_CONTEXT
 
   benchmark:
     name: Benchmark with Go version ${{ matrix.go }}
@@ -149,19 +149,19 @@ jobs:
         path: ${{ env.CI_BENCH_RESULT }}
 
     # TODO: 内容確認用（後で消す）
-    - name: Dump context envs
-      id: dump-context-envs
-      env:
-        JOB_CONTEXT: ${{ toJson(job) }}
-        STEPS_CONTEXT: ${{ toJson(steps) }}
-      run: |
-        echo GITHUB_ACTOR=$GITHUB_ACTOR
-        echo GITHUB_REPOSITORY=$GITHUB_REPOSITORY
-        echo GITHUB_EVENT_NAME=$GITHUB_EVENT_NAME
-        echo GITHUB_WORKSPACE=$GITHUB_WORKSPACE
-        echo GITHUB_SHA=$GITHUB_SHA
-        echo GITHUB_REF=$GITHUB_REF
-        echo GITHUB_HEAD_REF=$GITHUB_HEAD_REF
-        echo GITHUB_BASE_REF=$GITHUB_BASE_REF
-        echo JOB_CONTEXT=$JOB_CONTEXT
-        echo STEPS_CONTEXT=$STEPS_CONTEXT
+    # - name: Dump context envs
+    #   id: dump-context-envs
+    #   env:
+    #     JOB_CONTEXT: ${{ toJson(job) }}
+    #     STEPS_CONTEXT: ${{ toJson(steps) }}
+    #   run: |
+    #     echo GITHUB_ACTOR=$GITHUB_ACTOR
+    #     echo GITHUB_REPOSITORY=$GITHUB_REPOSITORY
+    #     echo GITHUB_EVENT_NAME=$GITHUB_EVENT_NAME
+    #     echo GITHUB_WORKSPACE=$GITHUB_WORKSPACE
+    #     echo GITHUB_SHA=$GITHUB_SHA
+    #     echo GITHUB_REF=$GITHUB_REF
+    #     echo GITHUB_HEAD_REF=$GITHUB_HEAD_REF
+    #     echo GITHUB_BASE_REF=$GITHUB_BASE_REF
+    #     echo JOB_CONTEXT=$JOB_CONTEXT
+    #     echo STEPS_CONTEXT=$STEPS_CONTEXT
