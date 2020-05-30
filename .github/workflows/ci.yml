@@ -67,31 +67,10 @@ jobs:
       id: codecov
       uses: codecov/codecov-action@v1
       with:
-        # Note: file does not support environment value, context, and expression
-        #file: ${{ .env.GITHUB_WORKSPACE }}/coverage.txt
-        #file: ${GITHUB_WORKSPACE}/coverage.txt
         file: ./coverage.txt
         flags: unittests
         name: codecov
         fail_ci_if_error: false
-
-    # TODO: 内容確認用（後で消す）
-    # - name: Dump context envs
-    #   id: dump-context-envs
-    #   env:
-    #     JOB_CONTEXT: ${{ toJson(job) }}
-    #     STEPS_CONTEXT: ${{ toJson(steps) }}
-    #   run: |
-    #     echo GITHUB_ACTOR=$GITHUB_ACTOR
-    #     echo GITHUB_REPOSITORY=$GITHUB_REPOSITORY
-    #     echo GITHUB_EVENT_NAME=$GITHUB_EVENT_NAME
-    #     echo GITHUB_WORKSPACE=$GITHUB_WORKSPACE
-    #     echo GITHUB_SHA=$GITHUB_SHA
-    #     echo GITHUB_REF=$GITHUB_REF
-    #     echo GITHUB_HEAD_REF=$GITHUB_HEAD_REF
-    #     echo GITHUB_BASE_REF=$GITHUB_BASE_REF
-    #     echo JOB_CONTEXT=$JOB_CONTEXT
-    #     echo STEPS_CONTEXT=$STEPS_CONTEXT
 
   benchmark:
     name: Benchmark with Go version ${{ matrix.go }}
@@ -148,20 +127,3 @@ jobs:
         name: benchmark-result
         path: ${{ env.CI_BENCH_RESULT }}
 
-    # TODO: 内容確認用（後で消す）
-    # - name: Dump context envs
-    #   id: dump-context-envs
-    #   env:
-    #     JOB_CONTEXT: ${{ toJson(job) }}
-    #     STEPS_CONTEXT: ${{ toJson(steps) }}
-    #   run: |
-    #     echo GITHUB_ACTOR=$GITHUB_ACTOR
-    #     echo GITHUB_REPOSITORY=$GITHUB_REPOSITORY
-    #     echo GITHUB_EVENT_NAME=$GITHUB_EVENT_NAME
-    #     echo GITHUB_WORKSPACE=$GITHUB_WORKSPACE
-    #     echo GITHUB_SHA=$GITHUB_SHA
-    #     echo GITHUB_REF=$GITHUB_REF
-    #     echo GITHUB_HEAD_REF=$GITHUB_HEAD_REF
-    #     echo GITHUB_BASE_REF=$GITHUB_BASE_REF
-    #     echo JOB_CONTEXT=$JOB_CONTEXT
-    #     echo STEPS_CONTEXT=$STEPS_CONTEXT
