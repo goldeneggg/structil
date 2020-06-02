@@ -35,7 +35,7 @@ mod-tidy:
 # Note: tools additional process as follows
 #  - Add pacakge into tools.go
 #  - Run "make mod-tidy"
-#  - Run "make mod-tool-install"
+#  - Run "make mod-tools-install"
 mod-tools-install: mod-tidy
 	@GO111MODULE=on go install $(TOOL_PKGS)
 

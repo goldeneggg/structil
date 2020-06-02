@@ -25,7 +25,7 @@ jobs:
     strategy:
       matrix:
         os: [ 'ubuntu-latest' ]
-        go: [ '1.13', '1.12' ]
+        go: [ '1.13' ]
 
     steps:
     - name: Set up Go ${{ matrix.go }}
@@ -78,7 +78,7 @@ jobs:
     strategy:
       matrix:
         os: [ 'ubuntu-latest' ]
-        go: [ '1.13', '1.12' ]
+        go: [ '1.13' ]
     env:
       CI_BENCH_RESULT: .test/bench.new
 
@@ -126,4 +126,3 @@ jobs:
       with:
         name: benchmark-result
         path: ${{ env.CI_BENCH_RESULT }}
-
