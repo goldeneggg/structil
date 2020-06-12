@@ -122,7 +122,7 @@ jobs:
     # continuous benchmarkingの対策は別途必要
     - name: Upload a current benchmark result
       id: upload-bench-result
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v2
       with:
         name: benchmark-result
         path: ${{ env.CI_BENCH_RESULT }}
