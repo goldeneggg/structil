@@ -13,9 +13,9 @@ struct + util = __structil__, for runtime and dynamic environment in Go.
 
 I'd like to ...
 
-- conveniently handle known ___and unknown___ formatted JSON/YAML
 - conveniently dive into the specific field in nested struct
-- simply verify if a field with the specified name exists in object
+- simply verify if a field with the specified name and type exists in object
+- conveniently handle known ___and unknown___ formatted JSON/YAML
 - etc
 
 ```
@@ -34,3 +34,11 @@ Please see [my medium post](https://medium.com/@s0k0mata/dynamic-and-runtime-str
 
 ## Examples
 are [here](/examples).
+
+
+## Benchmark
+Latest benchmark result is...
+
+1. Check [Actions tab](https://github.com/goldeneggg/structil/actions)
+2. Click the latest workflow from `All workflows`
+3. Select the `This run` tab and check `benchmark-result` artifact
