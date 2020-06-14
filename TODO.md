@@ -20,6 +20,7 @@ __TODO list__
 
 ## `DynamicStruct`
 - [ ]  performance tuning
+- [ ]  direct and simple conversion from JSON/YAML to DynamicStruct (and Getter)
 
 ## Other
 - [x] performance benchmark comparing on CI workflow with Github Actions
