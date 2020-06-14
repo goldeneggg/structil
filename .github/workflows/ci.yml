@@ -80,7 +80,9 @@ jobs:
         os: [ 'ubuntu-latest' ]
         go: [ '1.13' ]
     env:
+      # See: Makefile
       CI_BENCH_RESULT: .test/bench.new
+      CI_BENCHSTAT_VS_MASTER: /tmp/benchstat-vs-master
 
     steps:
     - name: Set up Go ${{ matrix.go }}
@@ -118,11 +120,22 @@ jobs:
       id: bench
       run: make bench
 
-    # FIXME: artifactにuploadしても新旧のベンチマーク比較は行えないので、
-    # continuous benchmarkingの対策は別途必要
     - name: Upload a current benchmark result
-      id: upload-bench-result
+      id: upload-benchmark
+      continue-on-error: true
       uses: actions/upload-artifact@v2
       with:
-        name: benchmark-result
+        name: benchmark
         path: ${{ env.CI_BENCH_RESULT }}
+
+    - name: Run benchstat current vs master
+      id: benchstat-current-vs-master
+      run: make benchstat-ci > ${{ env.CI_BENCHSTAT_VS_MASTER }}
+
+    - name: Upload a benchstat-vsmaster result
+      id: upload-benchstat-vs-master
+      continue-on-error: true
+      uses: actions/upload-artifact@v2
+      with:
+        name: benchstat-vs-master
+        path: ${{ env.CI_BENCHSTAT_VS_MASTER }}
