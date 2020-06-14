@@ -38,3 +38,5 @@ are [here](/examples).
 
 ## Benchmark
 See [BENCHMARK_MASTER.txt](/BENCHMARK_MASTER.txt)
+
+This is a benchmark result that is executed on GitHub Actions runner instance.
