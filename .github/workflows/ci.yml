@@ -143,30 +143,42 @@ jobs:
       name: Run benchmarks
       run: make bench
 
-    # - id: upload-benchmark
-    #   name: Upload a current benchmark result
-    #   continue-on-error: true
-    #   uses: actions/upload-artifact@v2
-    #   with:
-    #     name: benchmark
-    #     path: ${{ env.CI_BENCH_RESULT }}
+    - id: upload-benchmark
+      name: Upload a current benchmark result
+      continue-on-error: true
+      uses: actions/upload-artifact@v2
+      with:
+        name: benchmark
+        path: ${{ env.CI_BENCH_RESULT }}
 
     - id: benchstat-current-vs-master
       name: Run benchstat current vs master
       run: make benchstat-ci | tee ${{ env.CI_BENCHSTAT_VS_MASTER }}
 
-    - id: upload-benchstat-vs-master
-      name: Upload a benchstat-vsmaster result (only on pull_request)
-      if: github.event_name == 'pull_request'
-      continue-on-error: true
-      uses: actions/upload-artifact@v2
-      with:
-        name: benchstat-vs-master
-        path: ${{ env.CI_BENCHSTAT_VS_MASTER }}
+    # - id: upload-benchstat-vs-master
+    #   name: Upload a benchstat-vsmaster result (only on pull_request)
+    #   if: github.event_name == 'pull_request'
+    #   continue-on-error: true
+    #   uses: actions/upload-artifact@v2
+    #   with:
+    #     name: benchstat-vs-master
+    #     path: ${{ env.CI_BENCHSTAT_VS_MASTER }}
 
     ###
     # only on push to master
     ###
+    - id: download-benchmark
+      name: Download a latest benchmark result
+      uses: actions/download-artifact@v2
+      with:
+        name: benchmark
+        path: /tmp/benchmark
+
+    - id: confirm-downloaded-benchmark
+      name: Confirm downloaded benchmark result
+      run: ls -lrt
+      working-directory: /tmp/benchmark
+
     - id: create-benchmark-master-txt
       name: Create BENCHMARK_MASTER.txt from latest benchmark result (only on push)
       if: github.event_name == 'push'
@@ -185,6 +197,12 @@ jobs:
         git commit -m "Automated update benchmark report"
         git push
 
+    - id: confirm-version
+      name: Confirm version from version.go
+      run: |
+        v=$(make mod-dl)
+        echo "::set-output name=version::${v}"
+
     - id: create-draft-release
       name: Create draft release (only on push)
       if: github.event_name == 'push'
@@ -192,8 +210,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: NEED_TO_SET_TAG
-        release_name: Release NEED_TO_SET_TAG
+        tag_name: MAYBE-${{ steps.confirm-version.outputs.version }}
+        release_name: Release MAYBE-${{ steps.confirm-version.outputs.version }}
         body: |
           Changes in this Release
           - TODO1
