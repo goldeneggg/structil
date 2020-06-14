@@ -167,9 +167,23 @@ jobs:
     #     name: benchstat-vs-master
     #     path: ${{ env.BENCHSTAT_VS_MASTER }}
 
-    ###
-    # only on push to master
-    ###
+
+  ###
+  # only on push to master
+  ###
+  draft-release:
+    name: Draft release with Go version ${{ matrix.go }}
+    needs: [test, benchmark]
+    #if: github.event_name == 'push'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ 'ubuntu-latest' ]
+        go: [ '1.13' ]
+    env:
+      BENCHMARK_MASTER: BENCHMARK_MASTER.txt
+
+    steps:
     - id: download-benchmark
       name: Download a latest benchmark result
       uses: actions/download-artifact@v2
