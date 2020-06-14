@@ -145,17 +145,17 @@ DOCKER_IMAGE_TEST := structil/test
 -docker-build-for-mod:
 	@docker image build -t $(DOCKER_IMAGE_MOD) -f $(DOCKER_DIR)/mod/Dockerfile .
 
-# -docker-build-for-test: -docker-build-for-mod
--docker-build-for-test:
+# docker-build-for-test: -docker-build-for-mod
+docker-build-for-test:
 	@docker image build -t $(DOCKER_IMAGE_TEST) -f $(DOCKER_DIR)/test/Dockerfile .
 
-docker-test: -docker-build-for-test
+docker-test: docker-build-for-test
 	@docker container run --rm --cpus 2 $(DOCKER_IMAGE_TEST) test
 
-docker-lint: -docker-build-for-test
+docker-lint: docker-build-for-test
 	@docker container run --rm $(DOCKER_IMAGE_TEST) lint
 
-docker-bench: -docker-build-for-test
+docker-bench: docker-build-for-test
 	@docker container run --rm --cpus 2 -v `pwd`/.test:/go/src/github.com/goldeneggg/structil/.test:cached $(DOCKER_IMAGE_TEST) bench
 
 hadolint: 
