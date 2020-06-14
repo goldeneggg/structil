@@ -4,6 +4,7 @@ PKG_DYNAMICSTRUCT := github.com/goldeneggg/structil/dynamicstruct
 TESTDIR := ./.test
 BENCH_OLD := $(TESTDIR)/bench.old
 BENCH_NEW := $(TESTDIR)/bench.new
+BENCH_MASTER_URL := https://raw.githubusercontent.com/goldeneggg/structil/master/BENCHMARK_MASTER.txt
 TRACE := $(TESTDIR)/trace.out
 TESTBIN_STRUCTIL := $(TESTDIR)/structil.test
 TESTBIN_DYNAMICSTRUCT := $(TESTDIR)/dynamicstruct.test
@@ -35,7 +36,7 @@ mod-tidy:
 # Note: tools additional process as follows
 #  - Add pacakge into tools.go
 #  - Run "make mod-tidy"
-#  - Run "make mod-tool-install"
+#  - Run "make mod-tools-install"
 mod-tools-install: mod-tidy
 	@GO111MODULE=on go install $(TOOL_PKGS)
 
@@ -80,6 +81,10 @@ bench: -mk-testdir -mv-bench-result
 .PHONY: benchstat
 benchstat: mod-benchstat-install $(BENCH_OLD) $(BENCH_NEW)
 	@benchstat $(BENCH_OLD) $(BENCH_NEW)
+
+.PHONY: benchstat-ci
+benchstat-ci: mod-benchstat-install
+	@bash -c "benchstat <(curl -sSL $(BENCH_MASTER_URL)) $(BENCH_NEW)"
 
 # WIP
 .PHONY: benchstat-gist
@@ -145,17 +150,17 @@ DOCKER_IMAGE_TEST := structil/test
 -docker-build-for-mod:
 	@docker image build -t $(DOCKER_IMAGE_MOD) -f $(DOCKER_DIR)/mod/Dockerfile .
 
-# -docker-build-for-test: -docker-build-for-mod
--docker-build-for-test:
+# docker-build-for-test: -docker-build-for-mod
+docker-build-for-test:
 	@docker image build -t $(DOCKER_IMAGE_TEST) -f $(DOCKER_DIR)/test/Dockerfile .
 
-docker-test: -docker-build-for-test
+docker-test: docker-build-for-test
 	@docker container run --rm --cpus 2 $(DOCKER_IMAGE_TEST) test
 
-docker-lint: -docker-build-for-test
+docker-lint: docker-build-for-test
 	@docker container run --rm $(DOCKER_IMAGE_TEST) lint
 
-docker-bench: -docker-build-for-test
+docker-bench: docker-build-for-test
 	@docker container run --rm --cpus 2 -v `pwd`/.test:/go/src/github.com/goldeneggg/structil/.test:cached $(DOCKER_IMAGE_TEST) bench
 
 hadolint: 
