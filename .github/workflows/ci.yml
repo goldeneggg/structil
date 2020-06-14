@@ -163,6 +163,10 @@ jobs:
       BENCHMARK_MASTER: BENCHMARK_MASTER.txt
 
     steps:
+    - id: checkout
+      name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+
     - id: download-benchmark
       name: Download a latest benchmark result
       continue-on-error: true
