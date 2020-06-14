@@ -30,7 +30,7 @@ jobs:
     steps:
     - name: Set up Go ${{ matrix.go }}
       id: setup-go
-      uses: actions/setup-go@v2-beta
+      uses: actions/setup-go@v2
       with:
         go-version: ${{ matrix.go }}
 
@@ -85,7 +85,7 @@ jobs:
     steps:
     - name: Set up Go ${{ matrix.go }}
       id: setup-go
-      uses: actions/setup-go@v2-beta
+      uses: actions/setup-go@v2
       with:
         go-version: ${{ matrix.go }}
 
