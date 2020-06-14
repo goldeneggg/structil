@@ -37,8 +37,4 @@ are [here](/examples).
 
 
 ## Benchmark
-Latest benchmark result is...
-
-1. Check [Actions tab](https://github.com/goldeneggg/structil/actions)
-2. Click the latest workflow from `All workflows`
-3. Select the `This run` tab and check `benchmark-result` artifact
+See [BENCHMARK_MASTER.txt](/BENCHMARK_MASTER.txt)
