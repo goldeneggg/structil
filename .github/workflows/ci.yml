@@ -18,6 +18,11 @@ on:
       - 'Dockerfile'
       - '.dockerignore'
 
+env:
+  # See: Makefile
+  BENCHMARK_DIR: .test
+  BENCHMARK_FILE: bench.new
+
 jobs:
   test:
     name: Test with Go version ${{ matrix.go }}
@@ -102,9 +107,7 @@ jobs:
         os: [ 'ubuntu-latest' ]
         go: [ '1.13' ]
     env:
-      # See: Makefile
-      CI_BENCH_RESULT: .test/bench.new
-      CI_BENCHSTAT_VS_MASTER: /tmp/benchstat-vs-master
+      BENCHSTAT_VS_MASTER: /tmp/benchstat-vs-master
       BENCHMARK_MASTER: BENCHMARK_MASTER.txt
 
     steps:
@@ -145,15 +148,15 @@ jobs:
 
     - id: upload-benchmark
       name: Upload a current benchmark result
-      continue-on-error: true
       uses: actions/upload-artifact@v2
       with:
-        name: benchmark
-        path: ${{ env.CI_BENCH_RESULT }}
+        name: benchmark-${{ matrix.go }}
+        path: ${{ env.BENCHMARK_DIR }}/${{ env.BENCHMARK_FILE }}
 
     - id: benchstat-current-vs-master
       name: Run benchstat current vs master
-      run: make benchstat-ci | tee ${{ env.CI_BENCHSTAT_VS_MASTER }}
+      continue-on-error: true
+      run: make benchstat-ci | tee ${{ env.BENCHSTAT_VS_MASTER }}
 
     # - id: upload-benchstat-vs-master
     #   name: Upload a benchstat-vsmaster result (only on pull_request)
@@ -162,7 +165,7 @@ jobs:
     #   uses: actions/upload-artifact@v2
     #   with:
     #     name: benchstat-vs-master
-    #     path: ${{ env.CI_BENCHSTAT_VS_MASTER }}
+    #     path: ${{ env.BENCHSTAT_VS_MASTER }}
 
     ###
     # only on push to master
@@ -171,18 +174,17 @@ jobs:
       name: Download a latest benchmark result
       uses: actions/download-artifact@v2
       with:
-        name: benchmark
-        path: /tmp/benchmark
+        name: benchmark-${{ matrix.go }}
+        path: ${{ env.BENCHMARK_DIR }}
 
     - id: confirm-downloaded-benchmark
       name: Confirm downloaded benchmark result
-      run: ls -lrt
-      working-directory: /tmp/benchmark
+      run: ls -lrt ${{ env.BENCHMARK_DIR }}
 
     - id: create-benchmark-master-txt
       name: Create BENCHMARK_MASTER.txt from latest benchmark result (only on push)
       if: github.event_name == 'push'
-      run: cp -f ${{ env.CI_BENCH_RESULT }} ${{ env.BENCHMARK_MASTER }}
+      run: cp -f ${{ env.BENCHMARK_DIR }}/${{ env.BENCHMARK_FILE }} ${{ env.BENCHMARK_MASTER }}
 
     # See: https://stackoverflow.com/questions/57921401/push-to-origin-from-github-action
     - id: commit-push-benchmark-master
@@ -200,7 +202,7 @@ jobs:
     - id: confirm-version
       name: Confirm version from version.go
       run: |
-        v=$(make mod-dl)
+        v=$(make version)
         echo "::set-output name=version::${v}"
 
     - id: create-draft-release
