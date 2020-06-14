@@ -77,27 +77,6 @@ jobs:
         name: codecov
         fail_ci_if_error: false
 
-    - id: dump-contexts-after
-      name: Dump contexts After
-      if: ${{ always() }}
-      env:
-        JOB_CONTEXT: ${{ toJson(job) }}
-        STEPS_CONTEXT: ${{ toJson(steps) }}
-        RUNNER_CONTEXT: ${{ toJson(runner) }}
-        STRATEGY_CONTEXT: ${{ toJson(strategy) }}
-        MATRIX_CONTEXT: ${{ toJson(matrix) }}
-      run: |
-        echo ">>>>>>>>>> show JOB_CONTEXT"
-        echo "$JOB_CONTEXT"
-        echo ">>>>>>>>>> show STEPS_CONTEXT"
-        echo "$STEPS_CONTEXT"
-        echo ">>>>>>>>>> show RUNNER_CONTEXT"
-        echo "$RUNNER_CONTEXT"
-        echo ">>>>>>>>>> show STRATEGY_CONTEXT"
-        echo "$STRATEGY_CONTEXT"
-        echo ">>>>>>>>>> show MATRIX_CONTEXT"
-        echo "$MATRIX_CONTEXT"
-
 
   benchmark:
     name: Benchmark with Go version ${{ matrix.go }}
@@ -186,6 +165,7 @@ jobs:
     steps:
     - id: download-benchmark
       name: Download a latest benchmark result
+      continue-on-error: true
       uses: actions/download-artifact@v2
       with:
         name: benchmark-${{ matrix.go }}
@@ -193,16 +173,19 @@ jobs:
 
     - id: confirm-downloaded-benchmark
       name: Confirm downloaded benchmark result
+      continue-on-error: true
       run: ls -lrt ${{ env.BENCHMARK_DIR }}
 
     - id: create-benchmark-master-txt
       name: Create BENCHMARK_MASTER.txt from latest benchmark result (only on push)
-      if: github.event_name == 'push'
+      continue-on-error: true
+      #if: github.event_name == 'push'
       run: cp -f ${{ env.BENCHMARK_DIR }}/${{ env.BENCHMARK_FILE }} ${{ env.BENCHMARK_MASTER }}
 
     # See: https://stackoverflow.com/questions/57921401/push-to-origin-from-github-action
     - id: commit-push-benchmark-master
       name: Commit and push BENCHMARK_MASTER.txt (only on push)
+      continue-on-error: true
       if: github.event_name == 'push'
       run: |
         pwd
