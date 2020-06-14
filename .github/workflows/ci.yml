@@ -28,18 +28,18 @@ jobs:
         go: [ '1.13' ]
 
     steps:
-    - name: Set up Go ${{ matrix.go }}
-      id: setup-go
+    - id: setup-go
+      name: Set up Go ${{ matrix.go }}
       uses: actions/setup-go@v2
       with:
         go-version: ${{ matrix.go }}
 
-    - name: Check out code into the Go module directory
-      id: checkout
+    - id: checkout
+      name: Check out code into the Go module directory
       uses: actions/checkout@v2
 
-    - name: Cache dependencies and tools
-      id: cache
+    - id: cache
+      name: Cache dependencies and tools
       uses: actions/cache@v2
       with:
         path: ~/go/pkg/mod
@@ -47,30 +47,52 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-go-
 
-    - name: Download dependency go modules
-      id: mod-dl
+    - id: mod-dl
+      name: Download dependency go modules
       run: make mod-dl
 
-    - name: Install go tools on module-aware mode
-      id: mod-tools-install
+    - id: mod-tools-install
+      name: Install go tools on module-aware mode
       run: GOBIN=${GITHUB_WORKSPACE}/bin make mod-tools-install
 
-    - name: Add GITHUB_WORKSPACE/bin into PATH
-      id: add-gobin-path
+    - id: add-gobin-path
+      name: Add GITHUB_WORKSPACE/bin into PATH
       run: echo "::add-path::${GITHUB_WORKSPACE}/bin"
 
-    - name: Run tests and linters
-      id: ci
+    - id: ci
+      name: Run tests and linters
       run: make ci
 
-    - name: Send a coverage to Codecov
-      id: codecov
+    - id: codecov
+      name: Send a coverage to Codecov
       uses: codecov/codecov-action@v1
       with:
         file: ./coverage.txt
         flags: unittests
         name: codecov
         fail_ci_if_error: false
+
+    - id: dump-contexts-after
+      name: Dump contexts After
+      if: ${{ always() }}
+      env:
+        JOB_CONTEXT: ${{ toJson(job) }}
+        STEPS_CONTEXT: ${{ toJson(steps) }}
+        RUNNER_CONTEXT: ${{ toJson(runner) }}
+        STRATEGY_CONTEXT: ${{ toJson(strategy) }}
+        MATRIX_CONTEXT: ${{ toJson(matrix) }}
+      run: |
+        echo ">>>>>>>>>> show JOB_CONTEXT"
+        echo "$JOB_CONTEXT"
+        echo ">>>>>>>>>> show STEPS_CONTEXT"
+        echo "$STEPS_CONTEXT"
+        echo ">>>>>>>>>> show RUNNER_CONTEXT"
+        echo "$RUNNER_CONTEXT"
+        echo ">>>>>>>>>> show STRATEGY_CONTEXT"
+        echo "$STRATEGY_CONTEXT"
+        echo ">>>>>>>>>> show MATRIX_CONTEXT"
+        echo "$MATRIX_CONTEXT"
+
 
   benchmark:
     name: Benchmark with Go version ${{ matrix.go }}
@@ -83,20 +105,21 @@ jobs:
       # See: Makefile
       CI_BENCH_RESULT: .test/bench.new
       CI_BENCHSTAT_VS_MASTER: /tmp/benchstat-vs-master
+      BENCHMARK_MASTER: BENCHMARK_MASTER.txt
 
     steps:
-    - name: Set up Go ${{ matrix.go }}
-      id: setup-go
+    - id: setup-go
+      name: Set up Go ${{ matrix.go }}
       uses: actions/setup-go@v2
       with:
         go-version: ${{ matrix.go }}
 
-    - name: Check out code into the Go module directory
-      id: checkout
+    - id: checkout
+      name: Check out code into the Go module directory
       uses: actions/checkout@v2
 
-    - name: Cache dependencies and tools
-      id: cache
+    - id: cache
+      name: Cache dependencies and tools
       uses: actions/cache@v2
       with:
         path: ~/go/pkg/mod
@@ -104,38 +127,100 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-go-
 
-    - name: Download dependency go modules
-      id: mod-dl
+    - id: mod-dl
+      name: Download dependency go modules
       run: make mod-dl
 
-    - name: Install go tools on module-aware mode
-      id: mod-tools-install
+    - id: mod-tools-install
+      name: Install go tools on module-aware mode
       run: GOBIN=${GITHUB_WORKSPACE}/bin make mod-tools-install
 
-    - name: Add GITHUB_WORKSPACE/bin into PATH
-      id: add-gobin-path
+    - id: add-gobin-path
+      name: Add GITHUB_WORKSPACE/bin into PATH
       run: echo "::add-path::${GITHUB_WORKSPACE}/bin"
 
-    - name: Run benchmarks
-      id: bench
+    - id: bench
+      name: Run benchmarks
       run: make bench
 
-    - name: Upload a current benchmark result
-      id: upload-benchmark
-      continue-on-error: true
-      uses: actions/upload-artifact@v2
-      with:
-        name: benchmark
-        path: ${{ env.CI_BENCH_RESULT }}
+    # - id: upload-benchmark
+    #   name: Upload a current benchmark result
+    #   continue-on-error: true
+    #   uses: actions/upload-artifact@v2
+    #   with:
+    #     name: benchmark
+    #     path: ${{ env.CI_BENCH_RESULT }}
 
-    - name: Run benchstat current vs master
-      id: benchstat-current-vs-master
-      run: make benchstat-ci > ${{ env.CI_BENCHSTAT_VS_MASTER }}
+    - id: benchstat-current-vs-master
+      name: Run benchstat current vs master
+      run: make benchstat-ci | tee ${{ env.CI_BENCHSTAT_VS_MASTER }}
 
-    - name: Upload a benchstat-vsmaster result
-      id: upload-benchstat-vs-master
+    - id: upload-benchstat-vs-master
+      name: Upload a benchstat-vsmaster result (only on pull_request)
+      if: github.event_name == 'pull_request'
       continue-on-error: true
       uses: actions/upload-artifact@v2
       with:
         name: benchstat-vs-master
         path: ${{ env.CI_BENCHSTAT_VS_MASTER }}
+
+    ###
+    # only on push to master
+    ###
+    - id: create-benchmark-master-txt
+      name: Create BENCHMARK_MASTER.txt from latest benchmark result (only on push)
+      if: github.event_name == 'push'
+      run: cp -f ${{ env.CI_BENCH_RESULT }} ${{ env.BENCHMARK_MASTER }}
+
+    # See: https://stackoverflow.com/questions/57921401/push-to-origin-from-github-action
+    - id: commit-push-benchmark-master
+      name: Commit and push BENCHMARK_MASTER.txt (only on push)
+      if: github.event_name == 'push'
+      run: |
+        pwd
+        ls -l
+        git config --global user.name 'goldeneggg'
+        git config --global user.email 'jpshadowapps@gmail.com'
+        git add ${{ env.BENCHMARK_MASTER }}
+        git commit -m "Automated update benchmark report"
+        git push
+
+    - id: create-draft-release
+      name: Create draft release (only on push)
+      if: github.event_name == 'push'
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: NEED_TO_SET_TAG
+        release_name: Release NEED_TO_SET_TAG
+        body: |
+          Changes in this Release
+          - TODO1
+          - TODO2
+        draft: true
+        prerelease: false
+
+    - id: dump-contexts-after
+      name: Dump contexts After
+      if: ${{ always() }}
+      env:
+        GITHUB_CONTEXT: ${{ toJson(github) }}
+        JOB_CONTEXT: ${{ toJson(job) }}
+        STEPS_CONTEXT: ${{ toJson(steps) }}
+        RUNNER_CONTEXT: ${{ toJson(runner) }}
+        STRATEGY_CONTEXT: ${{ toJson(strategy) }}
+        MATRIX_CONTEXT: ${{ toJson(matrix) }}
+      run: |
+        echo ">>>>>>>>>> show GITHUB_CONTEXT"
+        echo "$GITHUB_CONTEXT"
+        echo ">>>>>>>>>> show JOB_CONTEXT"
+        echo "$JOB_CONTEXT"
+        echo ">>>>>>>>>> show STEPS_CONTEXT"
+        echo "$STEPS_CONTEXT"
+        echo ">>>>>>>>>> show RUNNER_CONTEXT"
+        echo "$RUNNER_CONTEXT"
+        echo ">>>>>>>>>> show STRATEGY_CONTEXT"
+        echo "$STRATEGY_CONTEXT"
+        echo ">>>>>>>>>> show MATRIX_CONTEXT"
+        echo "$MATRIX_CONTEXT"
