@@ -191,7 +191,7 @@ jobs:
       name: Commit and push BENCHMARK_MASTER.txt (only on push)
       continue-on-error: true
       if: github.event_name == 'push'
-      # FIXME: ブランチ保護を掛けているのでmasterへの直pushはエラーになる
+      # FIXME: ブランチ保護を掛けているのでmasterへの直pushはエラーになる。代案が必要
       run: |
         pwd
         ls -l
