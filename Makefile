@@ -4,7 +4,7 @@ PKG_DYNAMICSTRUCT := github.com/goldeneggg/structil/dynamicstruct
 TESTDIR := ./.test
 BENCH_OLD := $(TESTDIR)/bench.old
 BENCH_NEW := $(TESTDIR)/bench.new
-BENCH_MASTER_URL := https://raw.githubusercontent.com/goldeneggg/structil/master/BENCHMARK_MASTER.txt
+BENCH_LATEST_URL := https://raw.githubusercontent.com/goldeneggg/structil/bench-latest/BENCHMARK_LATEST.txt
 TRACE := $(TESTDIR)/trace.out
 TESTBIN_STRUCTIL := $(TESTDIR)/structil.test
 TESTBIN_DYNAMICSTRUCT := $(TESTDIR)/dynamicstruct.test
@@ -84,7 +84,7 @@ benchstat: mod-benchstat-install $(BENCH_OLD) $(BENCH_NEW)
 
 .PHONY: benchstat-ci
 benchstat-ci: mod-benchstat-install
-	@bash -c "benchstat <(curl -sSL $(BENCH_MASTER_URL)) $(BENCH_NEW)"
+	@bash -c "benchstat <(curl -sSL $(BENCH_LATEST_URL)) $(BENCH_NEW)"
 
 # WIP
 .PHONY: benchstat-gist

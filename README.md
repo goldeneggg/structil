@@ -37,6 +37,6 @@ are [here](/examples).
 
 
 ## Benchmark
-See [BENCHMARK_MASTER.txt](/BENCHMARK_MASTER.txt)
+See [this file](https://github.com/goldeneggg/structil/blob/bench-latest/BENCHMARK_LATEST.txt)
 
-This is a benchmark result that is executed on GitHub Actions runner instance.
+It's the latest benchmark result that is executed on GitHub Actions runner instance.

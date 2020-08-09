@@ -77,7 +77,6 @@ jobs:
         name: codecov
         fail_ci_if_error: false
 
-
   benchmark:
     name: Benchmark with Go version ${{ matrix.go }}
     runs-on: ${{ matrix.os }}
@@ -86,8 +85,7 @@ jobs:
         os: [ 'ubuntu-latest' ]
         go: [ '1.13' ]
     env:
-      BENCHSTAT_VS_MASTER: /tmp/benchstat-vs-master
-      BENCHMARK_MASTER: BENCHMARK_MASTER.txt
+      BENCHSTAT_VS_LATEST: /tmp/benchstat-vs-latest
 
     steps:
     - id: setup-go
@@ -132,27 +130,17 @@ jobs:
         name: benchmark-${{ matrix.go }}
         path: ${{ env.BENCHMARK_DIR }}/${{ env.BENCHMARK_FILE }}
 
-    - id: benchstat-current-vs-master
-      name: Run benchstat current vs master
+    - id: benchstat-current-vs-latest
+      name: Run benchstat current vs latest
       continue-on-error: true
-      run: make benchstat-ci | tee ${{ env.BENCHSTAT_VS_MASTER }}
-
-    # - id: upload-benchstat-vs-master
-    #   name: Upload a benchstat-vsmaster result (only on pull_request)
-    #   if: github.event_name == 'pull_request'
-    #   continue-on-error: true
-    #   uses: actions/upload-artifact@v2
-    #   with:
-    #     name: benchstat-vs-master
-    #     path: ${{ env.BENCHSTAT_VS_MASTER }}
-
+      run: make benchstat-ci | tee ${{ env.BENCHSTAT_VS_LATEST }}
 
   ###
   # only on push to master
   ###
   draft-release:
     name: Draft release with Go version ${{ matrix.go }}
-    needs: [test, benchmark]
+    needs: [ test, benchmark ]
     #if: github.event_name == 'push'
     runs-on: ${{ matrix.os }}
     strategy:
@@ -160,15 +148,22 @@ jobs:
         os: [ 'ubuntu-latest' ]
         go: [ '1.13' ]
     env:
-      BENCHMARK_MASTER: BENCHMARK_MASTER.txt
+      BENCHMARK_LATEST: BENCHMARK_LATEST.txt
 
     steps:
     - id: checkout
       name: Check out code into the Go module directory
       uses: actions/checkout@v2
 
+    - id: switch-branch-to-bench-latest-branch
+      name: Switch branch to bench-latest branch on checkout directory
+      continue-on-error: true
+      run: |
+        git branch bench-latest origin/bench-latest
+        git checkout bench-latest
+
     - id: download-benchmark
-      name: Download a latest benchmark result
+      name: Download a current benchmark result
       continue-on-error: true
       uses: actions/download-artifact@v2
       with:
@@ -176,30 +171,29 @@ jobs:
         path: ${{ env.BENCHMARK_DIR }}
 
     - id: confirm-downloaded-benchmark
-      name: Confirm downloaded benchmark result
+      name: Confirm downloaded current benchmark result
       continue-on-error: true
       run: ls -lrt ${{ env.BENCHMARK_DIR }}
 
-    - id: create-benchmark-master-txt
-      name: Create BENCHMARK_MASTER.txt from latest benchmark result (only on push)
+    - id: create-benchmark-latest-txt
+      name: Create BENCHMARK_LATEST.txt from current benchmark result (only on push)
       continue-on-error: true
       #if: github.event_name == 'push'
-      run: cp -f ${{ env.BENCHMARK_DIR }}/${{ env.BENCHMARK_FILE }} ${{ env.BENCHMARK_MASTER }}
+      run: cp -f ${{ env.BENCHMARK_DIR }}/${{ env.BENCHMARK_FILE }} ${{ env.BENCHMARK_LATEST }}
 
     # See: https://stackoverflow.com/questions/57921401/push-to-origin-from-github-action
     - id: commit-push-benchmark-master
-      name: Commit and push BENCHMARK_MASTER.txt (only on push)
+      name: Commit and push BENCHMARK_LATEST.txt (only on push)
       continue-on-error: true
       if: github.event_name == 'push'
-      # FIXME: ブランチ保護を掛けているのでmasterへの直pushはエラーになる。代案が必要
       run: |
         pwd
         ls -l
         git config --global user.name 'goldeneggg'
         git config --global user.email 'jpshadowapps@gmail.com'
-        git add ${{ env.BENCHMARK_MASTER }}
-        git commit -m "Automated update benchmark report"
-        git push
+        git add ${{ env.BENCHMARK_LATEST }}
+        git commit -m "Automated update latest benchmark report"
+        git push origin bench-latest
 
     - id: confirm-version
       name: Confirm version from version.go
