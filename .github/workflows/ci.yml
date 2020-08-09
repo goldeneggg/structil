@@ -155,13 +155,6 @@ jobs:
       name: Check out code into the Go module directory
       uses: actions/checkout@v2
 
-    - id: switch-branch-to-bench-latest-branch
-      name: Switch branch to bench-latest branch on checkout directory
-      continue-on-error: true
-      run: |
-        git branch bench-latest origin/bench-latest
-        git checkout bench-latest
-
     - id: download-benchmark
       name: Download a current benchmark result
       continue-on-error: true
@@ -170,21 +163,22 @@ jobs:
         name: benchmark-${{ matrix.go }}
         path: ${{ env.BENCHMARK_DIR }}
 
-    - id: confirm-downloaded-benchmark
-      name: Confirm downloaded current benchmark result
+    - id: create-benchmark-latest-txt-on-bench-latest-branch
+      name: Create BENCHMARK_LATEST.txt from current benchmark result with switching branch to bench-latest branch
       continue-on-error: true
-      run: ls -lrt ${{ env.BENCHMARK_DIR }}
-
-    - id: create-benchmark-latest-txt
-      name: Create BENCHMARK_LATEST.txt from current benchmark result (only on push)
-      continue-on-error: true
-      #if: github.event_name == 'push'
-      run: cp -f ${{ env.BENCHMARK_DIR }}/${{ env.BENCHMARK_FILE }} ${{ env.BENCHMARK_LATEST }}
+      run: |
+        ls -lrt ${{ env.BENCHMARK_DIR }}
+        git fetch --all
+        git branch -a
+        git checkout -t origin/bench-latest
+        cp -f ${{ env.BENCHMARK_DIR }}/${{ env.BENCHMARK_FILE }} ${{ env.BENCHMARK_LATEST }}
+        git status -s
 
     # See: https://stackoverflow.com/questions/57921401/push-to-origin-from-github-action
     - id: commit-push-benchmark-master
       name: Commit and push BENCHMARK_LATEST.txt (only on push)
       continue-on-error: true
+      # This step is executed only on-push to master
       if: github.event_name == 'push'
       run: |
         pwd
@@ -203,6 +197,7 @@ jobs:
 
     - id: create-draft-release
       name: Create draft release (only on push)
+      # This step is executed only on-push to master
       if: github.event_name == 'push'
       uses: actions/create-release@v1
       env:
