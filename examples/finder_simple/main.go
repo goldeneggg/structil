@@ -62,7 +62,7 @@ func main() {
 		// This example looks up `person.Company.Address` field.
 		Into("Company").Find("Address").
 		// If multi arguments are assigned for Into method, then execute multi level nesting.
-		// This example looks up `person.Company.Group.Name` and `person.Company.Group.Boss`fields.
+		// This example looks up `person.Company.Group.Name` and `person.Company.Group.Boss` fields.
 		Into("Company", "Group").Find("Name", "Boss").
 		// ToMap converts from found struct fields to map.
 		ToMap()
