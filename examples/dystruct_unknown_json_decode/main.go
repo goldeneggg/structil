@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	jsonData := []byte(`
+	unknownFormatJSON := []byte(`
 {
 	"string_field":"かきくけこ",
 	"int_field":45678,
@@ -42,7 +42,7 @@ func main() {
 }
 `)
 
-	intf, err := dynamicstruct.JSONToDynamicStructInterface(jsonData)
+	intf, err := dynamicstruct.JSONToDynamicStructInterface(unknownFormatJSON)
 	if err != nil {
 		panic(err)
 	}

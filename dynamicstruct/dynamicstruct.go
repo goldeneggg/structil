@@ -90,7 +90,7 @@ func (ds *impl) DecodeMap(m map[string]interface{}) (interface{}, error) {
 // This method supports known format JSON and unknown format JSON.
 // But when JSON format is known, this method is not recommended. Because this method is suitable for unknown JSON with heavy and slow reflection functions.
 //
-// Field names in DynamicStructare converted to CamelCase automatically
+// Field names in DynamicStruct are converted to CamelCase automatically
 // (e.g. "hoge" JSON field is converted to "Hoge". )
 // (e.g. "huga_field" JSON field is converted to "HugaField". )
 func JSONToDynamicStructInterface(jsonData []byte) (interface{}, error) {

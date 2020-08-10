@@ -69,7 +69,7 @@ func ExampleDynamicStruct_DecodeMap() {
 }
 
 func ExampleJSONToDynamicStructInterface() {
-	jsonData := []byte(`
+	unknownFormatJSON := []byte(`
 {
 	"string_field":"かきくけこ",
 	"int_field":45678,
@@ -101,7 +101,7 @@ func ExampleJSONToDynamicStructInterface() {
 }
 `)
 
-	intf, err := JSONToDynamicStructInterface(jsonData)
+	intf, err := JSONToDynamicStructInterface(unknownFormatJSON)
 	if err != nil {
 		panic(err)
 	}
