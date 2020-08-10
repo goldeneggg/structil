@@ -100,6 +100,7 @@ func JSONToDynamicStructInterface(jsonData []byte) (interface{}, error) {
 		return nil, err
 	}
 
+	// FIXME: unmarshalled が配列の場合がある
 	m, ok := unmarshalled.(map[string]interface{})
 	if !ok {
 		return nil, fmt.Errorf("can not cast type from unmarshalled unknownJSON[%#v] to map", unmarshalled)

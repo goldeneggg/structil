@@ -6,9 +6,12 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/goldeneggg/structil"
-	. "github.com/goldeneggg/structil/dynamicstruct"
 	"github.com/google/go-cmp/cmp"
+
+	"github.com/goldeneggg/structil"
+
+	"github.com/goldeneggg/structil/dynamicstruct"
+	. "github.com/goldeneggg/structil/dynamicstruct"
 )
 
 type (
@@ -718,6 +721,130 @@ func testBuilderBuildDecodeMap(t *testing.T, got DynamicStruct, tt buildTest) bo
 	}
 
 	return true
+}
+
+func TestJSONToDynamicStructInterface(t *testing.T) {
+	t.Parallel()
+
+	type args struct {
+		jsonData []byte
+	}
+	tests := []struct {
+		name           string
+		args           args
+		wantError      bool
+		numField       int
+		hasStringField bool
+	}{
+		{
+			name: "JSON does not have null field",
+			args: args{
+				jsonData: []byte(`
+{
+	"string_field":"かきくけこ",
+	"int_field":45678,
+	"float32_field":9.876,
+	"bool_field":false,
+	"struct_ptr_field":{
+		"key":"hugakey",
+		"value":"hugavalue"
+	},
+	"array_string_field":[
+		"array_str_1",
+		"array_str_2"
+	],
+	"array_struct_field":[
+		{
+			"kkk":"kkk1",
+			"vvvv":"vvv1"
+		},
+		{
+			"kkk":"kkk2",
+			"vvvv":"vvv2"
+		},
+		{
+			"kkk":"kkk3",
+			"vvvv":"vvv3"
+		}
+	]
+}
+`),
+			},
+			wantError:      false,
+			numField:       7,
+			hasStringField: true,
+		},
+		{
+			name: "Empty JSON",
+			args: args{
+				jsonData: []byte(`{}`),
+			},
+			wantError:      false,
+			numField:       0,
+			hasStringField: false,
+		},
+		{
+			name: "Empty array JSON",
+			args: args{
+				jsonData: []byte(`[]`),
+			},
+			wantError:      false,
+			numField:       0,
+			hasStringField: false,
+		},
+		{
+			name: "empty",
+			args: args{
+				jsonData: []byte(``),
+			},
+			wantError:      true,
+			numField:       0,
+			hasStringField: false,
+		},
+		{
+			name: "null",
+			args: args{
+				jsonData: []byte(`null`),
+			},
+			wantError:      true,
+			numField:       0,
+			hasStringField: false,
+		},
+		{
+			name: "Invalid string",
+			args: args{
+				jsonData: []byte(`invalid`),
+			},
+			wantError:      true,
+			numField:       0,
+			hasStringField: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			intf, err := dynamicstruct.JSONToDynamicStructInterface(tt.args.jsonData)
+			if err == nil {
+				if tt.wantError {
+					t.Errorf("error did not occur. intf: %#v", intf)
+					return
+				}
+
+				g, err := structil.NewGetter(intf)
+				if err != nil {
+					t.Errorf("unexpected error occured in structil.NewGetter: %v", err)
+				}
+
+				if g.Has("StringField") != tt.hasStringField {
+					t.Errorf("unexpected result of Has StringField. got: %v, want: %v", g.Has("StringField"), tt.hasStringField)
+				}
+
+			} else if !tt.wantError {
+				t.Errorf("unexpected error occured. wantError %v, err: %v", tt.wantError, err)
+			}
+		})
+	}
 }
 
 // benchmark tests
