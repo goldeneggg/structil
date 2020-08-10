@@ -8,7 +8,7 @@ import (
 	"github.com/goldeneggg/structil"
 )
 
-func Example_DecodeMap() {
+func ExampleDynamicStruct_DecodeMap() {
 	type Hoge struct {
 		Key   string
 		Value interface{}
@@ -68,7 +68,7 @@ func Example_DecodeMap() {
 	// NumField: 6, String: Abc Def, Int: 123, Bool: true, Map: map[mkey1:1.23 mkey2:4.56], StructPtrField: {Key:keystr Value:valuestr}, SliceField: [111 222]
 }
 
-func Example_JSONToDynamicStructInterface() {
+func ExampleJSONToDynamicStructInterface() {
 	jsonData := []byte(`
 {
 	"string_field":"かきくけこ",
