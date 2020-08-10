@@ -29,7 +29,10 @@ type impl struct {
 //
 // func New(fs []reflect.StructField, isPtr bool) DynamicStruct {
 func newDynamicStruct(fs []reflect.StructField, isPtr bool) DynamicStruct {
-	ds := &impl{structType: reflect.StructOf(fs), isPtr: isPtr}
+	ds := &impl{
+		structType: reflect.StructOf(fs),
+		isPtr:      isPtr,
+	}
 
 	n := reflect.New(ds.structType)
 	if isPtr {

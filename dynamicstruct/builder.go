@@ -453,7 +453,11 @@ func (b *BuilderImpl) build(isPtr bool) DynamicStruct {
 	var i int
 	fs := make([]reflect.StructField, len(b.fields))
 	for name, typ := range b.fields {
-		fs[i] = reflect.StructField{Name: name, Type: typ, Tag: b.tags[name]}
+		fs[i] = reflect.StructField{
+			Name: name,
+			Type: typ,
+			Tag:  b.tags[name],
+		}
 		i++
 	}
 
