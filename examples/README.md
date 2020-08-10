@@ -6,6 +6,7 @@
   - [`MapGet` method](#mapget-method)
 - [`DynamicStruct`](#dynamicstruct)
   - [JSON unmershal with `DynamicStruct`](#json-unmershal-with-dynamicstruct)
+  - [UN-known format JSON decoding to `DynamicStruct` interface with `DynamicStruct.JSONToDynamicStructInterface`](#un-known-format-json-decoding-to-dynamicstruct-interface-with-dynamicstructjsontodynamicstructinterface)
 
 <!-- /TOC -->
 
@@ -48,3 +49,9 @@ A decoding example from JSON to `DynamicStruct` with `StructTag` using `json.Unm
 This example works correctly not only JSON but also YAML, TOML and more.
 
 See [example code](/examples/dystruct_json_unmarshel/main.go)
+
+### UN-known format JSON decoding to `DynamicStruct` interface with `DynamicStruct.JSONToDynamicStructInterface`
+
+A decoding example from __UN-known format__ JSON to interface of `DynamicStruct` with `DynamicStruct.JSONToDynamicStructInterface` as follows.
+
+See [example code](/examples/dystruct_unknown_json_decode/main.go)
