@@ -1,9 +1,12 @@
 package dynamicstruct
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"reflect"
 
+	"github.com/iancoleman/strcase"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -79,4 +82,65 @@ func (ds *impl) DecodeMap(m map[string]interface{}) (interface{}, error) {
 	i := ds.Interface()
 	err := mapstructure.Decode(m, &i)
 	return i, err
+}
+
+// JSONToDynamicStructInterface returns an interface via DynamicStruct.DecodeMap from JSON data.
+// jsonData argument must be a byte array data of JSON.
+//
+// This method supports known format JSON and unknown format JSON.
+// But when JSON format is known, this method is not recommended. Because this method is suitable for unknown JSON with heavy and slow reflection functions.
+//
+// Field names in DynamicStructare converted to CamelCase automatically
+// (e.g. "hoge" JSON field is converted to "Hoge". )
+// (e.g. "huga_field" JSON field is converted to "HugaField". )
+func JSONToDynamicStructInterface(jsonData []byte) (interface{}, error) {
+	var unmarshalled interface{}
+	err := json.Unmarshal(jsonData, &unmarshalled)
+	if err != nil {
+		return nil, err
+	}
+
+	m, ok := unmarshalled.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("can not cast type from unmarshalled unknownJSON[%#v] to map", unmarshalled)
+	}
+
+	var camelizedKey, tag string
+	camelizedFieldMap := make(map[string]interface{}, len(m))
+	b := NewBuilder()
+
+	for k, v := range m {
+		camelizedKey = strcase.ToCamel(k)
+		camelizedFieldMap[camelizedKey] = v
+		tag = fmt.Sprintf(`json:"%s"`, k)
+
+		switch value := v.(type) {
+		case bool:
+			b = b.AddBoolWithTag(camelizedKey, tag)
+		case float64:
+			b = b.AddFloat64WithTag(camelizedKey, tag)
+		case string:
+			b = b.AddStringWithTag(camelizedKey, tag)
+		case []interface{}:
+			b = b.AddSliceWithTag(camelizedKey, interface{}(value[0]), tag)
+		case map[string]interface{}:
+			for kk, vv := range value {
+				b = b.AddMapWithTag(camelizedKey, kk, interface{}(vv), tag)
+				break
+			}
+		case nil:
+			// FIXME:
+			// fmt.Printf("@@@ (nil) k: %s, v: %#v, value: %#v\n", k, v, value)
+		default:
+			return nil, fmt.Errorf("jsonData %#v has invalid typed key", m)
+		}
+	}
+
+	ds := b.Build()
+	intf, err := ds.DecodeMap(camelizedFieldMap)
+	if err != nil {
+		return nil, err
+	}
+
+	return intf, nil
 }

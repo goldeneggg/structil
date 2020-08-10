@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/google/go-cmp v0.4.1
+	github.com/iancoleman/strcase v0.0.0-20191112232945-16388991a334
 	github.com/mitchellh/mapstructure v1.3.1
 	github.com/pelletier/go-toml v1.8.0 // indirect
 	github.com/spf13/afero v1.2.2 // indirect
