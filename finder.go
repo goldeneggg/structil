@@ -71,6 +71,7 @@ func NewFinderWithGetterAndSep(g Getter, sep string) (Finder, error) {
 }
 
 // FindTop returns a Finder that top level fields in struct are looked up and held named names.
+// Deprecated: planning to remove this method.
 func (f *FinderImpl) FindTop(names ...string) Finder {
 	return f.find(topLevelKey, names...)
 }
