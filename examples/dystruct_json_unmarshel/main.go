@@ -25,7 +25,8 @@ func main() {
 		AddIntWithTag("IntField", `json:"int_field"`).
 		AddFloat32WithTag("Float32Field", `json:"float32_field"`).
 		AddBoolWithTag("BoolField", `json:"bool_field"`).
-		AddStructPtrWithTag("StructPtrField", hogePtr, `json:"struct_ptr_field"`)
+		AddStructPtrWithTag("StructPtrField", hogePtr, `json:"struct_ptr_field"`).
+		AddSliceWithTag("SliceField", "", `json:"slice_string_field"`)
 
 	// get interface of DynamicStruct using Interface() method
 	ds := b.Build()
@@ -41,7 +42,11 @@ func main() {
 	"struct_ptr_field":{
 		"key":"hogekey",
 		"value":"hogevalue"
-	}
+	},
+	"slice_string_field":[
+		"a",
+		"b"
+	]
 }
 `)
 
@@ -55,7 +60,7 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Printf("String: %v, Float: %v, StructPtr: %+v\n", g.String("StringField"), g.Float32("Float32Field"), g.Get("StructPtrField"))
+	fmt.Printf("String: %v, Float: %v, StructPtr: %+v, Slice: %+v\n", g.String("StringField"), g.Float32("Float32Field"), g.Get("StructPtrField"), g.Get("SliceField"))
 	// Output:
-	// String: あいうえお, Float: 5.67, StructPtr: {Key:hogekey Value:hogevalue}
+	// String: あいうえお, Float: 5.67, StructPtr: {Key:hogekey Value:hogevalue}, Slice: [a b]
 }
