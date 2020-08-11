@@ -1,4 +1,4 @@
 package structil
 
 // VERSION says my version number
-const VERSION = "0.4.4"
+const VERSION = "0.5.0"
