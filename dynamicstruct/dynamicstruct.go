@@ -100,12 +100,37 @@ func JSONToDynamicStructInterface(jsonData []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	// FIXME: unmarshalled が配列の場合がある
-	m, ok := unmarshalled.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("can not cast type from unmarshalled unknownJSON[%#v] to map", unmarshalled)
+	return parseUnmarshalledJSON(unmarshalled)
+}
+
+func parseUnmarshalledJSON(unmarshalled interface{}) (interface{}, error) {
+	switch t := unmarshalled.(type) {
+	case map[string]interface{}:
+		return mapToDynamicStructInterface(t)
+	case []interface{}:
+		// fmt.Printf("@@@ (array) t: %#v\n", t)
+		var i interface{}
+		var err error
+		iArr := make([]interface{}, len(t))
+		for _, tElem := range t {
+			// call this function recursively
+			i, err = parseUnmarshalledJSON(tElem)
+			if err != nil {
+				return nil, err
+			}
+
+			iArr = append(iArr, i)
+		}
+
+		return iArr, nil
+		// default:
+		// 	return nil, fmt.Errorf("type of unmarshalled JSON %+v is not map or array", t)
 	}
 
+	return nil, fmt.Errorf("unexpected return. unmarshalled JSON %+v is not map or array", unmarshalled)
+}
+
+func mapToDynamicStructInterface(m map[string]interface{}) (interface{}, error) {
 	var camelizedKey, tag string
 	camelizedFieldMap := make(map[string]interface{}, len(m))
 	b := NewBuilder()
@@ -130,8 +155,10 @@ func JSONToDynamicStructInterface(jsonData []byte) (interface{}, error) {
 				break
 			}
 		case nil:
-			// FIXME:
-			// fmt.Printf("@@@ (nil) k: %s, v: %#v, value: %#v\n", k, v, value)
+			// null field is skipped
+			// FIXME: Is this ok?
+
+			// b = b.AddStructPtrWithTag(camelizedKey, nil, tag)
 		default:
 			return nil, fmt.Errorf("jsonData %#v has invalid typed key", m)
 		}
