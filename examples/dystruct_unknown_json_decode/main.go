@@ -8,6 +8,13 @@ import (
 )
 
 func main() {
+	fmt.Println(">>>>>>>>>> singleJSON")
+	singleJSON()
+	fmt.Println(">>>>>>>>>> arrayJSON")
+	arrayJSON()
+}
+
+func singleJSON() {
 	unknownFormatJSON := []byte(`
 {
 	"string_field":"かきくけこ",
@@ -45,22 +52,98 @@ func main() {
 		panic(err)
 	}
 
-	g, err := structil.NewGetter(intf)
+	convertToGetter(intf)
+}
+
+func arrayJSON() {
+	unknownFormatJSON := []byte(`
+[
+	{
+		"string_field":"かきくけこ",
+		"int_field":45678,
+		"float32_field":9.876,
+		"bool_field":false,
+		"struct_ptr_field":{
+			"key":"hugakey",
+			"value":"hugavalue"
+		},
+		"array_string_field":[
+			"array_str_1",
+			"array_str_2"
+		],
+		"array_struct_field":[
+			{
+				"kkk":"kkk1",
+				"vvvv":"vvv1"
+			},
+			{
+				"kkk":"kkk2",
+				"vvvv":"vvv2"
+			},
+			{
+				"kkk":"kkk3",
+				"vvvv":"vvv3"
+			}
+		]
+	},
+	{
+		"string_field":"さしすせそ",
+		"int_field":7890,
+		"float32_field":4.99,
+		"bool_field":true,
+		"struct_ptr_field":{
+			"key":"hugakeyXXX",
+			"value":"hugavalueXXX"
+		},
+		"array_string_field":[
+			"array_str_111",
+			"array_str_222"
+		],
+		"array_struct_field":[
+			{
+				"kkk":"kkk99",
+				"vvvv":"vvv99"
+			},
+			{
+				"kkk":"kkk999",
+				"vvvv":"vvv999"
+			},
+			{
+				"kkk":"kkk9999",
+				"vvvv":"vvv9999"
+			}
+		]
+	}
+]
+`)
+
+	intf, err := dynamicstruct.JSONToDynamicStructInterface(unknownFormatJSON)
 	if err != nil {
 		panic(err)
 	}
 
-	// Field names are converted to CamelCase name
-	fmt.Printf(
-		"string_field: %v, int_field: %v, float32_field: %v, bool_field: %v, struct_ptr_field: %v, array_string_field: %v, array_struct_field: %v",
-		g.Get("StringField"),
-		g.Get("IntField"),
-		g.Get("Float32Field"),
-		g.Get("BoolField"),
-		g.Get("StructPtrField"),
-		g.Get("ArrayStringField"),
-		g.Get("ArrayStructField"),
-	)
-	// Output:
-	// string_field: かきくけこ, int_field: 45678, float32_field: 9.876, bool_field: false, struct_ptr_field: map[key:hugakey value:hugavalue], array_string_field: [array_str_1 array_str_2], array_struct_field: [map[kkk:kkk1 vvvv:vvv1] map[kkk:kkk2 vvvv:vvv2] map[kkk:kkk3 vvvv:vvv3]]
+	// convert from interface{} to []interface{}
+	intfArr, ok := intf.([]interface{})
+	if !ok {
+		panic(fmt.Errorf("intf can not convert to []interface{}: %#v", intf))
+	}
+
+	for _, elem := range intfArr {
+		convertToGetter(elem)
+	}
+}
+
+func convertToGetter(i interface{}) structil.Getter {
+	g, err := structil.NewGetter(i)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("----- g = %#v\n", g)
+	fmt.Printf("----- g.NumField() = %#v\n", g.NumField())
+	for _, name := range g.Names() {
+		fmt.Printf("----- g.Get(%s) = %#v\n", name, g.Get(name))
+	}
+
+	return g
 }
