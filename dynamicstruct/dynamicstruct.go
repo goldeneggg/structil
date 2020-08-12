@@ -108,18 +108,17 @@ func parseUnmarshalledJSON(unmarshalled interface{}) (interface{}, error) {
 	case map[string]interface{}:
 		return mapToDynamicStructInterface(t)
 	case []interface{}:
-		// fmt.Printf("@@@ (array) t: %#v\n", t)
 		var i interface{}
 		var err error
 		iArr := make([]interface{}, len(t))
-		for _, tElem := range t {
+		for idx, tElem := range t {
 			// call this function recursively
 			i, err = parseUnmarshalledJSON(tElem)
 			if err != nil {
 				return nil, err
 			}
 
-			iArr = append(iArr, i)
+			iArr[idx] = i
 		}
 
 		return iArr, nil
