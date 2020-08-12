@@ -13,6 +13,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.7.1
+	golang.org/dl v0.0.0-20200811212135-d149fc5456ff // indirect
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b
 	golang.org/x/perf v0.0.0-20200318175901-9c9101da8316
 	golang.org/x/sys v0.0.0-20200808120158-1030fc2bf1d9 // indirect

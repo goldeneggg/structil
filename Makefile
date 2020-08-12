@@ -1,23 +1,28 @@
+LOCAL_GO := go$${LOCAL_GOVERSION}
+
 PKG_STRUCTIL := github.com/goldeneggg/structil
 PKG_DYNAMICSTRUCT := github.com/goldeneggg/structil/dynamicstruct
 
 TESTDIR := ./.test
+TESTBIN_STRUCTIL := $(TESTDIR)/structil.test
+TESTBIN_DYNAMICSTRUCT := $(TESTDIR)/dynamicstruct.test
 BENCH_OLD := $(TESTDIR)/bench.old
 BENCH_NEW := $(TESTDIR)/bench.new
 BENCH_LATEST_URL := https://raw.githubusercontent.com/goldeneggg/structil/bench-latest/BENCHMARK_LATEST.txt
 TRACE := $(TESTDIR)/trace.out
-TESTBIN_STRUCTIL := $(TESTDIR)/structil.test
-TESTBIN_DYNAMICSTRUCT := $(TESTDIR)/dynamicstruct.test
 
 SRCS = $(shell find . -type f -name '*.go' | \grep -v 'vendor')
-PKGS = $(shell ./scripts/_packages.sh)
+PKGS = $(shell ./scripts/packages.sh)
 TOOL_PKGS = $(shell cat ./tools/tools.go | grep _ | awk -F'"' '{print $$2}')
 
 .DEFAULT_GOAL := test
 
+###
+# show informations
+###
 .PHONY: version
 version:
-	@echo $(shell ./scripts/_version.sh)
+	@echo $(shell ./scripts/version.sh)
 
 .PHONY: pkgs
 pkgs:
@@ -27,28 +32,43 @@ pkgs:
 tool-pkgs:
 	@echo $(TOOL_PKGS)
 
+###
+# manage modules
+###
+.PHONY: mod-dl
 mod-dl:
-	@GO111MODULE=on go mod download
+	@GO111MODULE=on $(LOCAL_GO) mod download
 
+.PHONY: mod-tidy
 mod-tidy:
-	@GO111MODULE=on go mod tidy
+	@GO111MODULE=on $(LOCAL_GO) mod tidy
 
 # Note: tools additional process as follows
 #  - Add pacakge into tools.go
 #  - Run "make mod-tidy"
 #  - Run "make mod-tools-install"
+.PHONY: mod-tools-install
 mod-tools-install: mod-tidy
-	@GO111MODULE=on go install $(TOOL_PKGS)
+	@GO111MODULE=on $(LOCAL_GO) install $(TOOL_PKGS)
 
+.PHONY: mod-golint-install
 mod-golint-install: mod-tidy
-	@GO111MODULE=on go install golang.org/x/lint/golint
+	@GO111MODULE=on $(LOCAL_GO) install golang.org/x/lint/golint
 
+.PHONY: mod-benchstat-install
 mod-benchstat-install: mod-tidy
-	@GO111MODULE=on go install golang.org/x/perf/cmd/benchstat
+	@GO111MODULE=on $(LOCAL_GO) install golang.org/x/perf/cmd/benchstat
 
+.PHONY: vendor
+vendor:
+	@GO111MODULE=on $(LOCAL_GO) mod vendor
+
+###
+# run tests
+###
 .PHONY: test
 test:
-	@go test -race -cover -parallel 2 $(PKGS)
+	@$(LOCAL_GO) test -race -cover -parallel 2 $(PKGS)
 
 .PHONY: lint
 lint: mod-golint-install
@@ -56,14 +76,18 @@ lint: mod-golint-install
 
 .PHONY: vet
 vet:
-	@go vet $(PKGS)
+	@$(LOCAL_GO) vet $(PKGS)
 
+.PHONY: ci-test
 ci-test:
 	@./scripts/ci-test.sh
 
 .PHONY: ci
 ci: ci-test vet lint
 
+###
+# run benchmark and profile
+###
 .PHONY: -mk-testdir
 -mk-testdir:
 	@[ -d $(TESTDIR) ] || mkdir $(TESTDIR)
@@ -72,7 +96,7 @@ ci: ci-test vet lint
 -mv-bench-result:
 	@[ ! -f $(BENCH_NEW) ] || mv $(BENCH_NEW) $(BENCH_OLD)
 
-benchmark = go test -run=NONE -bench . -benchmem -cpu 1,2 -benchtime=500ms -count=5 $1 $2 | tee $(BENCH_NEW)
+benchmark = $(LOCAL_GO) test -run=NONE -bench . -benchmem -cpu 1,2 -benchtime=500ms -count=5 $1 $2 | tee $(BENCH_NEW)
 
 .PHONY: bench
 bench: -mk-testdir -mv-bench-result
@@ -100,31 +124,60 @@ bench-prof: -mk-testdir -mv-bench-result
 # pprof-cpu-structil OR pprof-cpu-dynamicstruct
 .PHONY: pprof-cpu-%
 pprof-cpu-%:
-	@go tool pprof $(TESTDIR)/$*.test $(TESTDIR)/$*.cpu.out
+	@$(LOCAL_GO) tool pprof $(TESTDIR)/$*.test $(TESTDIR)/$*.cpu.out
 
 # pprof-mem-structil OR pprof-mem-dynamicstruct
 .PHONY: pprof-mem-%
 pprof-mem-%:
-	@go tool pprof $(TESTDIR)/$*.test $(TESTDIR)/$*.mem.out
+	@$(LOCAL_GO) tool pprof $(TESTDIR)/$*.test $(TESTDIR)/$*.mem.out
 
+.PHONY: test-trace
 test-trace: -mk-testdir
-	@for pkg in $(PKGS); do echo ">>>>> Start: test-trace for $${pkg}" && go test -trace=$(TESTDIR)/`basename $${pkg}`.trace.out -o $(TESTDIR)/`basename $${pkg}`.test $${pkg}; done
+	@for pkg in $(PKGS); do echo ">>>>> Start: test-trace for $${pkg}" && $(LOCAL_GO) test -trace=$(TESTDIR)/`basename $${pkg}`.trace.out -o $(TESTDIR)/`basename $${pkg}`.test $${pkg}; done
 
 .PHONY: trace-%
 trace-%:
-	@go tool trace $(TESTDIR)/$*.test $(TESTDIR)/$*.trace.out
+	@$(LOCAL_GO) tool trace $(TESTDIR)/$*.test $(TESTDIR)/$*.trace.out
 
-.PHONY: godoc
-godoc:
-	@godoc -http=:6060
+###
+# use local specified go version
+#
+# [Usage with direnv]
+# 1. Write contents as follows into .envrc using "direnv edit" and save.
+#
+# >>>>>>>>>>
+# # Setup specified local go version
+# export LOCAL_GOVERSION=
+#
+# setup_specified_go_version() {
+#   go get golang.org/dl/go${LOCAL_GOVERSION}
+#   go${LOCAL_GOVERSION} download
+#   echo "Use go ${LOCAL_GOVERSION}"
+# }
+#
+# if [ ! -z ${LOCAL_GOVERSION} ]
+# then
+#   setup_specified_go_version
+# fi
+# <<<<<<<<<<
+#
+# 2. Confirm local go version with "make show-local-go" command. (should be printed "go" )
+# 3. If you want to switch go version to specified number, then open .envrc and write "export LOCAL_GOVERSION=<YOUR_VERSION>" and save.
+# 4. After save, setup process for specified go version will be executed automatically by direnv mechanism.
+# 5. Confirm NEW local go version with "make show-local-go" command. (should be printed "go<YOUR_VERSION>" )
+# 6. Happy developing!!
+#
+###
+.PHONY: show-local-go
+show-local-go:
+	@echo $(LOCAL_GO)
 
-.PHONY: vendor
-vendor:
-	@GO111MODULE=on go mod vendor
-
+###
+# clean up
+###
 .PHONY: clean
 clean:
-	@go clean -i -x -cache -testcache $(PKGS) $(TOOL_PKGS)
+	@$(LOCAL_GO) clean -i -x -cache -testcache $(PKGS) $(TOOL_PKGS)
 	rm -f $(BENCH_OLD)
 	rm -f $(BENCH_NEW)
 	rm -f $(TESTDIR)/*.test
@@ -133,12 +186,19 @@ clean:
 # CAUTION: this target removes all mod-caches
 .PHONY: clean-mod-cache
 clean-mod-cache:
-	@go clean -i -x -modcache $(PKGS) $(TOOL_PKGS)
+	@$(LOCAL_GO) clean -i -x -modcache $(PKGS) $(TOOL_PKGS)
+
+###
+# miscellaneous
+###
+.PHONY: godoc
+godoc:
+	@godoc -http=:6060
 
 
 #####
 #
-# for Docker
+# with docker
 #
 #####
 
@@ -151,17 +211,22 @@ DOCKER_IMAGE_TEST := structil/test
 	@docker image build -t $(DOCKER_IMAGE_MOD) -f $(DOCKER_DIR)/mod/Dockerfile .
 
 # docker-build-for-test: -docker-build-for-mod
+.PHONY: docker-build-for-test
 docker-build-for-test:
 	@docker image build -t $(DOCKER_IMAGE_TEST) -f $(DOCKER_DIR)/test/Dockerfile .
 
+.PHONY: docker-test
 docker-test: docker-build-for-test
 	@docker container run --rm --cpus 2 $(DOCKER_IMAGE_TEST) test
 
+.PHONY: docker-lint
 docker-lint: docker-build-for-test
 	@docker container run --rm $(DOCKER_IMAGE_TEST) lint
 
+.PHONY: docker-bench
 docker-bench: docker-build-for-test
 	@docker container run --rm --cpus 2 -v `pwd`/.test:/go/src/github.com/goldeneggg/structil/.test:cached $(DOCKER_IMAGE_TEST) bench
 
+.PHONY: hadolint
 hadolint: 
 	@hadolint Dockerfile
