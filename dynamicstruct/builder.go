@@ -29,6 +29,7 @@ const (
 	tStruct
 	tSlice
 	tPrmtv
+	tInterface
 )
 
 var (
@@ -66,6 +67,8 @@ type Builder interface {
 	AddStructPtrWithTag(name string, i interface{}, tag string) Builder
 	AddSlice(name string, e interface{}) Builder
 	AddSliceWithTag(name string, e interface{}, tag string) Builder
+	AddInterface(name string, isPtr bool) Builder
+	AddInterfaceWithTag(name string, isPtr bool, tag string) Builder
 	Remove(name string) Builder
 	Exists(name string) bool
 	NumField() int
@@ -374,6 +377,25 @@ func (b *BuilderImpl) AddSliceWithTag(name string, e interface{}, tag string) Bu
 	return b
 }
 
+// AddInterface returns a Builder that was added a interface{} field named by name parameter.
+func (b *BuilderImpl) AddInterface(name string, isPtr bool) Builder {
+	b.AddInterfaceWithTag(name, isPtr, "")
+	return b
+}
+
+// AddInterfaceWithTag returns a Builder that was added a interface{} field with tag named by name parameter.
+func (b *BuilderImpl) AddInterfaceWithTag(name string, isPtr bool, tag string) Builder {
+	p := &addParam{
+		name:  name,
+		intfs: []interface{}{(*interface{})(nil)},
+		ot:    tInterface,
+		isPtr: isPtr,
+		tag:   tag,
+	}
+	b.add(p)
+	return b
+}
+
 func (b *BuilderImpl) add(p *addParam) {
 	var typeOf reflect.Type
 
@@ -410,6 +432,8 @@ func (b *BuilderImpl) add(p *addParam) {
 		typeOf = reflect.StructOf(fs)
 	case tSlice:
 		typeOf = reflect.SliceOf(reflect.TypeOf(p.intfs[0]))
+	case tInterface:
+		typeOf = reflect.TypeOf(p.intfs[0]).Elem()
 	default:
 		typeOf = reflect.TypeOf(p.intfs[0])
 	}

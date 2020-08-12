@@ -68,6 +68,7 @@ const (
 	structFieldTag    = `json:"struct_field_with_tag"`
 	structPtrFieldTag = `json:"struct_ptr_field_with_tag"`
 	sliceFieldTag     = `json:"slice_field_with_tag"`
+	interfaceFieldTag = `json:"interface_field_with_tag"`
 )
 
 var (
@@ -164,7 +165,11 @@ func newDynamicTestBuilder() Builder {
 		AddStructPtr("StructPtrField", newDynamicTestStructPtr()).
 		AddStructPtrWithTag("StructPtrFieldWithTag", newDynamicTestStructPtr(), structPtrFieldTag).
 		AddSlice("SliceField", newDynamicTestStructPtr()).
-		AddSliceWithTag("SliceFieldWithTag", newDynamicTestStructPtr(), sliceFieldTag)
+		AddSliceWithTag("SliceFieldWithTag", newDynamicTestStructPtr(), sliceFieldTag).
+		AddInterface("InterfaceField", false).
+		AddInterfaceWithTag("InterfaceFieldWithTag", false, interfaceFieldTag).
+		AddInterface("InterfacePtrField", true).
+		AddInterfaceWithTag("InterfacePtrFieldWithTag", true, interfaceFieldTag)
 }
 
 func deferDynamicTestPanic(t *testing.T, wantPanic bool, args interface{}) {
@@ -209,13 +214,13 @@ func TestBuilderAddRemoveExistsNumField(t *testing.T) {
 			name:               "have fields set by newDynamicTestBuilder()",
 			args:               args{builder: newDynamicTestBuilder()},
 			wantExistsIntField: true,
-			wantNumField:       28, // See: newDynamicTestBuilder()
+			wantNumField:       32, // See: newDynamicTestBuilder()
 		},
 		{
 			name:               "have fields set by newDynamicTestBuilder() and Remove(IntField)",
 			args:               args{builder: newDynamicTestBuilder().Remove("IntField")},
 			wantExistsIntField: false,
-			wantNumField:       27,
+			wantNumField:       31,
 		},
 	}
 
@@ -569,14 +574,14 @@ func TestBuilderBuild(t *testing.T) {
 			name:         "Build() with valid Builder",
 			args:         buildArgs{builder: newDynamicTestBuilder(), isPtr: true},
 			wantIsPtr:    true,
-			wantNumField: 28, // See: newDynamicTestBuilder()
+			wantNumField: 32, // See: newDynamicTestBuilder()
 			testMap:      testMap,
 		},
 		{
 			name:               "BuildNonPtr() with valid Builder",
 			args:               buildArgs{builder: newDynamicTestBuilder(), isPtr: false},
 			wantIsPtr:          false,
-			wantNumField:       28,
+			wantNumField:       32,
 			testMap:            testMap,
 			wantErrorDecodeMap: true, // Note: can't execute DecodeMap if dynamic struct is NOT pointer.
 		},
@@ -741,6 +746,7 @@ func TestJSONToDynamicStructInterface(t *testing.T) {
 			args: args{
 				jsonData: []byte(`
 {
+	"null_field":null,
 	"string_field":"かきくけこ",
 	"int_field":45678,
 	"float32_field":9.876,
@@ -780,6 +786,7 @@ func TestJSONToDynamicStructInterface(t *testing.T) {
 				jsonData: []byte(`
 		[
 			{
+				"null_field":null,
 				"string_field":"かきくけこ",
 				"int_field":45678,
 				"float32_field":9.876,
@@ -808,6 +815,7 @@ func TestJSONToDynamicStructInterface(t *testing.T) {
 				]
 			},
 			{
+				"null_field":null,
 				"string_field":"さしすせそ",
 				"int_field":7890,
 				"float32_field":4.99,
@@ -902,7 +910,6 @@ func TestJSONToDynamicStructInterface(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			intf, err := dynamicstruct.JSONToDynamicStructInterface(tt.args.jsonData)
-			fmt.Printf("@@@@@ intf = %#v\n", intf)
 			if err == nil {
 				if tt.wantError {
 					t.Errorf("error did not occur. intf: %#v", intf)

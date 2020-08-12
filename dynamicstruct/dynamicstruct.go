@@ -94,26 +94,26 @@ func (ds *impl) DecodeMap(m map[string]interface{}) (interface{}, error) {
 // - e.g. "hoge" JSON field is converted to "Hoge".
 // - e.g. "huga_field" JSON field is converted to "HugaField".
 func JSONToDynamicStructInterface(jsonData []byte) (interface{}, error) {
-	var unmarshalled interface{}
-	err := json.Unmarshal(jsonData, &unmarshalled)
+	var unmarshalledJSON interface{}
+	err := json.Unmarshal(jsonData, &unmarshalledJSON)
 	if err != nil {
 		return nil, err
 	}
 
-	return parseUnmarshalledJSON(unmarshalled)
+	return parseUnmarshalledJSON(unmarshalledJSON)
 }
 
-func parseUnmarshalledJSON(unmarshalled interface{}) (interface{}, error) {
-	switch t := unmarshalled.(type) {
+func parseUnmarshalledJSON(unmarshalledJSON interface{}) (interface{}, error) {
+	switch t := unmarshalledJSON.(type) {
 	case map[string]interface{}:
 		return mapToDynamicStructInterface(t)
 	case []interface{}:
 		var i interface{}
 		var err error
 		iArr := make([]interface{}, len(t))
-		for idx, tElem := range t {
+		for idx, elemJSON := range t {
 			// call this function recursively
-			i, err = parseUnmarshalledJSON(tElem)
+			i, err = parseUnmarshalledJSON(elemJSON)
 			if err != nil {
 				return nil, err
 			}
@@ -122,11 +122,9 @@ func parseUnmarshalledJSON(unmarshalled interface{}) (interface{}, error) {
 		}
 
 		return iArr, nil
-		// default:
-		// 	return nil, fmt.Errorf("type of unmarshalled JSON %+v is not map or array", t)
 	}
 
-	return nil, fmt.Errorf("unexpected return. unmarshalled JSON %+v is not map or array", unmarshalled)
+	return nil, fmt.Errorf("unexpected return. unmarshalledJSON %+v is not map or array", unmarshalledJSON)
 }
 
 func mapToDynamicStructInterface(m map[string]interface{}) (interface{}, error) {
@@ -154,10 +152,8 @@ func mapToDynamicStructInterface(m map[string]interface{}) (interface{}, error) 
 				break
 			}
 		case nil:
-			// null field is skipped
-			// FIXME: Is this ok?
-
-			// b = b.AddStructPtrWithTag(camelizedKey, nil, tag)
+			// Note: Is this ok?
+			b = b.AddInterfaceWithTag(camelizedKey, false, tag)
 		default:
 			return nil, fmt.Errorf("jsonData %#v has invalid typed key", m)
 		}
