@@ -172,6 +172,12 @@ func newDynamicTestBuilder() Builder {
 		AddInterfaceWithTag("InterfacePtrFieldWithTag", true, interfaceFieldTag)
 }
 
+func newDynamicTestBuilderWithStructName(name string) Builder {
+	b := newDynamicTestBuilder()
+	b.SetStructName(name)
+	return b
+}
+
 func deferDynamicTestPanic(t *testing.T, wantPanic bool, args interface{}) {
 	r := recover()
 	if r != nil {
@@ -208,6 +214,7 @@ func TestBuilderAddRemoveExistsNumField(t *testing.T) {
 		args               args
 		wantExistsIntField bool
 		wantNumField       int
+		wantStructName     string
 		wantPanic          bool
 	}{
 		{
@@ -215,12 +222,21 @@ func TestBuilderAddRemoveExistsNumField(t *testing.T) {
 			args:               args{builder: newDynamicTestBuilder()},
 			wantExistsIntField: true,
 			wantNumField:       32, // See: newDynamicTestBuilder()
+			wantStructName:     "DynamicStruct",
 		},
 		{
 			name:               "have fields set by newDynamicTestBuilder() and Remove(IntField)",
 			args:               args{builder: newDynamicTestBuilder().Remove("IntField")},
 			wantExistsIntField: false,
 			wantNumField:       31,
+			wantStructName:     "DynamicStruct",
+		},
+		{
+			name:               "have struct name by newDynamicTestBuilderWithStructName()",
+			args:               args{builder: newDynamicTestBuilderWithStructName("Abc")},
+			wantExistsIntField: true,
+			wantNumField:       32,
+			wantStructName:     "Abc",
 		},
 	}
 
@@ -235,6 +251,11 @@ func TestBuilderAddRemoveExistsNumField(t *testing.T) {
 
 			if tt.args.builder.NumField() != tt.wantNumField {
 				t.Errorf("result numfield is unexpected. got: %d, want: %d", tt.args.builder.NumField(), tt.wantNumField)
+				return
+			}
+
+			if tt.args.builder.GetStructName() != tt.wantStructName {
+				t.Errorf("result structName is unexpected. got: %s, want: %s", tt.args.builder.GetStructName(), tt.wantStructName)
 				return
 			}
 		})
@@ -547,6 +568,7 @@ type buildTest struct {
 	name               string
 	args               buildArgs
 	wantIsPtr          bool
+	wantStructName     string
 	wantNumField       int
 	testMap            map[string]interface{}
 	wantErrorDecodeMap bool
@@ -571,19 +593,29 @@ func TestBuilderBuild(t *testing.T) {
 
 	tests := []buildTest{
 		{
-			name:         "Build() with valid Builder",
-			args:         buildArgs{builder: newDynamicTestBuilder(), isPtr: true},
-			wantIsPtr:    true,
-			wantNumField: 32, // See: newDynamicTestBuilder()
-			testMap:      testMap,
+			name:           "Build() with valid Builder",
+			args:           buildArgs{builder: newDynamicTestBuilder(), isPtr: true},
+			wantIsPtr:      true,
+			wantStructName: "DynamicStruct",
+			wantNumField:   32, // See: newDynamicTestBuilder()
+			testMap:        testMap,
 		},
 		{
 			name:               "BuildNonPtr() with valid Builder",
 			args:               buildArgs{builder: newDynamicTestBuilder(), isPtr: false},
 			wantIsPtr:          false,
+			wantStructName:     "DynamicStruct",
 			wantNumField:       32,
 			testMap:            testMap,
 			wantErrorDecodeMap: true, // Note: can't execute DecodeMap if dynamic struct is NOT pointer.
+		},
+		{
+			name:           "Build() with valid Builder with struct name",
+			args:           buildArgs{builder: newDynamicTestBuilderWithStructName("HogeHuga"), isPtr: true},
+			wantIsPtr:      true,
+			wantStructName: "HogeHuga",
+			wantNumField:   32, // See: newDynamicTestBuilder()
+			testMap:        testMap,
 		},
 	}
 
@@ -618,6 +650,11 @@ func TestBuilderBuild(t *testing.T) {
 func testBuilderBuildWant(t *testing.T, got DynamicStruct, tt buildTest) bool {
 	if got.IsPtr() != tt.wantIsPtr {
 		t.Errorf("unexpected pointer or not result. got: %v, want: %v", got.IsPtr(), tt.wantIsPtr)
+		return false
+	}
+
+	if got.Name() != tt.wantStructName {
+		t.Errorf("result struct name is unexpected. got: %s, want: %s", got.Name(), tt.wantStructName)
 		return false
 	}
 

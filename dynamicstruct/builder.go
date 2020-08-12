@@ -8,6 +8,8 @@ import (
 type pattern int
 
 const (
+	defaultStructName = "DynamicStruct"
+
 	// SampleString is sample string value
 	SampleString = ""
 	// SampleInt is sample int value
@@ -72,6 +74,8 @@ type Builder interface {
 	Remove(name string) Builder
 	Exists(name string) bool
 	NumField() int
+	GetStructName() string
+	SetStructName(name string)
 	Build() DynamicStruct
 	BuildNonPtr() DynamicStruct
 }
@@ -80,6 +84,7 @@ type Builder interface {
 type BuilderImpl struct {
 	fields map[string]reflect.Type
 	tags   map[string]reflect.StructTag
+	name   string
 }
 
 // NewBuilder returns a concrete Builder
@@ -87,6 +92,7 @@ func NewBuilder() Builder {
 	return &BuilderImpl{
 		fields: map[string]reflect.Type{},
 		tags:   map[string]reflect.StructTag{},
+		name:   defaultStructName,
 	}
 }
 
@@ -465,6 +471,27 @@ func (b *BuilderImpl) NumField() int {
 	return len(b.fields)
 }
 
+// GetStructName returns the name of this DynamicStruct.
+func (b *BuilderImpl) GetStructName() string {
+	return b.name
+}
+
+// SetStructName sets the name of DynamicStruct.
+// Default is "DynamicStruct"
+func (b *BuilderImpl) SetStructName(name string) {
+	b.name = name
+}
+
+// Definition returns the struct definition string.
+// func (b *BuilderImpl) Definition() string {
+// 	var strbuilder strings.Builder
+// 	strbuilder.WriteString("type DynamicStruct")
+
+// 	for k, v := range b.fields {
+
+// 	}
+// }
+
 // Build returns a concrete struct pointer built by Builder.
 func (b *BuilderImpl) Build() DynamicStruct {
 	return b.build(true)
@@ -477,9 +504,9 @@ func (b *BuilderImpl) BuildNonPtr() DynamicStruct {
 
 func (b *BuilderImpl) build(isPtr bool) DynamicStruct {
 	var i int
-	fs := make([]reflect.StructField, len(b.fields))
+	fields := make([]reflect.StructField, len(b.fields))
 	for name, typ := range b.fields {
-		fs[i] = reflect.StructField{
+		fields[i] = reflect.StructField{
 			Name: name,
 			Type: typ,
 			Tag:  b.tags[name],
@@ -487,5 +514,5 @@ func (b *BuilderImpl) build(isPtr bool) DynamicStruct {
 		i++
 	}
 
-	return newDynamicStruct(fs, isPtr)
+	return newDynamicStructWithName(fields, isPtr, b.GetStructName())
 }

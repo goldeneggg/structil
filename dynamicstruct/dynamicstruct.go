@@ -12,6 +12,7 @@ import (
 
 // DynamicStruct is the interface that built dynamic struct by Builder.Build().
 type DynamicStruct interface {
+	Name() string
 	NumField() int
 	Field(i int) reflect.StructField
 	FieldByName(name string) (reflect.StructField, bool)
@@ -22,18 +23,22 @@ type DynamicStruct interface {
 
 // impl is the default DynamicStruct implementation.
 type impl struct {
+	name       string
 	structType reflect.Type
 	isPtr      bool
 	intf       interface{}
 }
 
-// newDynamicStruct returns a concrete DynamicStruct
+func newDynamicStruct(fields []reflect.StructField, isPtr bool) DynamicStruct {
+	return newDynamicStructWithName(fields, isPtr, defaultStructName)
+}
+
+// newDynamicStructWithName returns a concrete DynamicStruct
 // Note: Create DynamicStruct via Builder.Build(), instead of calling this method directly.
-//
-// func New(fs []reflect.StructField, isPtr bool) DynamicStruct {
-func newDynamicStruct(fs []reflect.StructField, isPtr bool) DynamicStruct {
+func newDynamicStructWithName(fields []reflect.StructField, isPtr bool, name string) DynamicStruct {
 	ds := &impl{
-		structType: reflect.StructOf(fs),
+		name:       name,
+		structType: reflect.StructOf(fields),
 		isPtr:      isPtr,
 	}
 
@@ -45,6 +50,11 @@ func newDynamicStruct(fs []reflect.StructField, isPtr bool) DynamicStruct {
 	}
 
 	return ds
+}
+
+// Name returns the name of this.
+func (ds *impl) Name() string {
+	return ds.name
 }
 
 // NumField returns the number of built struct fields.
