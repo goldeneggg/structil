@@ -1,4 +1,4 @@
-structil  [![GoDoc](https://godoc.org/github.com/goldeneggg/structil?status.png)](https://pkg.go.dev/github.com/goldeneggg/structil?tab=doc)
+structil [![PkgGoDev](https://pkg.go.dev/badge/github.com/goldeneggg/structil)](https://pkg.go.dev/github.com/goldeneggg/structil)
 ==========
 
 [![Workflow Status](https://github.com/goldeneggg/structil/workflows/CI/badge.svg)](https://github.com/goldeneggg/structil/actions)
