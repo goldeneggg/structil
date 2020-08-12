@@ -1042,6 +1042,20 @@ func BenchmarkAddSlice(b *testing.B) {
 	}
 }
 
+func BenchmarkAddInterface(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = NewBuilder().AddInterface("InterfaceField", false)
+	}
+}
+
+func BenchmarkAddInterfacePtr(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = NewBuilder().AddInterface("InterfacePtrField", true)
+	}
+}
+
 func BenchmarkBuild(b *testing.B) {
 	builder := newDynamicTestBuilder()
 
