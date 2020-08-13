@@ -66,6 +66,48 @@ func ExampleDynamicStruct_DecodeMap() {
 	// NumField: 6, String: Abc Def, Int: 123, Bool: true, Map: map[mkey1:1.23 mkey2:4.56], StructPtrField: {Key:keystr Value:valuestr}, SliceField: [111 222]
 }
 
+func ExampleDynamicStruct_Definition() {
+	type Hoge struct {
+		Name   string
+		Object interface{}
+	}
+
+	hogePtr := &Hoge{
+		Name:   "this is name",
+		Object: "this is object",
+	}
+
+	// Add struct fields with tag using Builder
+	b := NewBuilder().
+		AddString("MyStringNoTag").
+		AddStringWithTag("MyString", `json:"my_string"`).
+		AddIntWithTag("MyInt", `json:"my_int"`).
+		AddFloat64WithTag("MyFloat64", `json:"my_float64"`).
+		AddMapWithTag("MyMap", SampleString, SampleFloat32, `json:"my_map"`).
+		AddStructPtrWithTag("MyStructPtr", hogePtr, `json:"my_struct_ptr"`).
+		AddSliceWithTag("MySlice", SampleInt, `json:"my_slice"`)
+
+	// Set struct name to DynamicStruct
+	b.SetStructName("MyTestStruct")
+
+	// Build returns a DynamicStruct
+	ds := b.Build()
+
+	// Print struct definition of built DynamicStruct
+	// Fields are sorted by field name
+	fmt.Println(ds.Definition())
+	// Output:
+	//type MyTestStruct struct {
+	// 	MyFloat64 float64 `json:"my_float64"`
+	// 	MyInt int `json:"my_int"`
+	// 	MyMap map[string]float32 `json:"my_map"`
+	// 	MySlice []int `json:"my_slice"`
+	// 	MyString string `json:"my_string"`
+	// 	MyStringNoTag string
+	// 	MyStructPtr *struct { Name string; Object interface {} } `json:"my_struct_ptr"`
+	//}
+}
+
 func ExampleJSONToDynamicStructInterface() {
 	unknownFormatJSON := []byte(`
 {
