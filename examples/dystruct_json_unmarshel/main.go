@@ -30,6 +30,7 @@ func main() {
 
 	// get interface of DynamicStruct using Interface() method
 	ds := b.Build()
+	fmt.Println(ds.Definition())
 	intf := ds.Interface()
 
 	// try json unmarshal

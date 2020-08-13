@@ -112,7 +112,15 @@ func (ds *impl) Definition() string {
 
 	strbuilder.WriteString("type " + ds.Name() + " struct {\n")
 	for _, field := range sortedFields {
-		strbuilder.WriteString(indent + field.Name + " " + field.Type.String() + "\n")
+		strbuilder.WriteString(indent)
+		strbuilder.WriteString(field.Name)
+		strbuilder.WriteString(" ")
+		strbuilder.WriteString(field.Type.String())
+		if field.Tag != "" {
+			strbuilder.WriteString(" ")
+			strbuilder.WriteString(fmt.Sprintf("`%s`", field.Tag))
+		}
+		strbuilder.WriteString("\n")
 	}
 	strbuilder.WriteString("}")
 
