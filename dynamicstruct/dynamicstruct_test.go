@@ -1153,3 +1153,13 @@ func BenchmarkBuildNonPtr(b *testing.B) {
 		_ = builder.BuildNonPtr()
 	}
 }
+
+func BenchmarkDefinition(b *testing.B) {
+	builder := newDynamicTestBuilder()
+	ds := builder.Build()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = ds.Definition()
+	}
+}
