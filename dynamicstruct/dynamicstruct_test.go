@@ -570,6 +570,7 @@ type buildTest struct {
 	wantIsPtr          bool
 	wantStructName     string
 	wantNumField       int
+	wantDefinition     string
 	testMap            map[string]interface{}
 	wantErrorDecodeMap bool
 	wantPanic          bool
@@ -598,7 +599,41 @@ func TestBuilderBuild(t *testing.T) {
 			wantIsPtr:      true,
 			wantStructName: "DynamicStruct",
 			wantNumField:   32, // See: newDynamicTestBuilder()
-			testMap:        testMap,
+			wantDefinition: `type DynamicStruct struct {
+	BoolField bool
+	BoolFieldWithTag bool
+	ByteField uint8
+	ByteFieldWithTag uint8
+	ChanBothField chan int
+	ChanBothFieldWithTag chan int
+	ChanRecvField <-chan int
+	ChanRecvFieldWithTag <-chan int
+	ChanSendField chan<- int
+	ChanSendFieldWithTag chan<- int
+	Float32Field float32
+	Float32FieldWithTag float32
+	Float64Field float64
+	Float64FieldWithTag float64
+	FuncField func(int, int) (bool, *errors.errorString)
+	FuncFieldWithTag func(int, int) (bool, *errors.errorString)
+	IntField int
+	IntFieldWithTag int
+	InterfaceField interface {}
+	InterfaceFieldWithTag interface {}
+	InterfacePtrField *interface {}
+	InterfacePtrFieldWithTag *interface {}
+	MapField map[string]float32
+	MapFieldWithTag map[string]float32
+	SliceField []*dynamicstruct_test.DynamicTestStruct
+	SliceFieldWithTag []*dynamicstruct_test.DynamicTestStruct
+	StringField string
+	StringFieldWithTag string
+	StructField struct { Byte uint8; Bytes []uint8; Int int; Int64 int64; Uint uint; Uint64 uint64; Float32 float32; Float64 float64; String string; Stringptr *string; Stringslice []string; Bool bool; Map map[string]interface {}; Func func(string) interface {}; DynamicTestStruct2 dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct2Ptr *dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct4Slice []dynamicstruct_test.DynamicTestStruct4; DynamicTestStruct4PtrSlice []*dynamicstruct_test.DynamicTestStruct4 }
+	StructFieldWithTag struct { Byte uint8; Bytes []uint8; Int int; Int64 int64; Uint uint; Uint64 uint64; Float32 float32; Float64 float64; String string; Stringptr *string; Stringslice []string; Bool bool; Map map[string]interface {}; Func func(string) interface {}; DynamicTestStruct2 dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct2Ptr *dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct4Slice []dynamicstruct_test.DynamicTestStruct4; DynamicTestStruct4PtrSlice []*dynamicstruct_test.DynamicTestStruct4 }
+	StructPtrField *struct { Byte uint8; Bytes []uint8; Int int; Int64 int64; Uint uint; Uint64 uint64; Float32 float32; Float64 float64; String string; Stringptr *string; Stringslice []string; Bool bool; Map map[string]interface {}; Func func(string) interface {}; DynamicTestStruct2 dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct2Ptr *dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct4Slice []dynamicstruct_test.DynamicTestStruct4; DynamicTestStruct4PtrSlice []*dynamicstruct_test.DynamicTestStruct4 }
+	StructPtrFieldWithTag *struct { Byte uint8; Bytes []uint8; Int int; Int64 int64; Uint uint; Uint64 uint64; Float32 float32; Float64 float64; String string; Stringptr *string; Stringslice []string; Bool bool; Map map[string]interface {}; Func func(string) interface {}; DynamicTestStruct2 dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct2Ptr *dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct4Slice []dynamicstruct_test.DynamicTestStruct4; DynamicTestStruct4PtrSlice []*dynamicstruct_test.DynamicTestStruct4 }
+}`,
+			testMap: testMap,
 		},
 		{
 			name:               "BuildNonPtr() with valid Builder",
@@ -661,6 +696,13 @@ func testBuilderBuildWant(t *testing.T, got DynamicStruct, tt buildTest) bool {
 	if got.NumField() != tt.wantNumField {
 		t.Errorf("result numfield is unexpected. got: %d, want: %d", got.NumField(), tt.wantNumField)
 		return false
+	}
+
+	if tt.wantDefinition != "" {
+		if d := cmp.Diff(got.Definition(), tt.wantDefinition); d != "" {
+			t.Errorf("unexpected mismatch Definition: (-got +want)\n%s", d)
+			return false
+		}
 	}
 
 	return true

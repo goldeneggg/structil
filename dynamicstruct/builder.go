@@ -482,16 +482,6 @@ func (b *BuilderImpl) SetStructName(name string) {
 	b.name = name
 }
 
-// Definition returns the struct definition string.
-// func (b *BuilderImpl) Definition() string {
-// 	var strbuilder strings.Builder
-// 	strbuilder.WriteString("type DynamicStruct")
-
-// 	for k, v := range b.fields {
-
-// 	}
-// }
-
 // Build returns a concrete struct pointer built by Builder.
 func (b *BuilderImpl) Build() DynamicStruct {
 	return b.build(true)

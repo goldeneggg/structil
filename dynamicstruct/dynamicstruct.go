@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"sort"
+	"strings"
 
 	"github.com/iancoleman/strcase"
 	"github.com/mitchellh/mapstructure"
@@ -19,6 +21,7 @@ type DynamicStruct interface {
 	IsPtr() bool
 	Interface() interface{}
 	DecodeMap(m map[string]interface{}) (interface{}, error)
+	Definition() string
 }
 
 // impl is the default DynamicStruct implementation.
@@ -42,11 +45,11 @@ func newDynamicStructWithName(fields []reflect.StructField, isPtr bool, name str
 		isPtr:      isPtr,
 	}
 
-	n := reflect.New(ds.structType)
+	rv := reflect.New(ds.structType)
 	if isPtr {
-		ds.intf = n.Interface()
+		ds.intf = rv.Interface()
 	} else {
-		ds.intf = reflect.Indirect(n).Interface()
+		ds.intf = reflect.Indirect(rv).Interface()
 	}
 
 	return ds
@@ -92,6 +95,28 @@ func (ds *impl) DecodeMap(m map[string]interface{}) (interface{}, error) {
 	i := ds.Interface()
 	err := mapstructure.Decode(m, &i)
 	return i, err
+}
+
+// Definition returns the struct definition string with field indention by TAB.
+func (ds *impl) Definition() string {
+	sortedFields := make([]reflect.StructField, ds.NumField())
+	for i := 0; i < ds.NumField(); i++ {
+		sortedFields[i] = ds.Field(i)
+	}
+	sort.Slice(sortedFields, func(i, j int) bool {
+		return sortedFields[i].Name < sortedFields[j].Name
+	})
+
+	var strbuilder strings.Builder
+	indent := "\t"
+
+	strbuilder.WriteString("type " + ds.Name() + " struct {\n")
+	for _, field := range sortedFields {
+		strbuilder.WriteString(indent + field.Name + " " + field.Type.String() + "\n")
+	}
+	strbuilder.WriteString("}")
+
+	return strbuilder.String()
 }
 
 // JSONToDynamicStructInterface returns an interface via DynamicStruct.DecodeMap from JSON data.

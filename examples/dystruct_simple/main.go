@@ -37,6 +37,8 @@ func main() {
 	// Build generates a DynamicStruct
 	ds := b.Build()
 
+	fmt.Println(ds.Definition())
+
 	// DecodeMap decodes from map to DynamicStruct
 	// try mapstructure.Decode using dynamic struct
 	input := map[string]interface{}{
