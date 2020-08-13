@@ -98,6 +98,7 @@ func (ds *impl) DecodeMap(m map[string]interface{}) (interface{}, error) {
 }
 
 // Definition returns the struct definition string with field indention by TAB.
+// Fields are sorted by field name.
 func (ds *impl) Definition() string {
 	sortedFields := make([]reflect.StructField, ds.NumField())
 	for i := 0; i < ds.NumField(); i++ {
