@@ -1,14 +1,12 @@
 package dynamicstruct
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
 	"sort"
 	"strings"
 
-	"github.com/iancoleman/strcase"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -128,6 +126,7 @@ func (ds *impl) Definition() string {
 	return strbuilder.String()
 }
 
+/*
 // JSONToDynamicStructInterface returns an interface via DynamicStruct.DecodeMap from JSON data.
 // jsonData argument must be a byte array data of JSON.
 //
@@ -215,3 +214,4 @@ func mapToDynamicStructInterface(m map[string]interface{}) (interface{}, error) 
 
 	return intf, nil
 }
+*/
