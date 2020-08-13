@@ -137,6 +137,10 @@ func (ds *impl) Definition() string {
 // - e.g. "hoge" JSON field is converted to "Hoge".
 // - e.g. "huga_field" JSON field is converted to "HugaField".
 func JSONToDynamicStructInterface(jsonData []byte) (interface{}, error) {
+	// FIXME:
+	// want to add json validation. but is json.Valid(data) too slow?
+	// See: https://stackoverflow.com/questions/22128282/how-to-check-string-is-in-json-format
+
 	var unmarshalledJSON interface{}
 	err := json.Unmarshal(jsonData, &unmarshalledJSON)
 	if err != nil {
