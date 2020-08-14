@@ -2,6 +2,8 @@ package genericdecoder
 
 import (
 	"fmt"
+
+	"github.com/goldeneggg/structil"
 )
 
 func ExampleJSONGenericDecoder_Decode() {
@@ -43,6 +45,25 @@ func ExampleJSONGenericDecoder_Decode() {
 	}
 
 	fmt.Println(dr.DynamicStruct.Definition())
+
+	g, err := structil.NewGetter(dr.DecodedInterface)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("g.NumField() = %d\n", g.NumField())
+	fmt.Printf(
+		"ArrayStringField = %#v\nArrayStructField = %#v\nBoolField = %v\nFloat32Field=%v\nIntField=%v\nNullField=%v\nStringField=%v\nStructPtrField=%v\n",
+		g.Get("ArrayStringField"),
+		g.Get("ArrayStructField"),
+		g.Get("BoolField"),
+		g.Get("Float32Field"),
+		g.Get("IntField"),
+		g.Get("NullField"),
+		g.Get("StringField"),
+		g.Get("StructPtrField"),
+	)
+
 	// Output:
 	//type DynamicStruct struct {
 	//	ArrayStringField []string `json:"ArrayStringField"`
@@ -54,4 +75,13 @@ func ExampleJSONGenericDecoder_Decode() {
 	//	StringField string `json:"StringField"`
 	//	StructPtrField map[string]string `json:"StructPtrField"`
 	//}
+	// g.NumField() = 8
+	// ArrayStringField = []string{"array_str_1", "array_str_2"}
+	// ArrayStructField = []map[string]interface {}{map[string]interface {}{"kkk":"kkk1", "vvvv":"vvv1"}, map[string]interface {}{"kkk":"kkk2", "vvvv":"vvv2"}, map[string]interface {}{"kkk":"kkk3", "vvvv":"vvv3"}}
+	// BoolField = false
+	// Float32Field=9.876
+	// IntField=45678
+	// NullField=<nil>
+	// StringField=かきくけこ
+	// StructPtrField=map[key:hugakey value:hugavalue]
 }

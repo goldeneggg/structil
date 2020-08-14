@@ -61,7 +61,7 @@ func main() {
 
 	// Get `FinderKeys` object by calling `NewFinderKeys` with config file dir and baseName
 	// This config file path is "examples/finder_from_conf/ex_json.json"
-	fks, err := structil.NewFinderKeys("examples/finder_from_conf", "ex_json")
+	fks, err := structil.NewFinderKeys(".", "ex_json")
 	if err != nil {
 		panic(err)
 	}
@@ -91,7 +91,7 @@ func main() {
 	// Found Map(json): map[string]interface {}{"Age":34, "Company.Address":"Boston", "Company.Group.Boss":"Donald Mac", "Company.Group.Name":"ZZZZZZ Holdings", "Company.Period":11, "Name":"Lisa Mary"}, err: <nil>
 
 	// YAML example as follows
-	fks, err = structil.NewFinderKeys("examples/finder_from_conf", "ex_yml")
+	fks, err = structil.NewFinderKeys(".", "ex_yml")
 	if err != nil {
 		panic(err)
 	}
