@@ -1,12 +1,14 @@
 package dynamicstruct
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
 	"sort"
 	"strings"
 
+	"github.com/iancoleman/strcase"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -20,6 +22,8 @@ type DynamicStruct interface {
 	Interface() interface{}
 	DecodeMap(m map[string]interface{}) (interface{}, error)
 	Definition() string
+	// TODO:
+	// Clone() DynamicStruct
 }
 
 // impl is the default DynamicStruct implementation.
@@ -126,7 +130,6 @@ func (ds *impl) Definition() string {
 	return strbuilder.String()
 }
 
-/*
 // JSONToDynamicStructInterface returns an interface via DynamicStruct.DecodeMap from JSON data.
 // jsonData argument must be a byte array data of JSON.
 //
@@ -136,6 +139,8 @@ func (ds *impl) Definition() string {
 // Field names in DynamicStruct are converted to CamelCase automatically
 // - e.g. "hoge" JSON field is converted to "Hoge".
 // - e.g. "huga_field" JSON field is converted to "HugaField".
+//
+// Deprecated: This function is very experimental and it will be removed soon
 func JSONToDynamicStructInterface(jsonData []byte) (interface{}, error) {
 	// FIXME:
 	// want to add json validation. but is json.Valid(data) too slow?
@@ -214,4 +219,3 @@ func mapToDynamicStructInterface(m map[string]interface{}) (interface{}, error) 
 
 	return intf, nil
 }
-*/

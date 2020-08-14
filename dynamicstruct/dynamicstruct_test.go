@@ -10,7 +10,6 @@ import (
 
 	"github.com/goldeneggg/structil"
 
-	"github.com/goldeneggg/structil/dynamicstruct"
 	. "github.com/goldeneggg/structil/dynamicstruct"
 )
 
@@ -989,7 +988,7 @@ func TestJSONToDynamicStructInterface(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			intf, err := dynamicstruct.JSONToDynamicStructInterface(tt.args.jsonData)
+			intf, err := JSONToDynamicStructInterface(tt.args.jsonData)
 			if err == nil {
 				if tt.wantError {
 					t.Errorf("error did not occur. intf: %#v", intf)
