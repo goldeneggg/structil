@@ -78,9 +78,9 @@ func (ds *impl) NewInterface() interface{} {
 	rv := reflect.New(ds.structType)
 	if ds.isPtr {
 		return rv.Interface()
-	} else {
-		return reflect.Indirect(rv).Interface()
 	}
+
+	return reflect.Indirect(rv).Interface()
 }
 
 // DecodeMap returns the interface that was decoded from input map.
