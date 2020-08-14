@@ -9,7 +9,6 @@ type JSONGenericDecoder struct {
 }
 
 // NewJSONGenericDecoder returns a concrete GenericDecoder for JSON
-// TODO: YAML and TOML support
 func NewJSONGenericDecoder() GenericDecoder {
 	return &JSONGenericDecoder{}
 }
