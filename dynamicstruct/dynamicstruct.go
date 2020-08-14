@@ -17,7 +17,7 @@ type DynamicStruct interface {
 	Field(i int) reflect.StructField
 	FieldByName(name string) (reflect.StructField, bool)
 	IsPtr() bool
-	Interface() interface{}
+	NewInterface() interface{}
 	DecodeMap(m map[string]interface{}) (interface{}, error)
 	Definition() string
 	// TODO:
@@ -29,7 +29,6 @@ type impl struct {
 	name       string
 	structType reflect.Type
 	isPtr      bool
-	intf       interface{}
 }
 
 func newDynamicStruct(fields []reflect.StructField, isPtr bool) DynamicStruct {
@@ -43,13 +42,6 @@ func newDynamicStructWithName(fields []reflect.StructField, isPtr bool, name str
 		name:       name,
 		structType: reflect.StructOf(fields),
 		isPtr:      isPtr,
-	}
-
-	rv := reflect.New(ds.structType)
-	if isPtr {
-		ds.intf = rv.Interface()
-	} else {
-		ds.intf = reflect.Indirect(rv).Interface()
 	}
 
 	return ds
@@ -81,9 +73,14 @@ func (ds *impl) IsPtr() bool {
 	return ds.isPtr
 }
 
-// Interface returns the interface of built struct.
-func (ds *impl) Interface() interface{} {
-	return ds.intf
+// NewInterface returns the new interface value of built struct.
+func (ds *impl) NewInterface() interface{} {
+	rv := reflect.New(ds.structType)
+	if ds.isPtr {
+		return rv.Interface()
+	} else {
+		return reflect.Indirect(rv).Interface()
+	}
 }
 
 // DecodeMap returns the interface that was decoded from input map.
@@ -92,7 +89,7 @@ func (ds *impl) DecodeMap(m map[string]interface{}) (interface{}, error) {
 		return nil, errors.New("DecodeMap can execute only if dynamic struct is pointer. But this is false")
 	}
 
-	i := ds.Interface()
+	i := ds.NewInterface()
 	err := mapstructure.Decode(m, &i)
 	return i, err
 }
