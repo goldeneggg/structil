@@ -19,53 +19,56 @@ type DecodedResult struct {
 	DecodedInterface interface{}
 }
 
-func decode(intf interface{}, ds dynamicstruct.DynamicStruct) (*DecodedResult, error) {
+// ui must be a unmarshalled interface from JSON, and others
+func decode(ui interface{}, ds dynamicstruct.DynamicStruct) (*DecodedResult, error) {
 	var err error
 
-	switch t := intf.(type) {
+	switch t := ui.(type) {
 	case map[string]interface{}:
-		return newDecodedResult(t, ds)
+		return decodeMap(t, ds)
 	case []interface{}:
 		var drElem *DecodedResult
-		dsOnce := ds
+		var dsOnce dynamicstruct.DynamicStruct
 		iArr := make([]interface{}, len(t))
 		for idx, elemIntf := range t {
 			// call this function recursively
-			// we want to build DynamicStruct once, so "ds" argument is assigned
+			// we want to build DynamicStruct only once
 			drElem, err = decode(elemIntf, dsOnce)
 			if err != nil {
 				return nil, err
 			}
-
 			dsOnce = drElem.DynamicStruct
+
 			iArr[idx] = drElem.DecodedInterface
 		}
 
 		return &DecodedResult{
-			DynamicStruct:    ds,
+			DynamicStruct:    dsOnce,
 			DecodedInterface: iArr,
 		}, nil
 	}
 
-	return nil, fmt.Errorf("unexpected return. unmarshalledJSON %+v is not map or array", intf)
+	return nil, fmt.Errorf("unexpected return. unmarshalledJSON %+v is not map or array", ui)
 }
 
-func newDecodedResult(m map[string]interface{}, ds dynamicstruct.DynamicStruct) (*DecodedResult, error) {
-	dr := &DecodedResult{}
+func decodeMap(m map[string]interface{}, ds dynamicstruct.DynamicStruct) (*DecodedResult, error) {
+	dr := &DecodedResult{
+		DynamicStruct: ds,
+	}
 	var err error
 
+	// camelize key for building DynamicStruct with exported fields
+	// e.g. if json item name is "hoge_huga", same field name in DynamicStruct is "HogeHuga"
 	cm := camelizeMapKey(m)
 
-	if ds != nil {
-		dr.DynamicStruct = ds
-	} else {
-		dr.DynamicStruct, err = dynamicStructFromMap(cm)
+	if dr.DynamicStruct == nil {
+		dr.DynamicStruct, err = buildDynamicStruct(cm)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	dr.DecodedInterface, err = decodeMap(dr.DynamicStruct, cm)
+	dr.DecodedInterface, err = dr.DynamicStruct.DecodeMap(cm)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +85,7 @@ func camelizeMapKey(m map[string]interface{}) map[string]interface{} {
 	return camelizedMap
 }
 
-func dynamicStructFromMap(m map[string]interface{}) (dynamicstruct.DynamicStruct, error) {
+func buildDynamicStruct(m map[string]interface{}) (dynamicstruct.DynamicStruct, error) {
 	var tag string
 	b := dynamicstruct.NewBuilder()
 
@@ -112,16 +115,5 @@ func dynamicStructFromMap(m map[string]interface{}) (dynamicstruct.DynamicStruct
 		}
 	}
 
-	ds := b.Build()
-
-	return ds, nil
-}
-
-func decodeMap(ds dynamicstruct.DynamicStruct, m map[string]interface{}) (interface{}, error) {
-	intf, err := ds.DecodeMap(m)
-	if err != nil {
-		return nil, err
-	}
-
-	return intf, nil
+	return b.Build(), nil
 }
