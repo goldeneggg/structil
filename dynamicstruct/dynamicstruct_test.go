@@ -807,6 +807,7 @@ func testBuilderBuildDecodeMap(t *testing.T, got DynamicStruct, tt buildTest) bo
 	return true
 }
 
+/*
 func TestJSONToDynamicStructInterface(t *testing.T) {
 	t.Parallel()
 
@@ -995,24 +996,13 @@ func TestJSONToDynamicStructInterface(t *testing.T) {
 					return
 				}
 
-				// FIXME: other test method (e.g. json.Marshal(intf))
-				/*
-					g, err := structil.NewGetter(intf)
-					if err != nil {
-						t.Errorf("unexpected error occured in structil.NewGetter: %v", err)
-					}
-
-					if g.Has("StringField") != tt.hasStringField {
-						t.Errorf("unexpected result of Has StringField. got: %v, want: %v", g.Has("StringField"), tt.hasStringField)
-					}
-				*/
-
 			} else if !tt.wantError {
 				t.Errorf("unexpected error occured. wantError %v, err: %v", tt.wantError, err)
 			}
 		})
 	}
 }
+*/
 
 // benchmark tests
 
