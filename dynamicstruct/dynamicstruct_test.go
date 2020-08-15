@@ -6,9 +6,11 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/goldeneggg/structil"
-	. "github.com/goldeneggg/structil/dynamicstruct"
 	"github.com/google/go-cmp/cmp"
+
+	"github.com/goldeneggg/structil"
+
+	. "github.com/goldeneggg/structil/dynamicstruct"
 )
 
 type (
@@ -65,6 +67,7 @@ const (
 	structFieldTag    = `json:"struct_field_with_tag"`
 	structPtrFieldTag = `json:"struct_ptr_field_with_tag"`
 	sliceFieldTag     = `json:"slice_field_with_tag"`
+	interfaceFieldTag = `json:"interface_field_with_tag"`
 )
 
 var (
@@ -161,7 +164,17 @@ func newDynamicTestBuilder() Builder {
 		AddStructPtr("StructPtrField", newDynamicTestStructPtr()).
 		AddStructPtrWithTag("StructPtrFieldWithTag", newDynamicTestStructPtr(), structPtrFieldTag).
 		AddSlice("SliceField", newDynamicTestStructPtr()).
-		AddSliceWithTag("SliceFieldWithTag", newDynamicTestStructPtr(), sliceFieldTag)
+		AddSliceWithTag("SliceFieldWithTag", newDynamicTestStructPtr(), sliceFieldTag).
+		AddInterface("InterfaceField", false).
+		AddInterfaceWithTag("InterfaceFieldWithTag", false, interfaceFieldTag).
+		AddInterface("InterfacePtrField", true).
+		AddInterfaceWithTag("InterfacePtrFieldWithTag", true, interfaceFieldTag)
+}
+
+func newDynamicTestBuilderWithStructName(name string) Builder {
+	b := newDynamicTestBuilder()
+	b.SetStructName(name)
+	return b
 }
 
 func deferDynamicTestPanic(t *testing.T, wantPanic bool, args interface{}) {
@@ -200,19 +213,29 @@ func TestBuilderAddRemoveExistsNumField(t *testing.T) {
 		args               args
 		wantExistsIntField bool
 		wantNumField       int
+		wantStructName     string
 		wantPanic          bool
 	}{
 		{
 			name:               "have fields set by newDynamicTestBuilder()",
 			args:               args{builder: newDynamicTestBuilder()},
 			wantExistsIntField: true,
-			wantNumField:       28, // See: newDynamicTestBuilder()
+			wantNumField:       32, // See: newDynamicTestBuilder()
+			wantStructName:     "DynamicStruct",
 		},
 		{
 			name:               "have fields set by newDynamicTestBuilder() and Remove(IntField)",
 			args:               args{builder: newDynamicTestBuilder().Remove("IntField")},
 			wantExistsIntField: false,
-			wantNumField:       27,
+			wantNumField:       31,
+			wantStructName:     "DynamicStruct",
+		},
+		{
+			name:               "have struct name by newDynamicTestBuilderWithStructName()",
+			args:               args{builder: newDynamicTestBuilderWithStructName("Abc")},
+			wantExistsIntField: true,
+			wantNumField:       32,
+			wantStructName:     "Abc",
 		},
 	}
 
@@ -227,6 +250,11 @@ func TestBuilderAddRemoveExistsNumField(t *testing.T) {
 
 			if tt.args.builder.NumField() != tt.wantNumField {
 				t.Errorf("result numfield is unexpected. got: %d, want: %d", tt.args.builder.NumField(), tt.wantNumField)
+				return
+			}
+
+			if tt.args.builder.GetStructName() != tt.wantStructName {
+				t.Errorf("result structName is unexpected. got: %s, want: %s", tt.args.builder.GetStructName(), tt.wantStructName)
 				return
 			}
 		})
@@ -539,7 +567,9 @@ type buildTest struct {
 	name               string
 	args               buildArgs
 	wantIsPtr          bool
+	wantStructName     string
 	wantNumField       int
+	wantDefinition     string
 	testMap            map[string]interface{}
 	wantErrorDecodeMap bool
 	wantPanic          bool
@@ -563,19 +593,63 @@ func TestBuilderBuild(t *testing.T) {
 
 	tests := []buildTest{
 		{
-			name:         "Build() with valid Builder",
-			args:         buildArgs{builder: newDynamicTestBuilder(), isPtr: true},
-			wantIsPtr:    true,
-			wantNumField: 28, // See: newDynamicTestBuilder()
-			testMap:      testMap,
+			name:           "Build() with valid Builder",
+			args:           buildArgs{builder: newDynamicTestBuilder(), isPtr: true},
+			wantIsPtr:      true,
+			wantStructName: "DynamicStruct",
+			wantNumField:   32, // See: newDynamicTestBuilder()
+			wantDefinition: `type DynamicStruct struct {
+	BoolField bool
+	BoolFieldWithTag bool ` + "`json:\"bool_field_with_tag\"`" + `
+	ByteField uint8
+	ByteFieldWithTag uint8 ` + "`json:\"byte_field_with_tag\"`" + `
+	ChanBothField chan int
+	ChanBothFieldWithTag chan int ` + "`json:\"chan_both_field_with_tag\"`" + `
+	ChanRecvField <-chan int
+	ChanRecvFieldWithTag <-chan int ` + "`json:\"chan_recv_field_with_tag\"`" + `
+	ChanSendField chan<- int
+	ChanSendFieldWithTag chan<- int ` + "`json:\"chan_send_field_with_tag\"`" + `
+	Float32Field float32
+	Float32FieldWithTag float32 ` + "`json:\"float32_field_with_tag\"`" + `
+	Float64Field float64
+	Float64FieldWithTag float64 ` + "`json:\"float64_field_with_tag\"`" + `
+	FuncField func(int, int) (bool, *errors.errorString)
+	FuncFieldWithTag func(int, int) (bool, *errors.errorString) ` + "`json:\"func_field_with_tag\"`" + `
+	IntField int
+	IntFieldWithTag int ` + "`json:\"int_field_with_tag\"`" + `
+	InterfaceField interface {}
+	InterfaceFieldWithTag interface {} ` + "`json:\"interface_field_with_tag\"`" + `
+	InterfacePtrField *interface {}
+	InterfacePtrFieldWithTag *interface {} ` + "`json:\"interface_field_with_tag\"`" + `
+	MapField map[string]float32
+	MapFieldWithTag map[string]float32 ` + "`json:\"map_field_with_tag\"`" + `
+	SliceField []*dynamicstruct_test.DynamicTestStruct
+	SliceFieldWithTag []*dynamicstruct_test.DynamicTestStruct ` + "`json:\"slice_field_with_tag\"`" + `
+	StringField string
+	StringFieldWithTag string ` + "`json:\"string_field_with_tag\"`" + `
+	StructField struct { Byte uint8; Bytes []uint8; Int int; Int64 int64; Uint uint; Uint64 uint64; Float32 float32; Float64 float64; String string; Stringptr *string; Stringslice []string; Bool bool; Map map[string]interface {}; Func func(string) interface {}; DynamicTestStruct2 dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct2Ptr *dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct4Slice []dynamicstruct_test.DynamicTestStruct4; DynamicTestStruct4PtrSlice []*dynamicstruct_test.DynamicTestStruct4 }
+	StructFieldWithTag struct { Byte uint8; Bytes []uint8; Int int; Int64 int64; Uint uint; Uint64 uint64; Float32 float32; Float64 float64; String string; Stringptr *string; Stringslice []string; Bool bool; Map map[string]interface {}; Func func(string) interface {}; DynamicTestStruct2 dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct2Ptr *dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct4Slice []dynamicstruct_test.DynamicTestStruct4; DynamicTestStruct4PtrSlice []*dynamicstruct_test.DynamicTestStruct4 } ` + "`json:\"struct_field_with_tag\"`" + `
+	StructPtrField *struct { Byte uint8; Bytes []uint8; Int int; Int64 int64; Uint uint; Uint64 uint64; Float32 float32; Float64 float64; String string; Stringptr *string; Stringslice []string; Bool bool; Map map[string]interface {}; Func func(string) interface {}; DynamicTestStruct2 dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct2Ptr *dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct4Slice []dynamicstruct_test.DynamicTestStruct4; DynamicTestStruct4PtrSlice []*dynamicstruct_test.DynamicTestStruct4 }
+	StructPtrFieldWithTag *struct { Byte uint8; Bytes []uint8; Int int; Int64 int64; Uint uint; Uint64 uint64; Float32 float32; Float64 float64; String string; Stringptr *string; Stringslice []string; Bool bool; Map map[string]interface {}; Func func(string) interface {}; DynamicTestStruct2 dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct2Ptr *dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct4Slice []dynamicstruct_test.DynamicTestStruct4; DynamicTestStruct4PtrSlice []*dynamicstruct_test.DynamicTestStruct4 } ` + "`json:\"struct_ptr_field_with_tag\"`" + `
+}`,
+			testMap: testMap,
 		},
 		{
 			name:               "BuildNonPtr() with valid Builder",
 			args:               buildArgs{builder: newDynamicTestBuilder(), isPtr: false},
 			wantIsPtr:          false,
-			wantNumField:       28,
+			wantStructName:     "DynamicStruct",
+			wantNumField:       32,
 			testMap:            testMap,
 			wantErrorDecodeMap: true, // Note: can't execute DecodeMap if dynamic struct is NOT pointer.
+		},
+		{
+			name:           "Build() with valid Builder with struct name",
+			args:           buildArgs{builder: newDynamicTestBuilderWithStructName("HogeHuga"), isPtr: true},
+			wantIsPtr:      true,
+			wantStructName: "HogeHuga",
+			wantNumField:   32, // See: newDynamicTestBuilder()
+			testMap:        testMap,
 		},
 	}
 
@@ -613,9 +687,22 @@ func testBuilderBuildWant(t *testing.T, got DynamicStruct, tt buildTest) bool {
 		return false
 	}
 
+	if got.Name() != tt.wantStructName {
+		t.Errorf("result struct name is unexpected. got: %s, want: %s", got.Name(), tt.wantStructName)
+		return false
+	}
+
 	if got.NumField() != tt.wantNumField {
 		t.Errorf("result numfield is unexpected. got: %d, want: %d", got.NumField(), tt.wantNumField)
 		return false
+	}
+
+	if tt.wantDefinition != "" {
+		if d := cmp.Diff(got.Definition(), tt.wantDefinition); d != "" {
+			//t.Errorf("unexpected mismatch Definition. got:\n%s\n, want:\n%s\n", got.Definition(), tt.wantDefinition)
+			t.Errorf("unexpected mismatch Definition: (-got +want)\n%s", d)
+			return false
+		}
 	}
 
 	return true
@@ -719,6 +806,203 @@ func testBuilderBuildDecodeMap(t *testing.T, got DynamicStruct, tt buildTest) bo
 
 	return true
 }
+
+/*
+func TestJSONToDynamicStructInterface(t *testing.T) {
+	t.Parallel()
+
+	type args struct {
+		jsonData []byte
+	}
+	tests := []struct {
+		name           string
+		args           args
+		wantError      bool
+		numField       int
+		hasStringField bool
+	}{
+		{
+			name: "JSON does not have null field",
+			args: args{
+				jsonData: []byte(`
+{
+	"null_field":null,
+	"string_field":"かきくけこ",
+	"int_field":45678,
+	"float32_field":9.876,
+	"bool_field":false,
+	"struct_ptr_field":{
+		"key":"hugakey",
+		"value":"hugavalue"
+	},
+	"array_string_field":[
+		"array_str_1",
+		"array_str_2"
+	],
+	"array_struct_field":[
+		{
+			"kkk":"kkk1",
+			"vvvv":"vvv1"
+		},
+		{
+			"kkk":"kkk2",
+			"vvvv":"vvv2"
+		},
+		{
+			"kkk":"kkk3",
+			"vvvv":"vvv3"
+		}
+	]
+}
+`),
+			},
+			wantError:      false,
+			numField:       7,
+			hasStringField: true,
+		},
+		{
+			name: "JSON is valid array",
+			args: args{
+				jsonData: []byte(`
+		[
+			{
+				"null_field":null,
+				"string_field":"かきくけこ",
+				"int_field":45678,
+				"float32_field":9.876,
+				"bool_field":false,
+				"struct_ptr_field":{
+					"key":"hugakey",
+					"value":"hugavalue"
+				},
+				"array_string_field":[
+					"array_str_1",
+					"array_str_2"
+				],
+				"array_struct_field":[
+					{
+						"kkk":"kkk1",
+						"vvvv":"vvv1"
+					},
+					{
+						"kkk":"kkk2",
+						"vvvv":"vvv2"
+					},
+					{
+						"kkk":"kkk3",
+						"vvvv":"vvv3"
+					}
+				]
+			},
+			{
+				"null_field":null,
+				"string_field":"さしすせそ",
+				"int_field":7890,
+				"float32_field":4.99,
+				"bool_field":true,
+				"struct_ptr_field":{
+					"key":"hugakeyXXX",
+					"value":"hugavalueXXX"
+				},
+				"array_string_field":[
+					"array_str_111",
+					"array_str_222"
+				],
+				"array_struct_field":[
+					{
+						"kkk":"kkk99",
+						"vvvv":"vvv99"
+					},
+					{
+						"kkk":"kkk999",
+						"vvvv":"vvv999"
+					},
+					{
+						"kkk":"kkk9999",
+						"vvvv":"vvv9999"
+					}
+				]
+			}
+		]
+		`),
+			},
+			wantError:      false,
+			numField:       1,
+			hasStringField: false,
+		},
+		{
+			name: "Only one null field",
+			args: args{
+				jsonData: []byte(`{"nullfield":null}`),
+			},
+			wantError:      false,
+			numField:       0,
+			hasStringField: false,
+		},
+		{
+			name: "Empty JSON",
+			args: args{
+				jsonData: []byte(`{}`),
+			},
+			wantError:      false,
+			numField:       0,
+			hasStringField: false,
+		},
+		{
+			name: "Empty array JSON",
+			args: args{
+				jsonData: []byte(`[]`),
+			},
+			wantError:      false,
+			numField:       0,
+			hasStringField: false,
+		},
+		{
+			name: "empty",
+			args: args{
+				jsonData: []byte(``),
+			},
+			wantError:      true,
+			numField:       0,
+			hasStringField: false,
+		},
+		{
+			name: "null",
+			args: args{
+				jsonData: []byte(`null`),
+			},
+			wantError:      true,
+			numField:       0,
+			hasStringField: false,
+		},
+		{
+			name: "Invalid string",
+			args: args{
+				jsonData: []byte(`invalid`),
+			},
+			wantError:      true,
+			numField:       0,
+			hasStringField: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			intf, err := JSONToDynamicStructInterface(tt.args.jsonData)
+			if err == nil {
+				if tt.wantError {
+					t.Errorf("error did not occur. intf: %#v", intf)
+					return
+				}
+
+			} else if !tt.wantError {
+				t.Errorf("unexpected error occured. wantError %v, err: %v", tt.wantError, err)
+			}
+		})
+	}
+}
+*/
 
 // benchmark tests
 
@@ -827,6 +1111,20 @@ func BenchmarkAddSlice(b *testing.B) {
 	}
 }
 
+func BenchmarkAddInterface(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = NewBuilder().AddInterface("InterfaceField", false)
+	}
+}
+
+func BenchmarkAddInterfacePtr(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = NewBuilder().AddInterface("InterfacePtrField", true)
+	}
+}
+
 func BenchmarkBuild(b *testing.B) {
 	builder := newDynamicTestBuilder()
 
@@ -842,5 +1140,15 @@ func BenchmarkBuildNonPtr(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_ = builder.BuildNonPtr()
+	}
+}
+
+func BenchmarkDefinition(b *testing.B) {
+	builder := newDynamicTestBuilder()
+	ds := builder.Build()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = ds.Definition()
 	}
 }
