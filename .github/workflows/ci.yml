@@ -123,6 +123,13 @@ jobs:
       name: Run benchmarks
       run: make bench
 
+    - id: upload-benchmark
+      name: Upload a current benchmark result
+      uses: actions/upload-artifact@v2
+      with:
+        name: benchmark-${{ matrix.go }}
+        path: ${{ env.BENCHMARK_DIR }}/${{ env.BENCHMARK_FILE }}
+
     - id: benchstat-current-vs-latest
       name: Run benchstat current vs latest
       continue-on-error: true
@@ -175,8 +182,8 @@ jobs:
         git status -s
 
     # See: https://stackoverflow.com/questions/57921401/push-to-origin-from-github-action
-    - id: commit-push-benchmark-master
-      name: Commit and push BENCHMARK_LATEST.txt (only on push)
+    - id: commit-push-benchmark-latest
+      name: Commit and push BENCHMARK_LATEST.txt to bench-latest branch (only on push)
       continue-on-error: true
       # This step is executed only on-push to master
       if: github.event_name == 'push'
