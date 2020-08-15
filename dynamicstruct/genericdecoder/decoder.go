@@ -57,18 +57,18 @@ func decodeMap(m map[string]interface{}, ds dynamicstruct.DynamicStruct) (*Decod
 	}
 	var err error
 
-	// camelize key for building DynamicStruct with exported fields
+	// camelizedKeys for building DynamicStruct with exported fields
 	// e.g. if json item name is "hoge_huga", same field name in DynamicStruct is "HogeHuga"
-	cm := camelizeMapKey(m)
+	camelizedKeys, camelizedMap := camelizeMap(m)
 
 	if dr.DynamicStruct == nil {
-		dr.DynamicStruct, err = buildDynamicStruct(cm)
+		dr.DynamicStruct, err = buildDynamicStruct(m, camelizedKeys)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	dr.DecodedInterface, err = dr.DynamicStruct.DecodeMap(cm)
+	dr.DecodedInterface, err = dr.DynamicStruct.DecodeMap(camelizedMap)
 	if err != nil {
 		return nil, err
 	}
@@ -76,40 +76,44 @@ func decodeMap(m map[string]interface{}, ds dynamicstruct.DynamicStruct) (*Decod
 	return dr, nil
 }
 
-func camelizeMapKey(m map[string]interface{}) map[string]interface{} {
+func camelizeMap(m map[string]interface{}) (map[string]string, map[string]interface{}) {
+	camelizedKeys := make(map[string]string, len(m))
 	camelizedMap := make(map[string]interface{}, len(m))
+
 	for k, v := range m {
-		camelizedMap[strcase.ToCamel(k)] = v
+		camelizedKeys[k] = strcase.ToCamel(k)
+		camelizedMap[camelizedKeys[k]] = v
 	}
 
-	return camelizedMap
+	return camelizedKeys, camelizedMap
 }
 
-func buildDynamicStruct(m map[string]interface{}) (dynamicstruct.DynamicStruct, error) {
-	var tag string
+func buildDynamicStruct(m map[string]interface{}, camelizedKeys map[string]string) (dynamicstruct.DynamicStruct, error) {
+	var tag, name string
 	b := dynamicstruct.NewBuilder()
 
 	for k, v := range m {
 		tag = fmt.Sprintf(`json:"%s"`, k)
+		name = camelizedKeys[k]
 
 		// See: https://golang.org/pkg/encoding/json/#Unmarshal
 		switch value := v.(type) {
 		case bool:
-			b = b.AddBoolWithTag(k, tag)
+			b = b.AddBoolWithTag(name, tag)
 		case float64:
-			b = b.AddFloat64WithTag(k, tag)
+			b = b.AddFloat64WithTag(name, tag)
 		case string:
-			b = b.AddStringWithTag(k, tag)
+			b = b.AddStringWithTag(name, tag)
 		case []interface{}:
-			b = b.AddSliceWithTag(k, interface{}(value[0]), tag)
+			b = b.AddSliceWithTag(name, interface{}(value[0]), tag)
 		case map[string]interface{}:
 			for kk, vv := range value {
-				b = b.AddMapWithTag(k, kk, interface{}(vv), tag)
+				b = b.AddMapWithTag(name, kk, interface{}(vv), tag)
 				break
 			}
 		case nil:
 			// Note: Is this ok?
-			b = b.AddInterfaceWithTag(k, false, tag)
+			b = b.AddInterfaceWithTag(name, false, tag)
 		default:
 			return nil, fmt.Errorf("jsonData %#v has invalid typed key", m)
 		}

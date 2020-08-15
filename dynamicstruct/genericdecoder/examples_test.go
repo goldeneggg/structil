@@ -54,7 +54,7 @@ func Example() {
 	fmt.Printf(
 		"num of fields=%d\n'StringField'=%s\n'IntField'=%f\n'Float32Field'=%f\n'BoolField'=%t\n'StructPtrField'=%+v\n'ArrayStringField'=%+v\n'ArrayStructField'=%+v\n'NullField'=%+v",
 		g.NumField(),
-		g.String("StringField"),
+		g.String("StringField"),   // field names of DynamicStruct are camelized original json field key
 		g.Float64("IntField"),     // Note: type of unmarshalled number fields are float64. See: https://golang.org/pkg/encoding/json/#Unmarshal
 		g.Float64("Float32Field"), // same as above
 		g.Bool("BoolField"),
@@ -65,14 +65,14 @@ func Example() {
 	)
 	// Output:
 	//type DynamicStruct struct {
-	//	ArrayStringField []string `json:"ArrayStringField"`
-	//	ArrayStructField []map[string]interface {} `json:"ArrayStructField"`
-	//	BoolField bool `json:"BoolField"`
-	//	Float32Field float64 `json:"Float32Field"`
-	//	IntField float64 `json:"IntField"`
-	//	NullField interface {} `json:"NullField"`
-	//	StringField string `json:"StringField"`
-	//	StructPtrField map[string]string `json:"StructPtrField"`
+	//	ArrayStringField []string `json:"array_string_field"`
+	//	ArrayStructField []map[string]interface {} `json:"array_struct_field"`
+	//	BoolField bool `json:"bool_field"`
+	//	Float32Field float64 `json:"float32_field"`
+	//	IntField float64 `json:"int_field"`
+	//	NullField interface {} `json:"null_field"`
+	//	StringField string `json:"string_field"`
+	//	StructPtrField map[string]string `json:"struct_ptr_field"`
 	//}
 	// num of fields=8
 	// 'StringField'=かきくけこ
