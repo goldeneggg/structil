@@ -22,7 +22,6 @@ env:
   # See: Makefile
   BENCHMARK_DIR: .test
   BENCHMARK_FILE: bench.new
-  GO_LATEST_VER: '1.15'
 
 jobs:
   test:
@@ -31,7 +30,7 @@ jobs:
     strategy:
       matrix:
         os: [ 'ubuntu-latest' ]
-        go: [ ${{ env.GO_LATEST_VER }} ]
+        go: [ '1.15' ]
 
     steps:
     - id: setup-go
@@ -84,7 +83,7 @@ jobs:
     strategy:
       matrix:
         os: [ 'ubuntu-latest' ]
-        go: [ ${{ env.GO_LATEST_VER }} ]
+        go: [ '1.15' ]
     env:
       BENCHSTAT_VS_LATEST: /tmp/benchstat-vs-latest
 
@@ -154,7 +153,7 @@ jobs:
     strategy:
       matrix:
         os: [ 'ubuntu-latest' ]
-        go: [ ${{ env.GO_LATEST_VER }} ]
+        go: [ '1.15' ]
     env:
       BENCHMARK_LATEST: BENCHMARK_LATEST.txt
 
