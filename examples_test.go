@@ -4,49 +4,7 @@ import (
 	"fmt"
 )
 
-func ExampleGetterImpl_String() {
-	type Person struct {
-		Name string
-		Age  int
-	}
-
-	i := &Person{
-		Name: "Tony",
-		Age:  25,
-	}
-
-	getter, err := NewGetter(i)
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Printf("%+v", getter.String("Name"))
-	// Output:
-	// Tony
-}
-
-func ExampleGetterImpl_Int() {
-	type Person struct {
-		Name string
-		Age  int
-	}
-
-	i := &Person{
-		Name: "Tony",
-		Age:  25,
-	}
-
-	getter, err := NewGetter(i)
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Printf("%+v", getter.Int("Age"))
-	// Output:
-	// 25
-}
-
-func ExampleGetterImpl_Get_struct() {
+func ExampleGetter() {
 	type Company struct {
 		Name    string
 		Address string
@@ -69,18 +27,29 @@ func ExampleGetterImpl_Get_struct() {
 		},
 	}
 
+	// i must be a struct or struct pointer
 	getter, err := NewGetter(i)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Printf("%+v", getter.Get("Company"))
+	fmt.Printf(
+		"num of fields=%d\nfield names=%v\n'Name'=%s\n'Age'=%d\n'Company'=%+v",
+		getter.NumField(),     // get num of fields
+		getter.Names(),        // get field names
+		getter.String("Name"), // get as string
+		getter.Int("Age"),     // get as int
+		getter.Get("Company"), // get as interface{}
+	)
 	// Output:
-	// {Name:Tiger inc. Address:Tokyo Period:3}
+	// num of fields=3
+	// field names=[Name Age Company]
+	// 'Name'=Tony
+	// 'Age'=25
+	// 'Company'={Name:Tiger inc. Address:Tokyo Period:3}
 }
 
-/*
-func ExampleGetterImpl_Get_structSliceField() {
+func ExampleGetterImpl_MapGet() {
 	type Company struct {
 		Name    string
 		Address string
@@ -115,47 +84,7 @@ func ExampleGetterImpl_Get_structSliceField() {
 		panic(err)
 	}
 
-	fmt.Printf("%#v", getter.Get("Companies"))
-	// Output:
-	// {Name:Tiger inc. Address:Tokyo Period:3}
-}
-*/
-
-func ExampleGetterImpl_MapGet_joinElements() {
-	type Company struct {
-		Name    string
-		Address string
-		Period  int
-	}
-
-	type Person struct {
-		Name      string
-		Age       int
-		Companies []*Company
-	}
-
-	i := &Person{
-		Name: "Tony",
-		Age:  25,
-		Companies: []*Company{
-			{
-				Name:    "Tiger inc.",
-				Address: "Tokyo",
-				Period:  3,
-			},
-			{
-				Name:    "Dragon inc.",
-				Address: "Osaka",
-				Period:  4,
-			},
-		},
-	}
-
-	getter, err := NewGetter(i)
-	if err != nil {
-		panic(err)
-	}
-
+	// Each of "Companies" field are applied map function as follows.
 	fn := func(i int, g Getter) (interface{}, error) {
 		return fmt.Sprintf(
 			"You worked for %d years since you joined the company %s",
@@ -164,6 +93,8 @@ func ExampleGetterImpl_MapGet_joinElements() {
 		), nil
 	}
 
+	// 1st argeument must be a field name of array or slice field.
+	// function assigned 2nd argument is applied each "Companies" element.
 	intfs, err := getter.MapGet("Companies", fn)
 	if err != nil {
 		panic(err)
@@ -174,71 +105,7 @@ func ExampleGetterImpl_MapGet_joinElements() {
 	// []interface {}{"You worked for 3 years since you joined the company Tiger inc.", "You worked for 4 years since you joined the company Dragon inc."}
 }
 
-func ExampleFinderImpl_ToMap_simpleFind() {
-	type Person struct {
-		Name string
-		Age  int
-	}
-
-	i := &Person{"Scott Tiger", 25}
-
-	finder, err := NewFinder(i)
-	if err != nil {
-		panic(err)
-	}
-
-	m, err := finder.FindTop("Name", "Age").ToMap()
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Printf("%#v", m)
-	// Output:
-	// map[string]interface {}{"Age":25, "Name":"Scott Tiger"}
-}
-
-func ExampleFinderImpl_ToMap_singleNestInto() {
-	type Company struct {
-		Name    string
-		Address string
-		Period  int
-	}
-
-	type Person struct {
-		Name string
-		Age  int
-		*Company
-	}
-
-	i := &Person{
-		Name: "Mark Hunt",
-		Age:  25,
-		Company: &Company{
-			Name:    "Tiger inc.",
-			Address: "Tokyo",
-			Period:  3,
-		},
-	}
-
-	finder, err := NewFinder(i)
-	if err != nil {
-		panic(err)
-	}
-
-	m, err := finder.
-		FindTop("Name", "Age").
-		Into("Company").Find("Period").
-		ToMap()
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Printf("%#v", m)
-	// Output:
-	// map[string]interface {}{"Age":25, "Company.Period":3, "Name":"Mark Hunt"}
-}
-
-func ExampleFinderImpl_ToMap_multiNestInto() {
+func ExampleFinder() {
 	type Group struct {
 		Name string
 		Boss string
@@ -281,15 +148,27 @@ func ExampleFinderImpl_ToMap_multiNestInto() {
 		},
 	}
 
-	finder, err := NewFinder(i)
+	// 2nd argument is the separator string for nested field names separating
+	finder, err := NewFinderWithSep(i, ">")
+	// Note:
+	// If "NewFinder(i)" is called instead of "NewFinderWithSep", default separator "." is automatically used.
+	// finder, err := NewFinder(i)
+
 	if err != nil {
 		panic(err)
 	}
 
+	// Finder provides method chain mechanism
 	m, err := finder.
-		FindTop("School").
+		// Find(...string) returns a Finder that fields in NESTED struct are looked up by field name arguments.
+		Find("School").
+		// Into(...string) returns a Finder that NESTED struct fields are looked up by field name arguments.
+		// This example looks up `person.Company.Address` field.
 		Into("Company").Find("Address").
+		// If multi arguments are assigned for Into method, then execute multi level nesting.
+		// This example looks up `person.Company.Group.Name` and `person.Company.Group.Boss` fields.
 		Into("Company", "Group").Find("Name", "Boss").
+		// ToMap converts from found struct fields to map.
 		ToMap()
 	if err != nil {
 		panic(err)
@@ -297,7 +176,7 @@ func ExampleFinderImpl_ToMap_multiNestInto() {
 
 	fmt.Printf("%#v", m)
 	// Output:
-	// map[string]interface {}{"Company.Address":"New York", "Company.Group.Boss":"Donald", "Company.Group.Name":"YYY Group Holdings", "School":structil.School{Name:"ABC College", GraduatedYear:1995}}
+	// map[string]interface {}{"Company>Address":"New York", "Company>Group>Boss":"Donald", "Company>Group>Name":"YYY Group Holdings", "School":structil.School{Name:"ABC College", GraduatedYear:1995}}
 }
 
 func ExampleFinderImpl_FromKeys_yml() {
@@ -355,6 +234,8 @@ func ExampleFinderImpl_FromKeys_yml() {
 	//   - Name
 	//   - Age
 
+	// Get `FinderKeys` object by calling `NewFinderKeys` with config file dir and baseName
+	// This config file path is "examples/finder_from_conf/ex_json.json"
 	fks, err := NewFinderKeys("examples/finder_from_conf", "ex_yml")
 	if err != nil {
 		panic(err)
@@ -365,6 +246,12 @@ func ExampleFinderImpl_FromKeys_yml() {
 		panic(err)
 	}
 
+	// And build `Finder` object using `FromKeys` method with `FinderKeys` object
+	// This returns the same result as follows:
+	//
+	// finder = finder.Find("Name", "Age").
+	//   Into("Company").Find("Address", "Period").
+	//   Into("Company", "Group").Find("Name", "Boss")
 	m, err := finder.FromKeys(fks).ToMap()
 	if err != nil {
 		panic(err)

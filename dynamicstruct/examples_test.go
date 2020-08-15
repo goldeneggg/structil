@@ -1,12 +1,13 @@
 package dynamicstruct
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/goldeneggg/structil"
 )
 
-func ExampleDynamicStruct_DecodeMap() {
+func Example() {
 	type Hoge struct {
 		Key   string
 		Value interface{}
@@ -17,7 +18,7 @@ func ExampleDynamicStruct_DecodeMap() {
 		Value: "valuestr",
 	}
 
-	// Add struct fields using Builder
+	// Add fields using Builder with AddXXX method chain
 	b := NewBuilder().
 		AddString("StringField").
 		AddInt("IntField").
@@ -25,22 +26,32 @@ func ExampleDynamicStruct_DecodeMap() {
 		AddBool("BoolField").
 		AddMap("MapField", SampleString, SampleFloat32).
 		AddStructPtr("StructPtrField", hogePtr).
-		AddSlice("SliceField", SampleInt)
+		AddSlice("SliceField", SampleInt).
+		AddInterfaceWithTag("SomeObjectField", true, `json:"some_object_field"`)
 
-	// Remove one field
+	// Remove removes a field by assigned name
 	b = b.Remove("Float32Field")
+
+	// SetStructName sets the name of DynamicStruct
+	// Note: Default struct name is "DynamicStruct"
+	b.SetStructName("MyStruct")
 
 	// Build returns a DynamicStruct
 	ds := b.Build()
 
-	// Decode to struct from map
+	// Print struct definition with Definition method
+	// Struct fields are automatically orderd by field name
+	fmt.Println(ds.Definition())
+
+	// DecodeMap decodes from map to DynamicStruct
 	input := map[string]interface{}{
-		"StringField":    "Abc Def",
-		"IntField":       int(123),
-		"BoolField":      true,
-		"MapField":       map[string]float32{"mkey1": float32(1.23), "mkey2": float32(4.56)},
-		"StructPtrField": hogePtr,
-		"SliceField":     []int{111, 222},
+		"StringField":     "Abc Def",
+		"IntField":        int(123),
+		"BoolField":       true,
+		"MapField":        map[string]float32{"mkey1": float32(1.23), "mkey2": float32(4.56)},
+		"StructPtrField":  hogePtr,
+		"SliceField":      []int{111, 222},
+		"SomeObjectField": nil,
 	}
 	dec, err := ds.DecodeMap(input)
 	if err != nil {
@@ -53,57 +64,102 @@ func ExampleDynamicStruct_DecodeMap() {
 		panic(err)
 	}
 	fmt.Printf(
-		"NumField: %d, String: %s, Int: %d, Bool: %v, Map: %+v, StructPtrField: %+v, SliceField: %+v\n",
-		ds.NumField(),
+		"num of fields=%d\n'StringField'=%s\n'IntField'=%d\n'BoolField'=%t\n'MapField'=%+v\n'StructPtrField'=%+v\n'SliceField'=%+v\n'SomeObjectField'=%+v",
+		g.NumField(),
 		g.String("StringField"),
 		g.Int("IntField"),
 		g.Bool("BoolField"),
 		g.Get("MapField"),
 		g.Get("StructPtrField"),
 		g.Get("SliceField"),
+		g.Get("SomeObjectField"),
 	)
 	// Output:
-	// NumField: 6, String: Abc Def, Int: 123, Bool: true, Map: map[mkey1:1.23 mkey2:4.56], StructPtrField: {Key:keystr Value:valuestr}, SliceField: [111 222]
+	// type MyStruct struct {
+	// 	BoolField bool
+	// 	IntField int
+	// 	MapField map[string]float32
+	// 	SliceField []int
+	// 	SomeObjectField *interface {} `json:"some_object_field"`
+	// 	StringField string
+	// 	StructPtrField *struct { Key string; Value interface {} }
+	// }
+	// num of fields=7
+	// 'StringField'=Abc Def
+	// 'IntField'=123
+	// 'BoolField'=true
+	// 'MapField'=map[mkey1:1.23 mkey2:4.56]
+	// 'StructPtrField'={Key:keystr Value:valuestr}
+	// 'SliceField'=[111 222]
+	// 'SomeObjectField'=<nil>
 }
 
-func ExampleDynamicStruct_Definition() {
+func Example_unmarshalJSON() {
 	type Hoge struct {
-		Name   string
-		Object interface{}
+		Key   string      `json:"key"`
+		Value interface{} `json:"value"`
 	}
 
-	hogePtr := &Hoge{
-		Name:   "this is name",
-		Object: "this is object",
-	}
+	var hogePtr *Hoge
 
-	// Add struct fields with tag using Builder
 	b := NewBuilder().
-		AddString("MyStringNoTag").
-		AddStringWithTag("MyString", `json:"my_string"`).
-		AddIntWithTag("MyInt", `json:"my_int"`).
-		AddFloat64WithTag("MyFloat64", `json:"my_float64"`).
-		AddMapWithTag("MyMap", SampleString, SampleFloat32, `json:"my_map"`).
-		AddStructPtrWithTag("MyStructPtr", hogePtr, `json:"my_struct_ptr"`).
-		AddSliceWithTag("MySlice", SampleInt, `json:"my_slice"`)
-
-	// Set struct name to DynamicStruct
-	b.SetStructName("MyTestStruct")
-
-	// Build returns a DynamicStruct
+		AddStringWithTag("StringField", `json:"string_field"`).
+		AddIntWithTag("IntField", `json:"int_field"`).
+		AddFloat32WithTag("Float32Field", `json:"float32_field"`).
+		AddBoolWithTag("BoolField", `json:"bool_field"`).
+		AddStructPtrWithTag("StructPtrField", hogePtr, `json:"struct_ptr_field"`).
+		AddSliceWithTag("SliceField", "", `json:"slice_string_field"`)
 	ds := b.Build()
-
-	// Print struct definition of built DynamicStruct
-	// Fields are sorted by field name
 	fmt.Println(ds.Definition())
+
+	// try json unmarshal with NewInterface
+	input := []byte(`
+{
+	"string_field":"あいうえお",
+	"int_field":9876,
+	"float32_field":5.67,
+	"bool_field":true,
+	"struct_ptr_field":{
+		"key":"hogekey",
+		"value":"hogevalue"
+	},
+	"slice_string_field":[
+		"a",
+		"b"
+	]
+}
+`)
+	intf := ds.NewInterface() // returns a new interface of this DynamicStruct
+	err := json.Unmarshal(input, &intf)
+	if err != nil {
+		panic(err)
+	}
+
+	g, err := structil.NewGetter(intf)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf(
+		"num of fields=%d\n'StringField'=%s\n'Float32Field'=%f\n'StructPtrField'=%+v\n'SliceField'=%+v",
+		g.NumField(),
+		g.String("StringField"),
+		g.Float32("Float32Field"),
+		g.Get("StructPtrField"),
+		g.Get("SliceField"),
+	)
 	// Output:
-	//type MyTestStruct struct {
-	// 	MyFloat64 float64 `json:"my_float64"`
-	// 	MyInt int `json:"my_int"`
-	// 	MyMap map[string]float32 `json:"my_map"`
-	// 	MySlice []int `json:"my_slice"`
-	// 	MyString string `json:"my_string"`
-	// 	MyStringNoTag string
-	// 	MyStructPtr *struct { Name string; Object interface {} } `json:"my_struct_ptr"`
-	//}
+	// type DynamicStruct struct {
+	// 	BoolField bool `json:"bool_field"`
+	// 	Float32Field float32 `json:"float32_field"`
+	// 	IntField int `json:"int_field"`
+	// 	SliceField []string `json:"slice_string_field"`
+	// 	StringField string `json:"string_field"`
+	// 	StructPtrField *struct { Key string "json:\"key\""; Value interface {} "json:\"value\"" } `json:"struct_ptr_field"`
+	// }
+	// num of fields=6
+	// 'StringField'=あいうえお
+	// 'Float32Field'=5.670000
+	// 'StructPtrField'={Key:hogekey Value:hogevalue}
+	// 'SliceField'=[a b]
 }
