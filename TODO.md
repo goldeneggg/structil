@@ -5,22 +5,30 @@ __TODO list__
 - [`Finder`](#finder)
 - [`Getter`](#getter)
 - [`DynamicStruct`](#dynamicstruct)
+- [`GenericDecoder`](#genericdecoder)
 - [Other](#other)
 
 <!-- /TOC -->
 
 ## `Finder`
-- [ ] performance tuning (by using `FieldByIndex` ?)
 - [ ] may be deprecated `FindTop`
 - [ ] add `Get(...names)` method
+- [ ] performance tuning (by using `FieldByIndex` ?)
 
 ## `Getter`
 - [x] add `Names` method
 - [ ] current Getter is unsafe because panic is occured. So add safe Getter that returns an error instead of causing a panic ___This is large refactoring___
+- [ ] performance tuning
 
 ## `DynamicStruct`
+- [x] add `Definition` method that returns struce definition string of DynamicStruct
+- [x] can assign the struct name of DynamicStruct
+- [x] add GenericDecoder
+- [ ] performance tuning
+
+## `GenericDecoder`
+- [ ]  support YAML
 - [ ]  performance tuning
-- [ ]  direct and simple conversion from JSON/YAML to DynamicStruct (and Getter)
 
 ## Other
 - [x] performance benchmark comparing on CI workflow with Github Actions
