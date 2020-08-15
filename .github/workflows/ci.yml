@@ -123,17 +123,17 @@ jobs:
       name: Run benchmarks
       run: make bench
 
-    - id: upload-benchmark
-      name: Upload a current benchmark result
-      uses: actions/upload-artifact@v2
-      with:
-        name: benchmark-${{ matrix.go }}
-        path: ${{ env.BENCHMARK_DIR }}/${{ env.BENCHMARK_FILE }}
-
     - id: benchstat-current-vs-latest
       name: Run benchstat current vs latest
       continue-on-error: true
       run: make benchstat-ci | tee ${{ env.BENCHSTAT_VS_LATEST }}
+
+    - id: upload-benchstat-vs-latest
+      name: Upload benchstat result current vs latest for Continuous Benchmarking
+      uses: actions/upload-artifact@v2
+      with:
+        name: benchstat-vs-latest-go-${{ matrix.go }}
+        path: ${{ env.BENCHSTAT_VS_LATEST }}
 
   ###
   # only on push to master
