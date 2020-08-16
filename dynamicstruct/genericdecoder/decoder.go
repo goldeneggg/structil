@@ -27,12 +27,15 @@ func decode(ui interface{}, ds dynamicstruct.DynamicStruct) (*DecodedResult, err
 	case map[string]interface{}:
 		return decodeMap(t, ds)
 	case []interface{}:
+		// TODO: should check length and if length == 1, then call decodeMap directly and once instead of current implementation.
 		var drElem *DecodedResult
 		var dsOnce dynamicstruct.DynamicStruct
 		iArr := make([]interface{}, len(t))
 		for idx, elemIntf := range t {
 			// call this function recursively
 			// we want to build DynamicStruct only once
+			// FIXME: current code can not support "omitempty" field for JSON array
+			// TODO: DynamicStruct bulding not only once but only once *with omitempty support*
 			drElem, err = decode(elemIntf, dsOnce)
 			if err != nil {
 				return nil, err
@@ -93,6 +96,13 @@ func buildDynamicStruct(m map[string]interface{}, camelizedKeys map[string]strin
 	b := dynamicstruct.NewBuilder()
 
 	for k, v := range m {
+		// TODO: "json" changes dynamic. e.g. "yaml", "xml" and others
+		// TODO: apply initialisms theories. See: https://github.com/golang/go/wiki/CodeReviewComments#initialisms
+		//   (and more golint theories validations)
+		// TODO: add "omitempty"? (e.g. when key is missing, type should be a pointer and have "omitempty")
+		// TODO: add ",string", ",boolean" extra options?
+		// See: https://golang.org/pkg/encoding/json/#Marshal
+		// See: https://m-zajac.github.io/json2go/
 		tag = fmt.Sprintf(`json:"%s"`, k)
 		name = camelizedKeys[k]
 

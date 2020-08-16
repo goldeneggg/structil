@@ -27,9 +27,11 @@ type impl struct {
 	name       string
 	structType reflect.Type
 	isPtr      bool
+	// sortedFields  string  // TODO: for performance tuning
 	definition string
 }
 
+// TODO: add "sortedFields" slice string argument
 func newDynamicStruct(fields []reflect.StructField, isPtr bool) DynamicStruct {
 	return newDynamicStructWithName(fields, isPtr, defaultStructName)
 }
@@ -101,6 +103,7 @@ func (ds *impl) Definition() string {
 		return ds.definition
 	}
 
+	// TODO: performance optimization
 	sortedFields := make([]reflect.StructField, ds.NumField())
 	for i := 0; i < ds.NumField(); i++ {
 		sortedFields[i] = ds.Field(i)

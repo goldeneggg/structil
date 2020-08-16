@@ -332,6 +332,7 @@ func (b *BuilderImpl) AddChanSendWithTag(name string, i interface{}, tag string)
 
 // AddStruct returns a Builder that was added a struct field named by name parameter.
 // Type of struct is type of i.
+// TODO: add test if i is a DynamicStruct
 func (b *BuilderImpl) AddStruct(name string, i interface{}, isPtr bool) Builder {
 	b.AddStructWithTag(name, i, isPtr, "")
 	return b
@@ -353,6 +354,7 @@ func (b *BuilderImpl) AddStructWithTag(name string, i interface{}, isPtr bool, t
 
 // AddStructPtr returns a Builder that was added a struct pointer field named by name parameter.
 // Type of struct is type of i.
+// TODO: add test if i is a DynamicStruct pointer
 func (b *BuilderImpl) AddStructPtr(name string, i interface{}) Builder {
 	return b.AddStruct(name, i, true)
 }
