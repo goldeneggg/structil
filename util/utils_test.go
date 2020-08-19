@@ -1,4 +1,4 @@
-package structil_test
+package util_test
 
 import (
 	"errors"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	. "github.com/goldeneggg/structil"
+	. "github.com/goldeneggg/structil/util"
 )
 
 type tStruct struct {
