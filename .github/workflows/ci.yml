@@ -162,6 +162,12 @@ jobs:
       name: Check out code into the Go module directory
       uses: actions/checkout@v2
 
+    - id: confirm-version
+      name: Confirm version from version.go
+      run: |
+        v=$(make version)
+        echo "::set-output name=master-version::${v}"
+
     - id: download-benchmark
       name: Download a current benchmark result
       continue-on-error: true
@@ -196,12 +202,6 @@ jobs:
         git commit -m "Automated update latest benchmark report"
         git push origin bench-latest
 
-    - id: confirm-version
-      name: Confirm version from version.go
-      run: |
-        v=$(make version)
-        echo "::set-output name=version::${v}"
-
     - id: create-draft-release
       name: Create draft release (only on push)
       # This step is executed only on-push to master
@@ -210,8 +210,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: MAYBE-${{ steps.confirm-version.outputs.version }}
-        release_name: Release MAYBE-${{ steps.confirm-version.outputs.version }}
+        tag_name: MAYBE-${{ steps.confirm-version.outputs.master-version }}
+        release_name: Release MAYBE-${{ steps.confirm-version.outputs.master-version }}
         body: |
           Changes in this Release
           - TODO1
