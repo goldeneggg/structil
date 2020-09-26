@@ -1,4 +1,4 @@
-FROM golang:1.13.15-buster
+FROM golang:1.15.2-buster
 
 ENV CGO_ENABLED=1
 ENV APP_DIR /go/src/github.com/goldeneggg/structil

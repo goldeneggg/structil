@@ -39,57 +39,57 @@ var (
 	ErrSample = errors.New("SampleError")
 )
 
-// Builder is thi interface that builds a dynamic and runtime struct.
-type Builder interface {
-	AddString(name string) Builder
-	AddStringWithTag(name string, tag string) Builder
-	AddInt(name string) Builder
-	AddIntWithTag(name string, tag string) Builder
-	AddByte(name string) Builder
-	AddByteWithTag(name string, tag string) Builder
-	AddFloat32(name string) Builder
-	AddFloat32WithTag(name string, tag string) Builder
-	AddFloat64(name string) Builder
-	AddFloat64WithTag(name string, tag string) Builder
-	AddBool(name string) Builder
-	AddBoolWithTag(name string, tag string) Builder
-	AddMap(name string, ki interface{}, vi interface{}) Builder
-	AddMapWithTag(name string, ki interface{}, vi interface{}, tag string) Builder
-	AddFunc(name string, in []interface{}, out []interface{}) Builder
-	AddFuncWithTag(name string, in []interface{}, out []interface{}, tag string) Builder
-	AddChanBoth(name string, i interface{}) Builder
-	AddChanBothWithTag(name string, i interface{}, tag string) Builder
-	AddChanRecv(name string, i interface{}) Builder
-	AddChanRecvWithTag(name string, i interface{}, tag string) Builder
-	AddChanSend(name string, i interface{}) Builder
-	AddChanSendWithTag(name string, i interface{}, tag string) Builder
-	AddStruct(name string, i interface{}, isPtr bool) Builder
-	AddStructWithTag(name string, i interface{}, isPtr bool, tag string) Builder
-	AddStructPtr(name string, i interface{}) Builder
-	AddStructPtrWithTag(name string, i interface{}, tag string) Builder
-	AddSlice(name string, i interface{}) Builder
-	AddSliceWithTag(name string, i interface{}, tag string) Builder
-	AddInterface(name string, isPtr bool) Builder
-	AddInterfaceWithTag(name string, isPtr bool, tag string) Builder
-	Remove(name string) Builder
-	Exists(name string) bool
-	NumField() int
-	GetStructName() string
-	SetStructName(name string)
-	Build() DynamicStruct
-	BuildNonPtr() DynamicStruct
-}
+// // Builder is thi interface that builds a dynamic and runtime struct.
+// type Builder interface {
+// 	AddString(name string) Builder
+// 	AddStringWithTag(name string, tag string) Builder
+// 	AddInt(name string) Builder
+// 	AddIntWithTag(name string, tag string) Builder
+// 	AddByte(name string) Builder
+// 	AddByteWithTag(name string, tag string) Builder
+// 	AddFloat32(name string) Builder
+// 	AddFloat32WithTag(name string, tag string) Builder
+// 	AddFloat64(name string) Builder
+// 	AddFloat64WithTag(name string, tag string) Builder
+// 	AddBool(name string) Builder
+// 	AddBoolWithTag(name string, tag string) Builder
+// 	AddMap(name string, ki interface{}, vi interface{}) Builder
+// 	AddMapWithTag(name string, ki interface{}, vi interface{}, tag string) Builder
+// 	AddFunc(name string, in []interface{}, out []interface{}) Builder
+// 	AddFuncWithTag(name string, in []interface{}, out []interface{}, tag string) Builder
+// 	AddChanBoth(name string, i interface{}) Builder
+// 	AddChanBothWithTag(name string, i interface{}, tag string) Builder
+// 	AddChanRecv(name string, i interface{}) Builder
+// 	AddChanRecvWithTag(name string, i interface{}, tag string) Builder
+// 	AddChanSend(name string, i interface{}) Builder
+// 	AddChanSendWithTag(name string, i interface{}, tag string) Builder
+// 	AddStruct(name string, i interface{}, isPtr bool) Builder
+// 	AddStructWithTag(name string, i interface{}, isPtr bool, tag string) Builder
+// 	AddStructPtr(name string, i interface{}) Builder
+// 	AddStructPtrWithTag(name string, i interface{}, tag string) Builder
+// 	AddSlice(name string, i interface{}) Builder
+// 	AddSliceWithTag(name string, i interface{}, tag string) Builder
+// 	AddInterface(name string, isPtr bool) Builder
+// 	AddInterfaceWithTag(name string, isPtr bool, tag string) Builder
+// 	Remove(name string) Builder
+// 	Exists(name string) bool
+// 	NumField() int
+// 	GetStructName() string
+// 	SetStructName(name string)
+// 	Build() DynamicStruct
+// 	BuildNonPtr() DynamicStruct
+// }
 
-// BuilderImpl is the default Builder implementation.
-type BuilderImpl struct {
+// Builder is thi interface that builds a dynamic and runtime struct.
+type Builder struct {
 	fields map[string]reflect.Type
 	tags   map[string]reflect.StructTag
 	name   string
 }
 
 // NewBuilder returns a concrete Builder
-func NewBuilder() Builder {
-	return &BuilderImpl{
+func NewBuilder() *Builder {
+	return &Builder{
 		fields: map[string]reflect.Type{},
 		tags:   map[string]reflect.StructTag{},
 		name:   defaultStructName,
@@ -106,13 +106,13 @@ type addParam struct {
 }
 
 // AddString returns a Builder that was added a string field named by name parameter.
-func (b *BuilderImpl) AddString(name string) Builder {
+func (b *Builder) AddString(name string) *Builder {
 	b.AddStringWithTag(name, "")
 	return b
 }
 
 // AddStringWithTag returns a Builder that was added a string field with tag named by name parameter.
-func (b *BuilderImpl) AddStringWithTag(name string, tag string) Builder {
+func (b *Builder) AddStringWithTag(name string, tag string) *Builder {
 	p := &addParam{
 		name:    name,
 		intfs:   []interface{}{SampleString},
@@ -125,13 +125,13 @@ func (b *BuilderImpl) AddStringWithTag(name string, tag string) Builder {
 }
 
 // AddInt returns a Builder that was added a int field named by name parameter.
-func (b *BuilderImpl) AddInt(name string) Builder {
+func (b *Builder) AddInt(name string) *Builder {
 	b.AddIntWithTag(name, "")
 	return b
 }
 
 // AddIntWithTag returns a Builder that was added a int field with tag named by name parameter.
-func (b *BuilderImpl) AddIntWithTag(name string, tag string) Builder {
+func (b *Builder) AddIntWithTag(name string, tag string) *Builder {
 	p := &addParam{
 		name:    name,
 		intfs:   []interface{}{SampleInt},
@@ -144,13 +144,13 @@ func (b *BuilderImpl) AddIntWithTag(name string, tag string) Builder {
 }
 
 // AddByte returns a Builder that was added a byte field named by name parameter.
-func (b *BuilderImpl) AddByte(name string) Builder {
+func (b *Builder) AddByte(name string) *Builder {
 	b.AddByteWithTag(name, "")
 	return b
 }
 
 // AddByteWithTag returns a Builder that was added a byte field with tag named by name parameter.
-func (b *BuilderImpl) AddByteWithTag(name string, tag string) Builder {
+func (b *Builder) AddByteWithTag(name string, tag string) *Builder {
 	p := &addParam{
 		name:    name,
 		intfs:   []interface{}{SampleByte},
@@ -163,13 +163,13 @@ func (b *BuilderImpl) AddByteWithTag(name string, tag string) Builder {
 }
 
 // AddFloat32 returns a Builder that was added a float32 field named by name parameter.
-func (b *BuilderImpl) AddFloat32(name string) Builder {
+func (b *Builder) AddFloat32(name string) *Builder {
 	b.AddFloat32WithTag(name, "")
 	return b
 }
 
 // AddFloat32WithTag returns a Builder that was added a float32 field with tag named by name parameter.
-func (b *BuilderImpl) AddFloat32WithTag(name string, tag string) Builder {
+func (b *Builder) AddFloat32WithTag(name string, tag string) *Builder {
 	p := &addParam{
 		name:    name,
 		intfs:   []interface{}{SampleFloat32},
@@ -182,13 +182,13 @@ func (b *BuilderImpl) AddFloat32WithTag(name string, tag string) Builder {
 }
 
 // AddFloat64 returns a Builder that was added a float64 field named by name parameter.
-func (b *BuilderImpl) AddFloat64(name string) Builder {
+func (b *Builder) AddFloat64(name string) *Builder {
 	b.AddFloat64WithTag(name, "")
 	return b
 }
 
 // AddFloat64WithTag returns a Builder that was added a float64 field with tag named by name parameter.
-func (b *BuilderImpl) AddFloat64WithTag(name string, tag string) Builder {
+func (b *Builder) AddFloat64WithTag(name string, tag string) *Builder {
 	p := &addParam{
 		name:    name,
 		intfs:   []interface{}{SampleFloat64},
@@ -201,13 +201,13 @@ func (b *BuilderImpl) AddFloat64WithTag(name string, tag string) Builder {
 }
 
 // AddBool returns a Builder that was added a bool field named by name parameter.
-func (b *BuilderImpl) AddBool(name string) Builder {
+func (b *Builder) AddBool(name string) *Builder {
 	b.AddBoolWithTag(name, "")
 	return b
 }
 
 // AddBoolWithTag returns a Builder that was added a bool field with tag named by name parameter.
-func (b *BuilderImpl) AddBoolWithTag(name string, tag string) Builder {
+func (b *Builder) AddBoolWithTag(name string, tag string) *Builder {
 	p := &addParam{
 		name:    name,
 		intfs:   []interface{}{SampleBool},
@@ -222,7 +222,7 @@ func (b *BuilderImpl) AddBoolWithTag(name string, tag string) Builder {
 // AddMap returns a Builder that was added a map field named by name parameter.
 // Type of map key is type of ki.
 // Type of map value is type of vi.
-func (b *BuilderImpl) AddMap(name string, ki interface{}, vi interface{}) Builder {
+func (b *Builder) AddMap(name string, ki interface{}, vi interface{}) *Builder {
 	b.AddMapWithTag(name, ki, vi, "")
 	return b
 }
@@ -230,7 +230,7 @@ func (b *BuilderImpl) AddMap(name string, ki interface{}, vi interface{}) Builde
 // AddMapWithTag returns a Builder that was added a map field with tag named by name parameter.
 // Type of map key is type of ki.
 // Type of map value is type of vi.
-func (b *BuilderImpl) AddMapWithTag(name string, ki interface{}, vi interface{}, tag string) Builder {
+func (b *Builder) AddMapWithTag(name string, ki interface{}, vi interface{}, tag string) *Builder {
 	p := &addParam{
 		name:     name,
 		intfs:    []interface{}{vi},
@@ -246,7 +246,7 @@ func (b *BuilderImpl) AddMapWithTag(name string, ki interface{}, vi interface{},
 // AddFunc returns a Builder that was added a func field named by name parameter.
 // Types of func args are types of in.
 // Types of func returns are types of out.
-func (b *BuilderImpl) AddFunc(name string, in []interface{}, out []interface{}) Builder {
+func (b *Builder) AddFunc(name string, in []interface{}, out []interface{}) *Builder {
 	b.AddFuncWithTag(name, in, out, "")
 	return b
 }
@@ -254,7 +254,7 @@ func (b *BuilderImpl) AddFunc(name string, in []interface{}, out []interface{}) 
 // AddFuncWithTag returns a Builder that was added a func field with tag named by name parameter.
 // Types of func args are types of in.
 // Types of func returns are types of out.
-func (b *BuilderImpl) AddFuncWithTag(name string, in []interface{}, out []interface{}, tag string) Builder {
+func (b *Builder) AddFuncWithTag(name string, in []interface{}, out []interface{}, tag string) *Builder {
 	p := &addParam{
 		name:     name,
 		intfs:    out,
@@ -269,14 +269,14 @@ func (b *BuilderImpl) AddFuncWithTag(name string, in []interface{}, out []interf
 
 // AddChanBoth returns a Builder that was added a BothDir chan field named by name parameter.
 // Type of chan is type of i.
-func (b *BuilderImpl) AddChanBoth(name string, i interface{}) Builder {
+func (b *Builder) AddChanBoth(name string, i interface{}) *Builder {
 	b.AddChanBothWithTag(name, i, "")
 	return b
 }
 
 // AddChanBothWithTag returns a Builder that was added a BothDir chan field with tag named by name parameter.
 // Type of chan is type of i.
-func (b *BuilderImpl) AddChanBothWithTag(name string, i interface{}, tag string) Builder {
+func (b *Builder) AddChanBothWithTag(name string, i interface{}, tag string) *Builder {
 	p := &addParam{
 		name:    name,
 		intfs:   []interface{}{i},
@@ -290,14 +290,14 @@ func (b *BuilderImpl) AddChanBothWithTag(name string, i interface{}, tag string)
 
 // AddChanRecv returns a Builder that was added a RecvDir chan field named by name parameter.
 // Type of chan is type of i.
-func (b *BuilderImpl) AddChanRecv(name string, i interface{}) Builder {
+func (b *Builder) AddChanRecv(name string, i interface{}) *Builder {
 	b.AddChanRecvWithTag(name, i, "")
 	return b
 }
 
 // AddChanRecvWithTag returns a Builder that was added a RecvDir chan field with tag named by name parameter.
 // Type of chan is type of i.
-func (b *BuilderImpl) AddChanRecvWithTag(name string, i interface{}, tag string) Builder {
+func (b *Builder) AddChanRecvWithTag(name string, i interface{}, tag string) *Builder {
 	p := &addParam{
 		name:    name,
 		intfs:   []interface{}{i},
@@ -311,14 +311,14 @@ func (b *BuilderImpl) AddChanRecvWithTag(name string, i interface{}, tag string)
 
 // AddChanSend returns a Builder that was added a SendDir chan field named by name parameter.
 // Type of chan is type of i.
-func (b *BuilderImpl) AddChanSend(name string, i interface{}) Builder {
+func (b *Builder) AddChanSend(name string, i interface{}) *Builder {
 	b.AddChanSendWithTag(name, i, "")
 	return b
 }
 
 // AddChanSendWithTag returns a Builder that was added a SendDir chan field with tag named by name parameter.
 // Type of chan is type of i.
-func (b *BuilderImpl) AddChanSendWithTag(name string, i interface{}, tag string) Builder {
+func (b *Builder) AddChanSendWithTag(name string, i interface{}, tag string) *Builder {
 	p := &addParam{
 		name:    name,
 		intfs:   []interface{}{i},
@@ -332,14 +332,15 @@ func (b *BuilderImpl) AddChanSendWithTag(name string, i interface{}, tag string)
 
 // AddStruct returns a Builder that was added a struct field named by name parameter.
 // Type of struct is type of i.
-func (b *BuilderImpl) AddStruct(name string, i interface{}, isPtr bool) Builder {
+// TODO: add test if i is a DynamicStruct
+func (b *Builder) AddStruct(name string, i interface{}, isPtr bool) *Builder {
 	b.AddStructWithTag(name, i, isPtr, "")
 	return b
 }
 
 // AddStructWithTag returns a Builder that was added a struct field with tag named by name parameter.
 // Type of struct is type of i.
-func (b *BuilderImpl) AddStructWithTag(name string, i interface{}, isPtr bool, tag string) Builder {
+func (b *Builder) AddStructWithTag(name string, i interface{}, isPtr bool, tag string) *Builder {
 	p := &addParam{
 		name:    name,
 		intfs:   []interface{}{i},
@@ -353,26 +354,27 @@ func (b *BuilderImpl) AddStructWithTag(name string, i interface{}, isPtr bool, t
 
 // AddStructPtr returns a Builder that was added a struct pointer field named by name parameter.
 // Type of struct is type of i.
-func (b *BuilderImpl) AddStructPtr(name string, i interface{}) Builder {
+// TODO: add test if i is a DynamicStruct pointer
+func (b *Builder) AddStructPtr(name string, i interface{}) *Builder {
 	return b.AddStruct(name, i, true)
 }
 
 // AddStructPtrWithTag returns a Builder that was added a struct pointer field with tag named by name parameter.
 // Type of struct is type of i.
-func (b *BuilderImpl) AddStructPtrWithTag(name string, i interface{}, tag string) Builder {
+func (b *Builder) AddStructPtrWithTag(name string, i interface{}, tag string) *Builder {
 	return b.AddStructWithTag(name, i, true, tag)
 }
 
 // AddSlice returns a Builder that was added a slice field named by name parameter.
 // Type of slice is type of i.
-func (b *BuilderImpl) AddSlice(name string, i interface{}) Builder {
+func (b *Builder) AddSlice(name string, i interface{}) *Builder {
 	b.AddSliceWithTag(name, i, "")
 	return b
 }
 
 // AddSliceWithTag returns a Builder that was added a slice field with tag named by name parameter.
 // Type of slice is type of i.
-func (b *BuilderImpl) AddSliceWithTag(name string, i interface{}, tag string) Builder {
+func (b *Builder) AddSliceWithTag(name string, i interface{}, tag string) *Builder {
 	p := &addParam{
 		name:    name,
 		intfs:   []interface{}{i},
@@ -385,13 +387,13 @@ func (b *BuilderImpl) AddSliceWithTag(name string, i interface{}, tag string) Bu
 }
 
 // AddInterface returns a Builder that was added a interface{} field named by name parameter.
-func (b *BuilderImpl) AddInterface(name string, isPtr bool) Builder {
+func (b *Builder) AddInterface(name string, isPtr bool) *Builder {
 	b.AddInterfaceWithTag(name, isPtr, "")
 	return b
 }
 
 // AddInterfaceWithTag returns a Builder that was added a interface{} field with tag named by name parameter.
-func (b *BuilderImpl) AddInterfaceWithTag(name string, isPtr bool, tag string) Builder {
+func (b *Builder) AddInterfaceWithTag(name string, isPtr bool, tag string) *Builder {
 	p := &addParam{
 		name:    name,
 		intfs:   []interface{}{(*interface{})(nil)},
@@ -403,7 +405,7 @@ func (b *BuilderImpl) AddInterfaceWithTag(name string, isPtr bool, tag string) B
 	return b
 }
 
-func (b *BuilderImpl) add(p *addParam) {
+func (b *Builder) add(p *addParam) {
 	var typeOf reflect.Type
 
 	switch p.pattern {
@@ -455,44 +457,44 @@ func (b *BuilderImpl) add(p *addParam) {
 }
 
 // Remove returns a Builder that was removed a field named by name parameter.
-func (b *BuilderImpl) Remove(name string) Builder {
+func (b *Builder) Remove(name string) *Builder {
 	delete(b.fields, name)
 	return b
 }
 
 // Exists returns true if the specified name field exists
-func (b *BuilderImpl) Exists(name string) bool {
+func (b *Builder) Exists(name string) bool {
 	_, ok := b.fields[name]
 	return ok
 }
 
 // NumField returns the number of built struct fields.
-func (b *BuilderImpl) NumField() int {
+func (b *Builder) NumField() int {
 	return len(b.fields)
 }
 
 // GetStructName returns the name of this DynamicStruct.
-func (b *BuilderImpl) GetStructName() string {
+func (b *Builder) GetStructName() string {
 	return b.name
 }
 
 // SetStructName sets the name of DynamicStruct.
 // Default is "DynamicStruct"
-func (b *BuilderImpl) SetStructName(name string) {
+func (b *Builder) SetStructName(name string) {
 	b.name = name
 }
 
 // Build returns a concrete struct pointer built by Builder.
-func (b *BuilderImpl) Build() DynamicStruct {
+func (b *Builder) Build() DynamicStruct {
 	return b.build(true)
 }
 
 // BuildNonPtr returns a concrete struct built by Builder.
-func (b *BuilderImpl) BuildNonPtr() DynamicStruct {
+func (b *Builder) BuildNonPtr() DynamicStruct {
 	return b.build(false)
 }
 
-func (b *BuilderImpl) build(isPtr bool) DynamicStruct {
+func (b *Builder) build(isPtr bool) DynamicStruct {
 	var i int
 	fields := make([]reflect.StructField, len(b.fields))
 	for name, typ := range b.fields {

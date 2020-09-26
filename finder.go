@@ -12,23 +12,23 @@ const (
 	topLevelKey = "!"
 )
 
-// Finder is the interface that builds the nested struct finder.
-type Finder interface {
-	FindTop(names ...string) Finder
-	Find(names ...string) Finder
-	Into(names ...string) Finder
-	FromKeys(fks *FinderKeys) Finder
-	ToMap() (map[string]interface{}, error)
-	HasError() bool
-	Error() string
-	GetNameSeparator() string
-	Reset() Finder
-}
+// // Finder is the interface that builds the nested struct finder.
+// type Finder interface {
+// 	FindTop(names ...string) Finder
+// 	Find(names ...string) Finder
+// 	Into(names ...string) Finder
+// 	FromKeys(fks *FinderKeys) Finder
+// 	ToMap() (map[string]interface{}, error)
+// 	HasError() bool
+// 	Error() string
+// 	GetNameSeparator() string
+// 	Reset() Finder
+// }
 
-// FinderImpl is the default Finder implementation.
-type FinderImpl struct {
-	topLevelGetter Getter
-	gMap           map[string]Getter
+// Finder is the struct that builds the nested struct finder.
+type Finder struct {
+	topLevelGetter *Getter
+	gMap           map[string]*Getter
 	fMap           map[string][]string
 	eMap           map[string][]error
 	ck             string
@@ -37,13 +37,13 @@ type FinderImpl struct {
 
 // NewFinder returns a concrete Finder that uses and obtains from i.
 // i must be a struct or struct pointer.
-func NewFinder(i interface{}) (Finder, error) {
+func NewFinder(i interface{}) (*Finder, error) {
 	return NewFinderWithSep(i, defaultSep)
 }
 
 // NewFinderWithSep returns a concrete Finder that uses and obtains from i using the separator string.
 // i must be a struct or struct pointer.
-func NewFinderWithSep(i interface{}, sep string) (Finder, error) {
+func NewFinderWithSep(i interface{}, sep string) (*Finder, error) {
 	g, err := NewGetter(i)
 	if err != nil {
 		return nil, err
@@ -54,34 +54,34 @@ func NewFinderWithSep(i interface{}, sep string) (Finder, error) {
 
 // NewFinderWithGetter returns a concrete Finder that uses and obtains from g.
 // g must be a Getter
-func NewFinderWithGetter(g Getter) (Finder, error) {
+func NewFinderWithGetter(g *Getter) (*Finder, error) {
 	return NewFinderWithGetterAndSep(g, defaultSep)
 }
 
 // NewFinderWithGetterAndSep returns a concrete Finder that uses and obtains from g using the separator string.
 // g must be a Getter
-func NewFinderWithGetterAndSep(g Getter, sep string) (Finder, error) {
+func NewFinderWithGetterAndSep(g *Getter, sep string) (*Finder, error) {
 	if sep == "" {
 		return nil, fmt.Errorf("sep [%s] is invalid", sep)
 	}
 
-	f := &FinderImpl{topLevelGetter: g, sep: sep}
+	f := &Finder{topLevelGetter: g, sep: sep}
 
 	return f.Reset(), nil
 }
 
 // FindTop returns a Finder that top level fields in struct are looked up and held named names.
 // Deprecated: planning to remove this method.
-func (f *FinderImpl) FindTop(names ...string) Finder {
+func (f *Finder) FindTop(names ...string) *Finder {
 	return f.find(topLevelKey, names...)
 }
 
 // Find returns a Finder that fields in struct are looked up and held named names.
-func (f *FinderImpl) Find(names ...string) Finder {
+func (f *Finder) Find(names ...string) *Finder {
 	return f.find(f.ck, names...)
 }
 
-func (f *FinderImpl) find(fKey string, names ...string) Finder {
+func (f *Finder) find(fKey string, names ...string) *Finder {
 	if f.HasError() {
 		return f
 	}
@@ -93,14 +93,14 @@ func (f *FinderImpl) find(fKey string, names ...string) Finder {
 }
 
 // Into returns a Finder that nested struct fields are looked up and held named names.
-func (f *FinderImpl) Into(names ...string) Finder {
+func (f *Finder) Into(names ...string) *Finder {
 	if f.HasError() {
 		return f
 	}
 
 	f.ck = topLevelKey
 
-	var nextGetter Getter
+	var nextGetter *Getter
 	var ok bool
 	var err error
 	nextKey := ""
@@ -137,7 +137,7 @@ func (f *FinderImpl) Into(names ...string) Finder {
 	return f
 }
 
-func (f *FinderImpl) addError(key string, err error) Finder {
+func (f *Finder) addError(key string, err error) *Finder {
 	if _, ok := f.eMap[key]; !ok {
 		f.eMap[key] = make([]error, 0, 3)
 	}
@@ -147,7 +147,7 @@ func (f *FinderImpl) addError(key string, err error) Finder {
 }
 
 // FromKeys returns a Finder that looked up by FinderKeys generated from configuration file.
-func (f *FinderImpl) FromKeys(fks *FinderKeys) Finder {
+func (f *Finder) FromKeys(fks *FinderKeys) *Finder {
 	var into, find string
 	var ok bool
 	m := make(map[string][]string)
@@ -181,7 +181,7 @@ func (f *FinderImpl) FromKeys(fks *FinderKeys) Finder {
 // ToMap returns a map converted from struct.
 // Map keys are lookup field names by "Into" method and "Find".
 // Map values are lookup field values by "Into" method and "Find".
-func (f *FinderImpl) ToMap() (map[string]interface{}, error) {
+func (f *Finder) ToMap() (map[string]interface{}, error) {
 	if f.HasError() {
 		return nil, f
 	}
@@ -214,7 +214,7 @@ func (f *FinderImpl) ToMap() (map[string]interface{}, error) {
 }
 
 // HasError tests whether this Finder have any errors.
-func (f *FinderImpl) HasError() bool {
+func (f *Finder) HasError() bool {
 	for _, errs := range f.eMap {
 		if len(errs) > 0 {
 			return true
@@ -225,7 +225,7 @@ func (f *FinderImpl) HasError() bool {
 }
 
 // Error returns error string.
-func (f *FinderImpl) Error() string {
+func (f *Finder) Error() string {
 	var es []string
 
 	for _, errs := range f.eMap {
@@ -243,13 +243,13 @@ func (f *FinderImpl) Error() string {
 
 // GetNameSeparator returns the separator string for nested struct name separating.
 // Default is "." (dot).
-func (f *FinderImpl) GetNameSeparator() string {
+func (f *Finder) GetNameSeparator() string {
 	return f.sep
 }
 
 // Reset resets the current build Finder.
-func (f *FinderImpl) Reset() Finder {
-	gMap := map[string]Getter{}
+func (f *Finder) Reset() *Finder {
+	gMap := map[string]*Getter{}
 	gMap[topLevelKey] = f.topLevelGetter
 	f.gMap = gMap
 

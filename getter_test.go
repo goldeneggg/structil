@@ -142,7 +142,7 @@ func newGetterTestStructPtr() *GetterTestStruct {
 	return &ts
 }
 
-func newTestGetter() (Getter, error) {
+func newTestGetter() (*Getter, error) {
 	return NewGetter(newGetterTestStructPtr())
 }
 
@@ -173,7 +173,7 @@ func deferGetterTestPanic(t *testing.T, wantPanic bool, args interface{}) {
 
 type getterTestArgs struct {
 	name  string
-	mapfn func(int, Getter) (interface{}, error)
+	mapfn func(int, *Getter) (interface{}, error)
 }
 
 type getterTest struct {
@@ -362,10 +362,6 @@ func TestNewGetter(t *testing.T) {
 					t.Errorf("NewGetter() error did not occur. got: %v", got)
 					return
 				}
-
-				if _, ok := got.(Getter); !ok {
-					t.Errorf("NewGetter() want Getter but got %+v", got)
-				}
 			} else if !tt.wantErr {
 				t.Errorf("NewGetter() unexpected error [%v] occured. wantErr %v", err, tt.wantErr)
 			}
@@ -482,7 +478,7 @@ func TestNames(t *testing.T) {
 	}
 }
 
-func testGetSeries(t *testing.T, wantPanic bool, wantError bool, fn func(*testing.T, *getterTest, Getter)) {
+func testGetSeries(t *testing.T, wantPanic bool, wantError bool, fn func(*testing.T, *getterTest, *Getter)) {
 	t.Parallel()
 
 	testStructPtr := newGetterTestStructPtr()
@@ -625,7 +621,7 @@ func testGetSeries(t *testing.T, wantPanic bool, wantError bool, fn func(*testin
 }
 
 func TestGetType(t *testing.T) {
-	assertionFunc := func(t *testing.T, tt *getterTest, g Getter) {
+	assertionFunc := func(t *testing.T, tt *getterTest, g *Getter) {
 		got := g.GetType(tt.args.name)
 		if tt.wantPanic {
 			t.Errorf("expected panic did not occur. args: %+v", tt.args)
@@ -638,7 +634,7 @@ func TestGetType(t *testing.T) {
 }
 
 func TestGetValue(t *testing.T) {
-	assertionFunc := func(t *testing.T, tt *getterTest, g Getter) {
+	assertionFunc := func(t *testing.T, tt *getterTest, g *Getter) {
 		got := g.GetValue(tt.args.name)
 		if tt.wantPanic {
 			t.Errorf("expected panic did not occur. args: %+v", tt.args)
@@ -651,7 +647,7 @@ func TestGetValue(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	assertionFunc := func(t *testing.T, tt *getterTest, g Getter) {
+	assertionFunc := func(t *testing.T, tt *getterTest, g *Getter) {
 		got := g.Get(tt.args.name)
 		if tt.wantPanic {
 			t.Errorf("expected panic did not occur. args: %+v", tt.args)
@@ -671,7 +667,7 @@ func TestGet(t *testing.T) {
 }
 
 func TestEGet(t *testing.T) {
-	assertionFunc := func(t *testing.T, tt *getterTest, g Getter) {
+	assertionFunc := func(t *testing.T, tt *getterTest, g *Getter) {
 		got, err := g.EGet(tt.args.name)
 		if tt.wantPanic {
 			t.Errorf("expected panic did not occur. args: %+v", tt.args)
@@ -1967,12 +1963,12 @@ func TestMapGet(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			switch tt.name {
 			case "GetterTestStruct4Slice":
-				tt.args.mapfn = func(i int, g Getter) (interface{}, error) {
+				tt.args.mapfn = func(i int, g *Getter) (interface{}, error) {
 					return g.String("String") + "=" + g.String("String2"), nil
 				}
 				tt.wantIntf = []interface{}{string("key100=value100"), string("key200=value200")}
 			case "GetterTestStruct4PtrSlice":
-				tt.args.mapfn = func(i int, g Getter) (interface{}, error) {
+				tt.args.mapfn = func(i int, g *Getter) (interface{}, error) {
 					return g.String("String") + ":" + g.String("String2"), nil
 				}
 				tt.wantIntf = []interface{}{string("key991:value991"), string("key992:value992")}
@@ -2000,7 +1996,7 @@ func TestMapGet(t *testing.T) {
 // benchmark tests
 
 func BenchmarkNewGetter_Val(b *testing.B) {
-	var g Getter
+	var g *Getter
 	var e error
 
 	testStructVal := newGetterTestStruct()
@@ -2016,7 +2012,7 @@ func BenchmarkNewGetter_Val(b *testing.B) {
 }
 
 func BenchmarkNewGetter_Ptr(b *testing.B) {
-	var g Getter
+	var g *Getter
 	var e error
 
 	testStructPtr := newGetterTestStructPtr()
@@ -2235,7 +2231,7 @@ func BenchmarkGetterMapGet(b *testing.B) {
 		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
 		return
 	}
-	fn := func(i int, g Getter) (interface{}, error) {
+	fn := func(i int, g *Getter) (interface{}, error) {
 		return g.String("String") + ":" + g.String("String2"), nil
 	}
 

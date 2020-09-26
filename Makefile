@@ -110,11 +110,6 @@ benchstat: mod-benchstat-install $(BENCH_OLD) $(BENCH_NEW)
 benchstat-ci: mod-benchstat-install
 	@bash -c "benchstat <(curl -sSL $(BENCH_LATEST_URL)) $(BENCH_NEW)"
 
-# WIP
-.PHONY: benchstat-gist
-benchstat-gist: mod-benchstat-install
-	@bash -c "benchstat <(curl -sSL $${BENCH_OLD_GIST_URL}) <(curl -sSL $${BENCH_NEW_GIST_URL})"
-
 benchmark-pprof = $(call benchmark,-cpuprofile $(TESTDIR)/$1.cpu.out -memprofile $(TESTDIR)/$1.mem.out -o $(TESTDIR)/$1.test,$2)
 
 .PHONY: bench-prof
@@ -141,6 +136,7 @@ trace-%:
 
 ###
 # use local specified go version
+# See: https://pkg.go.dev/golang.org/dl
 #
 # [Usage with direnv]
 # 1. Write contents as follows into .envrc using "direnv edit" and save.
