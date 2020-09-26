@@ -157,14 +157,6 @@ func TestNewFinder(t *testing.T) {
 					t.Errorf("NewFinder() error did not occur. got: %v", got)
 					return
 				}
-
-				if f, ok := got.(Finder); ok {
-					if f.GetNameSeparator() != "." {
-						t.Errorf("NewFinder() unexpected separator got: %s, want: '.'", f.GetNameSeparator())
-					}
-				} else {
-					t.Errorf("NewFinder() want Finder but got %+v", got)
-				}
 			} else if !tt.wantError {
 				t.Errorf("NewFinder() unexpected error [%v] occured. wantError: %v", err, tt.wantError)
 			}
@@ -181,7 +173,7 @@ func TestNewFinderWithGetterAndSep(t *testing.T) {
 	}
 
 	type args struct {
-		g   Getter
+		g   *Getter
 		sep string
 	}
 	tests := []struct {
@@ -209,14 +201,6 @@ func TestNewFinderWithGetterAndSep(t *testing.T) {
 					t.Errorf("NewFinderWithGetterAndSep() error did not occur. got: %v", got)
 					return
 				}
-
-				if f, ok := got.(Finder); ok {
-					if f.GetNameSeparator() != tt.args.sep {
-						t.Errorf("NewFinderWithGetterAndSep() unexpected separator got: %s, want: %s", f.GetNameSeparator(), tt.args.sep)
-					}
-				} else {
-					t.Errorf("NewFinderWithGetterAndSep() want Finder but got %+v", got)
-				}
 			} else if !tt.wantError {
 				t.Errorf("NewFinderWithGetterAndSep() unexpected error [%v] occured. wantError %v", err, tt.wantError)
 			}
@@ -227,9 +211,9 @@ func TestNewFinderWithGetterAndSep(t *testing.T) {
 func TestToMap(t *testing.T) {
 	t.Parallel()
 
-	var f Finder
+	var f *Finder
 	var err error
-	fs := make([]Finder, 10)
+	fs := make([]*Finder, 10)
 
 	for i := 0; i < len(fs); i++ {
 		f, err = NewFinder(newFinderTestStructPtr())
@@ -248,7 +232,7 @@ func TestToMap(t *testing.T) {
 	}
 
 	type args struct {
-		chain Finder
+		chain *Finder
 	}
 	tests := []struct {
 		name            string
@@ -506,10 +490,10 @@ func TestToMap(t *testing.T) {
 
 // This test should *NOT* be parallel
 func TestFromKeys(t *testing.T) {
-	var f Finder
+	var f *Finder
 	var fk *FinderKeys
 	var err error
-	fs := make([]Finder, 5)
+	fs := make([]*Finder, 5)
 	fks := make([]*FinderKeys, 5)
 
 	for i := 0; i < len(fs); i++ {
@@ -529,7 +513,7 @@ func TestFromKeys(t *testing.T) {
 	}
 
 	type args struct {
-		chain Finder
+		chain *Finder
 	}
 	tests := []struct {
 		name            string
@@ -761,7 +745,7 @@ func TestNewFinderKeys(t *testing.T) {
 // benchmark tests
 
 func BenchmarkNewFinder_Val(b *testing.B) {
-	var f Finder
+	var f *Finder
 	var e error
 
 	testStructVal := newFinderTestStruct()
@@ -777,7 +761,7 @@ func BenchmarkNewFinder_Val(b *testing.B) {
 }
 
 func BenchmarkNewFinder_Ptr(b *testing.B) {
-	var f Finder
+	var f *Finder
 	var e error
 
 	testStructPtr := newFinderTestStructPtr()

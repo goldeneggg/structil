@@ -135,7 +135,7 @@ func newDynamicTestStructPtr() *DynamicTestStruct {
 	return &ts
 }
 
-func newDynamicTestBuilder() Builder {
+func newDynamicTestBuilder() *Builder {
 	return NewBuilder().
 		AddString("StringField").
 		AddStringWithTag("StringFieldWithTag", stringFieldTag).
@@ -171,7 +171,7 @@ func newDynamicTestBuilder() Builder {
 		AddInterfaceWithTag("InterfacePtrFieldWithTag", true, interfaceFieldTag)
 }
 
-func newDynamicTestBuilderWithStructName(name string) Builder {
+func newDynamicTestBuilderWithStructName(name string) *Builder {
 	b := newDynamicTestBuilder()
 	b.SetStructName(name)
 	return b
@@ -206,7 +206,7 @@ func TestBuilderAddRemoveExistsNumField(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
-		builder Builder
+		builder *Builder
 	}
 	tests := []struct {
 		name               string
@@ -265,7 +265,7 @@ func TestBuilderAddStringWithEmptyName(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
-		builder Builder
+		builder *Builder
 	}
 	tests := []struct {
 		name      string
@@ -292,7 +292,7 @@ func TestBuilderAddMapWithNilKey(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
-		builder Builder
+		builder *Builder
 	}
 	tests := []struct {
 		name      string
@@ -319,7 +319,7 @@ func TestBuilderAddMapWithNilValue(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
-		builder Builder
+		builder *Builder
 	}
 	tests := []struct {
 		name      string
@@ -346,7 +346,7 @@ func TestBuilderAddFuncWithNilArgs(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
-		builder Builder
+		builder *Builder
 	}
 	tests := []struct {
 		name      string
@@ -373,7 +373,7 @@ func TestBuilderAddFuncWithNilReturns(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
-		builder Builder
+		builder *Builder
 	}
 	tests := []struct {
 		name      string
@@ -400,7 +400,7 @@ func TestBuilderAddChanBothWithNilElem(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
-		builder Builder
+		builder *Builder
 	}
 	tests := []struct {
 		name      string
@@ -427,7 +427,7 @@ func TestBuilderAddChanRecvWithNilElem(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
-		builder Builder
+		builder *Builder
 	}
 	tests := []struct {
 		name      string
@@ -454,7 +454,7 @@ func TestBuilderAddChanSendWithNilElem(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
-		builder Builder
+		builder *Builder
 	}
 	tests := []struct {
 		name      string
@@ -481,7 +481,7 @@ func TestBuilderAddStructWithNil(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
-		builder Builder
+		builder *Builder
 	}
 	tests := []struct {
 		name      string
@@ -508,7 +508,7 @@ func TestBuilderAddStructPtrWithNil(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
-		builder Builder
+		builder *Builder
 	}
 	tests := []struct {
 		name      string
@@ -535,7 +535,7 @@ func TestBuilderAddSliceWithNil(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
-		builder Builder
+		builder *Builder
 	}
 	tests := []struct {
 		name      string
@@ -559,7 +559,7 @@ func TestBuilderAddSliceWithNil(t *testing.T) {
 }
 
 type buildArgs struct {
-	builder Builder
+	builder *Builder
 	isPtr   bool
 }
 

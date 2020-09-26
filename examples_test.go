@@ -49,7 +49,7 @@ func ExampleGetter() {
 	// 'Company'={Name:Tiger inc. Address:Tokyo Period:3}
 }
 
-func ExampleGetterImpl_MapGet() {
+func ExampleGetter_MapGet() {
 	type Company struct {
 		Name    string
 		Address string
@@ -85,7 +85,7 @@ func ExampleGetterImpl_MapGet() {
 	}
 
 	// Each of "Companies" field are applied map function as follows.
-	fn := func(i int, g Getter) (interface{}, error) {
+	fn := func(i int, g *Getter) (interface{}, error) {
 		return fmt.Sprintf(
 			"You worked for %d years since you joined the company %s",
 			g.Int("Period"),
@@ -179,7 +179,7 @@ func ExampleFinder() {
 	// map[string]interface {}{"Company>Address":"New York", "Company>Group>Boss":"Donald", "Company>Group>Name":"YYY Group Holdings", "School":structil.School{Name:"ABC College", GraduatedYear:1995}}
 }
 
-func ExampleFinderImpl_FromKeys_yml() {
+func ExampleFinder_FromKeys_yml() {
 	type Group struct {
 		Name string
 		Boss string
@@ -262,7 +262,7 @@ func ExampleFinderImpl_FromKeys_yml() {
 	// map[string]interface {}{"Age":45, "Company.Address":"New York", "Company.Group.Boss":"Donald", "Company.Group.Name":"YYY Group Holdings", "Company.Period":20, "Name":"Joe Davis"}
 }
 
-func ExampleFinderImpl_FromKeys_json() {
+func ExampleFinder_FromKeys_json() {
 	type Group struct {
 		Name string
 		Boss string
