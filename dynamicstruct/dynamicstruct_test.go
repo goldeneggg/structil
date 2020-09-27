@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/goldeneggg/structil"
+	"github.com/goldeneggg/structil/deprecated"
 
 	. "github.com/goldeneggg/structil/dynamicstruct"
 )
@@ -770,7 +770,7 @@ func testBuilderBuildDecodeMap(t *testing.T, got DynamicStruct, tt buildTest) bo
 		return false
 	}
 
-	getter, err := structil.NewGetter(dec)
+	getter, err := deprecated.NewGetter(dec)
 	if err != nil {
 		t.Errorf("unexpected error occured from NewGetter: %v", err)
 		return false
@@ -785,7 +785,7 @@ func testBuilderBuildDecodeMap(t *testing.T, got DynamicStruct, tt buildTest) bo
 
 		switch k {
 		case "StructField":
-			getter, err := structil.NewGetter(gotValue)
+			getter, err := deprecated.NewGetter(gotValue)
 			if err != nil {
 				t.Errorf("unexpected error occured from NewGetter for StructField: %v", err)
 				return false

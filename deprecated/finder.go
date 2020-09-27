@@ -1,4 +1,4 @@
-package structil
+package deprecated
 
 import (
 	"fmt"

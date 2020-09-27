@@ -1,4 +1,4 @@
-package structil_test
+package deprecated_test
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	. "github.com/goldeneggg/structil"
+	. "github.com/goldeneggg/structil/deprecated"
 )
 
 type (

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/goldeneggg/structil"
+	"github.com/goldeneggg/structil/deprecated"
 )
 
 func Example() {
@@ -59,7 +59,7 @@ func Example() {
 	}
 
 	// Confirm decoded result using Getter
-	g, err := structil.NewGetter(dec)
+	g, err := deprecated.NewGetter(dec)
 	if err != nil {
 		panic(err)
 	}
@@ -135,7 +135,7 @@ func Example_unmarshalJSON() {
 		panic(err)
 	}
 
-	g, err := structil.NewGetter(intf)
+	g, err := deprecated.NewGetter(intf)
 	if err != nil {
 		panic(err)
 	}

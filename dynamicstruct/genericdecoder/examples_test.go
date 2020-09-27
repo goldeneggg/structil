@@ -3,7 +3,7 @@ package genericdecoder
 import (
 	"fmt"
 
-	"github.com/goldeneggg/structil"
+	"github.com/goldeneggg/structil/deprecated"
 )
 
 func Example() {
@@ -47,7 +47,7 @@ func Example() {
 	fmt.Println(dr.DynamicStruct.Definition())
 
 	// Confirm decoded result using Getter with DecodedInterface
-	g, err := structil.NewGetter(dr.DecodedInterface)
+	g, err := deprecated.NewGetter(dr.DecodedInterface)
 	if err != nil {
 		panic(err)
 	}
