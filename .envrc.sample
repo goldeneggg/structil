@@ -1,0 +1,15 @@
+export GO111MODULE=on
+
+# Setup specified local go version
+export LOCAL_GOVERSION=
+
+setup_specified_go_version() {
+  go get golang.org/dl/go${LOCAL_GOVERSION}
+  go${LOCAL_GOVERSION} download
+  echo "Use go ${LOCAL_GOVERSION}"
+}
+
+if [ ! -z ${LOCAL_GOVERSION} ]
+then
+  setup_specified_go_version
+fi
