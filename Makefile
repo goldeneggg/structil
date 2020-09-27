@@ -225,4 +225,4 @@ docker-bench: docker-build-for-test
 
 .PHONY: hadolint
 hadolint: 
-	@hadolint Dockerfile
+	@hadolint docker/**/Dockerfile*
