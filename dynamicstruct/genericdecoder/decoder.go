@@ -62,6 +62,7 @@ func decodeMap(m map[string]interface{}, ds dynamicstruct.DynamicStruct) (*Decod
 
 	// camelizedKeys for building DynamicStruct with exported fields
 	// e.g. if json item name is "hoge_huga", same field name in DynamicStruct is "HogeHuga"
+	// FIXME: support case that input json field names are not snake_case but camelCase
 	camelizedKeys, camelizedMap := camelizeMap(m)
 
 	if dr.DynamicStruct == nil {
