@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/goldeneggg/structil/deprecated"
+	"github.com/goldeneggg/structil/internal/deprecated"
 
 	. "github.com/goldeneggg/structil/dynamicstruct"
 )
@@ -770,6 +770,7 @@ func testBuilderBuildDecodeMap(t *testing.T, got DynamicStruct, tt buildTest) bo
 		return false
 	}
 
+	// FIXME: replace from deprecated package to refactored package
 	getter, err := deprecated.NewGetter(dec)
 	if err != nil {
 		t.Errorf("unexpected error occured from NewGetter: %v", err)
@@ -785,6 +786,7 @@ func testBuilderBuildDecodeMap(t *testing.T, got DynamicStruct, tt buildTest) bo
 
 		switch k {
 		case "StructField":
+			// FIXME: replace from deprecated package to refactored package
 			getter, err := deprecated.NewGetter(gotValue)
 			if err != nil {
 				t.Errorf("unexpected error occured from NewGetter for StructField: %v", err)

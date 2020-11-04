@@ -10,7 +10,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	. "github.com/goldeneggg/structil/deprecated"
+	. "github.com/goldeneggg/structil/internal/deprecated"
 )
 
 type (

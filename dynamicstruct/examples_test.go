@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/goldeneggg/structil/deprecated"
+	"github.com/goldeneggg/structil/internal/deprecated"
 )
 
 func Example() {
@@ -59,6 +59,7 @@ func Example() {
 	}
 
 	// Confirm decoded result using Getter
+	// FIXME: replace from deprecated package to refactored package
 	g, err := deprecated.NewGetter(dec)
 	if err != nil {
 		panic(err)

@@ -236,7 +236,7 @@ func ExampleFinder_FromKeys_yml() {
 
 	// Get `FinderKeys` object by calling `NewFinderKeys` with config file dir and baseName
 	// This config file path is "examples/finder_from_conf/ex_json.json"
-	fks, err := NewFinderKeys("../examples/finder_from_conf", "ex_yml")
+	fks, err := NewFinderKeys("../../examples/finder_from_conf", "ex_yml")
 	if err != nil {
 		panic(err)
 	}
@@ -325,7 +325,7 @@ func ExampleFinder_FromKeys_json() {
 	//     "Age"
 	//   ]
 	// }
-	fks, err := NewFinderKeys("../examples/finder_from_conf", "ex_json")
+	fks, err := NewFinderKeys("../../examples/finder_from_conf", "ex_json")
 	if err != nil {
 		panic(err)
 	}

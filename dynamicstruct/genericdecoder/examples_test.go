@@ -3,7 +3,7 @@ package genericdecoder
 import (
 	"fmt"
 
-	"github.com/goldeneggg/structil/deprecated"
+	"github.com/goldeneggg/structil/internal/deprecated"
 )
 
 func Example() {
@@ -47,6 +47,7 @@ func Example() {
 	fmt.Println(dr.DynamicStruct.Definition())
 
 	// Confirm decoded result using Getter with DecodedInterface
+	// FIXME: replace from deprecated package to refactored package
 	g, err := deprecated.NewGetter(dr.DecodedInterface)
 	if err != nil {
 		panic(err)
