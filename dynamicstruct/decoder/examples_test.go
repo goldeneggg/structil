@@ -45,6 +45,7 @@ func Example() {
 		panic(err)
 	}
 
+	// Print struct definition from DynamicStruct
 	fmt.Println(dr.DynamicStruct.Definition())
 
 	// Confirm decoded result using Getter with DecodedInterface
