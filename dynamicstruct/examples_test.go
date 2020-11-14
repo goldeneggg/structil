@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/goldeneggg/structil/internal/deprecated"
+	// "github.com/goldeneggg/structil/internal/deprecated"
+	"github.com/goldeneggg/structil"
 )
 
 func Example() {
@@ -59,21 +60,27 @@ func Example() {
 	}
 
 	// Confirm decoded result using Getter
-	// FIXME: replace from deprecated package to refactored package
-	g, err := deprecated.NewGetter(dec)
+	g, err := structil.NewGetter(dec)
 	if err != nil {
 		panic(err)
 	}
+	s, _ := g.String("StringField")
+	i, _ := g.Int("IntField")
+	bl, _ := g.Bool("BoolField")
+	m, _ := g.Get("MapField")
+	strct, _ := g.Get("StructPtrField")
+	sl, _ := g.Get("SliceField")
+	obj, _ := g.Get("SomeObjectField")
 	fmt.Printf(
 		"num of fields=%d\n'StringField'=%s\n'IntField'=%d\n'BoolField'=%t\n'MapField'=%+v\n'StructPtrField'=%+v\n'SliceField'=%+v\n'SomeObjectField'=%+v",
 		g.NumField(),
-		g.String("StringField"),
-		g.Int("IntField"),
-		g.Bool("BoolField"),
-		g.Get("MapField"),
-		g.Get("StructPtrField"),
-		g.Get("SliceField"),
-		g.Get("SomeObjectField"),
+		s,
+		i,
+		bl,
+		m,
+		strct,
+		sl,
+		obj,
 	)
 	// Output:
 	// type MyStruct struct {
@@ -136,18 +143,21 @@ func Example_unmarshalJSON() {
 		panic(err)
 	}
 
-	g, err := deprecated.NewGetter(intf)
+	g, err := structil.NewGetter(intf)
 	if err != nil {
 		panic(err)
 	}
-
+	s, _ := g.String("StringField")
+	f, _ := g.Float32("Float32Field")
+	strct, _ := g.Get("StructPtrField")
+	sl, _ := g.Get("SliceField")
 	fmt.Printf(
 		"num of fields=%d\n'StringField'=%s\n'Float32Field'=%f\n'StructPtrField'=%+v\n'SliceField'=%+v",
 		g.NumField(),
-		g.String("StringField"),
-		g.Float32("Float32Field"),
-		g.Get("StructPtrField"),
-		g.Get("SliceField"),
+		s,
+		f,
+		strct,
+		sl,
 	)
 	// Output:
 	// type DynamicStruct struct {
