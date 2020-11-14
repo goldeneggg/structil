@@ -1,4 +1,4 @@
-package genericdecoder
+package decoder
 
 import (
 	"fmt"
@@ -8,12 +8,12 @@ import (
 	"github.com/goldeneggg/structil/dynamicstruct"
 )
 
-// GenericDecoder is the interface for decoding generic data(JSON, YAML, and more).
-type GenericDecoder interface {
+// Decoder is the interface for decoding generic data(JSON, YAML, and more).
+type Decoder interface {
 	Decode(data []byte) (*DecodedResult, error)
 }
 
-// DecodedResult is the result of GenericDecoder.Decode.
+// DecodedResult is the result of Decoder.Decode.
 type DecodedResult struct {
 	dynamicstruct.DynamicStruct
 	DecodedInterface interface{}

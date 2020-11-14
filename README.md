@@ -72,10 +72,10 @@ This example works correctly not only JSON but also YAML, TOML and more.
 
 See [example code](/dynamicstruct/examples_test.go)
 
-### `GenericDecoder`
-A decoding example from __unknown format__ JSON to interface of `DynamicStruct` with `JSONGenericDecoder.Decode` as follows.
+### `Decoder`
+A decoding example from __unknown format__ JSON to interface of `DynamicStruct` with `JSONDecoder.Decode` as follows.
 
-See [example code](/dynamicstruct/genericdecoder/examples_test.go)
+See [example code](/dynamicstruct/decoder/examples_test.go)
 
 
 ## Benchmark

@@ -1,4 +1,4 @@
-package genericdecoder
+package decoder
 
 import (
 	"fmt"
@@ -40,7 +40,7 @@ func Example() {
 }
 `)
 
-	dr, err := NewJSONGenericDecoder().Decode(unknownFormatJSON)
+	dr, err := NewJSONDecoder().Decode(unknownFormatJSON)
 	if err != nil {
 		panic(err)
 	}
