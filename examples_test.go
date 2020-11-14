@@ -112,242 +112,242 @@ func ExampleGetter_MapGet() {
 	// []interface {}{"You worked for 3 years since you joined the company Tiger inc.", "You worked for 4 years since you joined the company Dragon inc."}
 }
 
-// func ExampleFinder() {
-// 	type Group struct {
-// 		Name string
-// 		Boss string
-// 	}
+func ExampleFinder() {
+	type Group struct {
+		Name string
+		Boss string
+	}
 
-// 	type Company struct {
-// 		Name    string
-// 		Address string
-// 		Period  int
-// 		*Group
-// 	}
+	type Company struct {
+		Name    string
+		Address string
+		Period  int
+		*Group
+	}
 
-// 	type School struct {
-// 		Name          string
-// 		GraduatedYear int
-// 	}
+	type School struct {
+		Name          string
+		GraduatedYear int
+	}
 
-// 	type Person struct {
-// 		Name string
-// 		Age  int
-// 		*Company
-// 		*School
-// 	}
+	type Person struct {
+		Name string
+		Age  int
+		*Company
+		*School
+	}
 
-// 	i := &Person{
-// 		Name: "Joe Davis",
-// 		Age:  45,
-// 		Company: &Company{
-// 			Name:    "XXX Cars inc.",
-// 			Address: "New York",
-// 			Period:  20,
-// 			Group: &Group{
-// 				Name: "YYY Group Holdings",
-// 				Boss: "Donald",
-// 			},
-// 		},
-// 		School: &School{
-// 			Name:          "ABC College",
-// 			GraduatedYear: 1995,
-// 		},
-// 	}
+	i := &Person{
+		Name: "Joe Davis",
+		Age:  45,
+		Company: &Company{
+			Name:    "XXX Cars inc.",
+			Address: "New York",
+			Period:  20,
+			Group: &Group{
+				Name: "YYY Group Holdings",
+				Boss: "Donald",
+			},
+		},
+		School: &School{
+			Name:          "ABC College",
+			GraduatedYear: 1995,
+		},
+	}
 
-// 	// 2nd argument is the separator string for nested field names separating
-// 	finder, err := NewFinderWithSep(i, ">")
-// 	// Note:
-// 	// If "NewFinder(i)" is called instead of "NewFinderWithSep", default separator "." is automatically used.
-// 	// finder, err := NewFinder(i)
+	// 2nd argument is the separator string for nested field names separating
+	finder, err := NewFinderWithSep(i, ">")
+	// Note:
+	// If "NewFinder(i)" is called instead of "NewFinderWithSep", default separator "." is automatically used.
+	// finder, err := NewFinder(i)
 
-// 	if err != nil {
-// 		panic(err)
-// 	}
+	if err != nil {
+		panic(err)
+	}
 
-// 	// Finder provides method chain mechanism
-// 	m, err := finder.
-// 		// Find(...string) returns a Finder that fields in NESTED struct are looked up by field name arguments.
-// 		Find("School").
-// 		// Into(...string) returns a Finder that NESTED struct fields are looked up by field name arguments.
-// 		// This example looks up `person.Company.Address` field.
-// 		Into("Company").Find("Address").
-// 		// If multi arguments are assigned for Into method, then execute multi level nesting.
-// 		// This example looks up `person.Company.Group.Name` and `person.Company.Group.Boss` fields.
-// 		Into("Company", "Group").Find("Name", "Boss").
-// 		// ToMap converts from found struct fields to map.
-// 		ToMap()
-// 	if err != nil {
-// 		panic(err)
-// 	}
+	// Finder provides method chain mechanism
+	m, err := finder.
+		// Find(...string) returns a Finder that fields in NESTED struct are looked up by field name arguments.
+		Find("School").
+		// Into(...string) returns a Finder that NESTED struct fields are looked up by field name arguments.
+		// This example looks up `person.Company.Address` field.
+		Into("Company").Find("Address").
+		// If multi arguments are assigned for Into method, then execute multi level nesting.
+		// This example looks up `person.Company.Group.Name` and `person.Company.Group.Boss` fields.
+		Into("Company", "Group").Find("Name", "Boss").
+		// ToMap converts from found struct fields to map.
+		ToMap()
+	if err != nil {
+		panic(err)
+	}
 
-// 	fmt.Printf("%#v", m)
-// 	// Output:
-// 	// map[string]interface {}{"Company>Address":"New York", "Company>Group>Boss":"Donald", "Company>Group>Name":"YYY Group Holdings", "School":deprecated.School{Name:"ABC College", GraduatedYear:1995}}
-// }
+	fmt.Printf("%#v", m)
+	// Output:
+	// map[string]interface {}{"Company>Address":"New York", "Company>Group>Boss":"Donald", "Company>Group>Name":"YYY Group Holdings", "School":structil.School{Name:"ABC College", GraduatedYear:1995}}
+}
 
-// func ExampleFinder_FromKeys_yml() {
-// 	type Group struct {
-// 		Name string
-// 		Boss string
-// 	}
+func ExampleFinder_FromKeys_yml() {
+	type Group struct {
+		Name string
+		Boss string
+	}
 
-// 	type Company struct {
-// 		Name    string
-// 		Address string
-// 		Period  int
-// 		*Group
-// 	}
+	type Company struct {
+		Name    string
+		Address string
+		Period  int
+		*Group
+	}
 
-// 	type School struct {
-// 		Name          string
-// 		GraduatedYear int
-// 	}
+	type School struct {
+		Name          string
+		GraduatedYear int
+	}
 
-// 	type Person struct {
-// 		Name string
-// 		Age  int
-// 		*Company
-// 		*School
-// 	}
+	type Person struct {
+		Name string
+		Age  int
+		*Company
+		*School
+	}
 
-// 	i := &Person{
-// 		Name: "Joe Davis",
-// 		Age:  45,
-// 		Company: &Company{
-// 			Name:    "XXX Cars inc.",
-// 			Address: "New York",
-// 			Period:  20,
-// 			Group: &Group{
-// 				Name: "YYY Group Holdings",
-// 				Boss: "Donald",
-// 			},
-// 		},
-// 		School: &School{
-// 			Name:          "ABC College",
-// 			GraduatedYear: 1995,
-// 		},
-// 	}
+	i := &Person{
+		Name: "Joe Davis",
+		Age:  45,
+		Company: &Company{
+			Name:    "XXX Cars inc.",
+			Address: "New York",
+			Period:  20,
+			Group: &Group{
+				Name: "YYY Group Holdings",
+				Boss: "Donald",
+			},
+		},
+		School: &School{
+			Name:          "ABC College",
+			GraduatedYear: 1995,
+		},
+	}
 
-// 	// examples/finder_from_conf/ex_yml.yml as follows:
-// 	//
-// 	// Keys:
-// 	//   - Company:
-// 	//     - Group:
-// 	//       - Name
-// 	//       - Boss
-// 	//     - Address
-// 	//     - Period
-// 	//   - Name
-// 	//   - Age
+	// examples/finder_from_conf/ex_yml.yml as follows:
+	//
+	// Keys:
+	//   - Company:
+	//     - Group:
+	//       - Name
+	//       - Boss
+	//     - Address
+	//     - Period
+	//   - Name
+	//   - Age
 
-// 	// Get `FinderKeys` object by calling `NewFinderKeys` with config file dir and baseName
-// 	// This config file path is "examples/finder_from_conf/ex_json.json"
-// 	fks, err := NewFinderKeys("../examples/finder_from_conf", "ex_yml")
-// 	if err != nil {
-// 		panic(err)
-// 	}
+	// Get `FinderKeys` object by calling `NewFinderKeys` with config file dir and baseName
+	// This config file path is "examples/finder_from_conf/ex_json.json"
+	fks, err := NewFinderKeys("examples/finder_from_conf", "ex_yml")
+	if err != nil {
+		panic(err)
+	}
 
-// 	finder, err := NewFinder(i)
-// 	if err != nil {
-// 		panic(err)
-// 	}
+	finder, err := NewFinder(i)
+	if err != nil {
+		panic(err)
+	}
 
-// 	// And build `Finder` object using `FromKeys` method with `FinderKeys` object
-// 	// This returns the same result as follows:
-// 	//
-// 	// finder = finder.Find("Name", "Age").
-// 	//   Into("Company").Find("Address", "Period").
-// 	//   Into("Company", "Group").Find("Name", "Boss")
-// 	m, err := finder.FromKeys(fks).ToMap()
-// 	if err != nil {
-// 		panic(err)
-// 	}
+	// And build `Finder` object using `FromKeys` method with `FinderKeys` object
+	// This returns the same result as follows:
+	//
+	// finder = finder.Find("Name", "Age").
+	//   Into("Company").Find("Address", "Period").
+	//   Into("Company", "Group").Find("Name", "Boss")
+	m, err := finder.FromKeys(fks).ToMap()
+	if err != nil {
+		panic(err)
+	}
 
-// 	fmt.Printf("%#v", m)
-// 	// Output:
-// 	// map[string]interface {}{"Age":45, "Company.Address":"New York", "Company.Group.Boss":"Donald", "Company.Group.Name":"YYY Group Holdings", "Company.Period":20, "Name":"Joe Davis"}
-// }
+	fmt.Printf("%#v", m)
+	// Output:
+	// map[string]interface {}{"Age":45, "Company.Address":"New York", "Company.Group.Boss":"Donald", "Company.Group.Name":"YYY Group Holdings", "Company.Period":20, "Name":"Joe Davis"}
+}
 
-// func ExampleFinder_FromKeys_json() {
-// 	type Group struct {
-// 		Name string
-// 		Boss string
-// 	}
+func ExampleFinder_FromKeys_json() {
+	type Group struct {
+		Name string
+		Boss string
+	}
 
-// 	type Company struct {
-// 		Name    string
-// 		Address string
-// 		Period  int
-// 		*Group
-// 	}
+	type Company struct {
+		Name    string
+		Address string
+		Period  int
+		*Group
+	}
 
-// 	type School struct {
-// 		Name          string
-// 		GraduatedYear int
-// 	}
+	type School struct {
+		Name          string
+		GraduatedYear int
+	}
 
-// 	type Person struct {
-// 		Name string
-// 		Age  int
-// 		*Company
-// 		*School
-// 	}
+	type Person struct {
+		Name string
+		Age  int
+		*Company
+		*School
+	}
 
-// 	i := &Person{
-// 		Name: "Joe Davis",
-// 		Age:  45,
-// 		Company: &Company{
-// 			Name:    "XXX Cars inc.",
-// 			Address: "New York",
-// 			Period:  20,
-// 			Group: &Group{
-// 				Name: "YYY Group Holdings",
-// 				Boss: "Donald",
-// 			},
-// 		},
-// 		School: &School{
-// 			Name:          "ABC College",
-// 			GraduatedYear: 1995,
-// 		},
-// 	}
+	i := &Person{
+		Name: "Joe Davis",
+		Age:  45,
+		Company: &Company{
+			Name:    "XXX Cars inc.",
+			Address: "New York",
+			Period:  20,
+			Group: &Group{
+				Name: "YYY Group Holdings",
+				Boss: "Donald",
+			},
+		},
+		School: &School{
+			Name:          "ABC College",
+			GraduatedYear: 1995,
+		},
+	}
 
-// 	// examples/finder_from_conf/ex_json.json as follows:
-// 	//
-// 	// {
-// 	//   "Keys":[
-// 	//     {
-// 	//       "Company":[
-// 	//         {
-// 	//           "Group":[
-// 	//             "Name",
-// 	//             "Boss"
-// 	//           ]
-// 	//         },
-// 	//         "Address",
-// 	//         "Period"
-// 	//       ]
-// 	//     },
-// 	//     "Name",
-// 	//     "Age"
-// 	//   ]
-// 	// }
-// 	fks, err := NewFinderKeys("../examples/finder_from_conf", "ex_json")
-// 	if err != nil {
-// 		panic(err)
-// 	}
+	// examples/finder_from_conf/ex_json.json as follows:
+	//
+	// {
+	//   "Keys":[
+	//     {
+	//       "Company":[
+	//         {
+	//           "Group":[
+	//             "Name",
+	//             "Boss"
+	//           ]
+	//         },
+	//         "Address",
+	//         "Period"
+	//       ]
+	//     },
+	//     "Name",
+	//     "Age"
+	//   ]
+	// }
+	fks, err := NewFinderKeys("examples/finder_from_conf", "ex_json")
+	if err != nil {
+		panic(err)
+	}
 
-// 	finder, err := NewFinder(i)
-// 	if err != nil {
-// 		panic(err)
-// 	}
+	finder, err := NewFinder(i)
+	if err != nil {
+		panic(err)
+	}
 
-// 	m, err := finder.FromKeys(fks).ToMap()
-// 	if err != nil {
-// 		panic(err)
-// 	}
+	m, err := finder.FromKeys(fks).ToMap()
+	if err != nil {
+		panic(err)
+	}
 
-// 	fmt.Printf("%#v", m)
-// 	// Output:
-// 	// map[string]interface {}{"Age":45, "Company.Address":"New York", "Company.Group.Boss":"Donald", "Company.Group.Name":"YYY Group Holdings", "Company.Period":20, "Name":"Joe Davis"}
-// }
+	fmt.Printf("%#v", m)
+	// Output:
+	// map[string]interface {}{"Age":45, "Company.Address":"New York", "Company.Group.Boss":"Donald", "Company.Group.Name":"YYY Group Holdings", "Company.Period":20, "Name":"Joe Davis"}
+}
