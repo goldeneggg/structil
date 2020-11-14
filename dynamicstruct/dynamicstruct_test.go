@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/goldeneggg/structil/internal/deprecated"
+	"github.com/goldeneggg/structil"
 
 	. "github.com/goldeneggg/structil/dynamicstruct"
 )
@@ -770,32 +770,31 @@ func testBuilderBuildDecodeMap(t *testing.T, got DynamicStruct, tt buildTest) bo
 		return false
 	}
 
-	// FIXME: replace from deprecated package to refactored package
-	getter, err := deprecated.NewGetter(dec)
+	getter, err := structil.NewGetter(dec)
 	if err != nil {
 		t.Errorf("unexpected error occured from NewGetter: %v", err)
 		return false
 	}
 
 	for k, v := range tt.testMap {
-		gotValue, err := getter.EGet(k)
-		if err != nil {
-			t.Errorf("unexpected error occured from Getter.EGet: %v. name: %s", err, k)
+		gotValue, ok := getter.Get(k)
+		if !ok {
+			t.Errorf("key does not exist. It's unexpected. name: %s", k)
 			return false
 		}
 
 		switch k {
 		case "StructField":
-			// FIXME: replace from deprecated package to refactored package
-			getter, err := deprecated.NewGetter(gotValue)
+			getter, err := structil.NewGetter(gotValue)
 			if err != nil {
 				t.Errorf("unexpected error occured from NewGetter for StructField: %v", err)
 				return false
 			}
 
 			ds, _ := v.(DynamicTestStruct)
-			if getter.Get("String") != ds.String {
-				t.Errorf("unexpected mismatch Struct String field: got: %v, want: %v", getter.Get("String"), ds.String)
+			gotString, _ := getter.Get("String")
+			if gotString != ds.String {
+				t.Errorf("unexpected mismatch Struct String field: got: %v, want: %v", gotString, ds.String)
 				return false
 			}
 		default:
