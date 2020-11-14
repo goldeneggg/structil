@@ -3,7 +3,6 @@ package decoder
 import (
 	"fmt"
 
-	// "github.com/goldeneggg/structil/internal/deprecated"
 	"github.com/goldeneggg/structil"
 )
 

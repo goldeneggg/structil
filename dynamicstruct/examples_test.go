@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	// "github.com/goldeneggg/structil/internal/deprecated"
 	"github.com/goldeneggg/structil"
 )
 
