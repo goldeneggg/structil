@@ -22,43 +22,19 @@ I'd like to ...
 *** JSON and YAML format is known or unknown ***
 
 
-JSON →↓        →→ (known case) struct  →→→→→→→→→↓→→ (use struct directly)
-      ↓        ↑                                ↓
-      ↓→→ map →→→ (unknown case) DynamicStruct →→→ Getter, Finder
-      ↑
-YAML →↑
+JSON →→→→→→→→→→→→→→→→↓        →→ (known case) struct  →→→→→→→→→→→↓→→→ (use struct directly)
+                     ↓        ↑                                  ↓
+                     ↓→→ map →→→ (unknown case) "DynamicStruct" →→→→→→ "Getter", "Finder"
+                     ↑
+YAML →→→→→→→→→→→→→→→→↑
+                     ↑
+(and other formats) →↑
 ```
 
 Please see [my medium post](https://medium.com/@s0k0mata/dynamic-and-runtime-struct-utilities-in-go-go-golang-reflection-25c154335185) as well.
 
 
 ## Examples
-
-### `Finder`
-We can access usefully nested struct fields using field name string.
-
-See [example code](/examples_test.go)
-
-
-#### With config file? use `FinderKeys`
-We can create a Finder from the configuration file that have some finding target keys. We support some file formats of configuration file such as `yaml`, `json`, `toml` and more.
-
-See [example code](/examples_test.go)
-
-___Thanks for the awesome configuration management library [spf13/viper](https://github.com/spf13/viper).___
-
-
-### `Getter`
-We can access a struct using field name string, like map.
-
-See [example code](/examples_test.go)
-
-
-#### `MapGet` method
-`MapGet` method provides the __Map__ collection function for slice of struct
-
-See [example code](/examples_test.go)
-
 
 ### `DynamicStruct`
 We can create the dynamic and runtime struct.
@@ -76,6 +52,32 @@ See [example code](/dynamicstruct/examples_test.go)
 A decoding example from __unknown format__ JSON to interface of `DynamicStruct` with `JSONDecoder.Decode` as follows.
 
 See [example code](/dynamicstruct/decoder/examples_test.go)
+
+
+### `Getter`
+We can access a struct using field name string, like (typed) map.
+
+See [example code](/examples_test.go)
+
+
+#### `MapGet` method
+`MapGet` method provides the __Map__ collection function for slice of struct
+
+See [example code](/examples_test.go)
+
+
+### `Finder`
+We can access usefully nested struct fields using field name string.
+
+See [example code](/examples_test.go)
+
+
+#### With config file? use `FinderKeys`
+We can create a Finder from the configuration file that have some finding target keys. We support some file formats of configuration file such as `yaml`, `json`, `toml` and more.
+
+See [example code](/examples_test.go)
+
+___Thanks for the awesome configuration management library [spf13/viper](https://github.com/spf13/viper).___
 
 
 ## Benchmark
