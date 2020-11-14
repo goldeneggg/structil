@@ -37,7 +37,10 @@ func Example() {
 	b.SetStructName("MyStruct")
 
 	// Build returns a DynamicStruct
-	ds := b.Build()
+	ds, err := b.Build()
+	if err != nil {
+		panic(err)
+	}
 
 	// Print struct definition with Definition method
 	// Struct fields are automatically orderd by field name
@@ -116,7 +119,11 @@ func Example_unmarshalJSON() {
 		AddBoolWithTag("BoolField", `json:"bool_field"`).
 		AddStructPtrWithTag("StructPtrField", hogePtr, `json:"struct_ptr_field"`).
 		AddSliceWithTag("SliceField", "", `json:"slice_string_field"`)
-	ds := b.Build()
+	ds, err := b.Build()
+	if err != nil {
+		panic(err)
+	}
+
 	fmt.Println(ds.Definition())
 
 	// try json unmarshal with NewInterface
@@ -137,7 +144,7 @@ func Example_unmarshalJSON() {
 }
 `)
 	intf := ds.NewInterface() // returns a new interface of this DynamicStruct
-	err := json.Unmarshal(input, &intf)
+	err = json.Unmarshal(input, &intf)
 	if err != nil {
 		panic(err)
 	}

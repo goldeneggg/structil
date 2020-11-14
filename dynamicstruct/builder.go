@@ -3,6 +3,8 @@ package dynamicstruct
 import (
 	"errors"
 	"reflect"
+
+	"github.com/goldeneggg/structil/util"
 )
 
 type pattern int
@@ -85,6 +87,7 @@ type Builder struct {
 	fields map[string]reflect.Type
 	tags   map[string]reflect.StructTag
 	name   string
+	err    error
 }
 
 // NewBuilder returns a concrete Builder
@@ -406,6 +409,15 @@ func (b *Builder) AddInterfaceWithTag(name string, isPtr bool, tag string) *Buil
 }
 
 func (b *Builder) add(p *addParam) {
+	defer func() {
+		err := util.RecoverToError(recover())
+
+		// keep 1st recoverd error
+		if err != nil && b.err == nil {
+			b.err = err
+		}
+	}()
+
 	var typeOf reflect.Type
 
 	switch p.pattern {
@@ -485,16 +497,26 @@ func (b *Builder) SetStructName(name string) {
 }
 
 // Build returns a concrete struct pointer built by Builder.
-func (b *Builder) Build() DynamicStruct {
+func (b *Builder) Build() (DynamicStruct, error) {
 	return b.build(true)
 }
 
 // BuildNonPtr returns a concrete struct built by Builder.
-func (b *Builder) BuildNonPtr() DynamicStruct {
+func (b *Builder) BuildNonPtr() (DynamicStruct, error) {
 	return b.build(false)
 }
 
-func (b *Builder) build(isPtr bool) DynamicStruct {
+func (b *Builder) build(isPtr bool) (ds DynamicStruct, err error) {
+	if b.err != nil {
+		err = b.err
+		return
+	}
+
+	defer func() {
+		err = util.RecoverToError(recover())
+		return
+	}()
+
 	var i int
 	fields := make([]reflect.StructField, len(b.fields))
 	for name, typ := range b.fields {
@@ -506,5 +528,7 @@ func (b *Builder) build(isPtr bool) DynamicStruct {
 		i++
 	}
 
-	return newDynamicStructWithName(fields, isPtr, b.GetStructName())
+	ds = newDynamicStructWithName(fields, isPtr, b.GetStructName())
+
+	return
 }

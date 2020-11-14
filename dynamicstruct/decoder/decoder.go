@@ -130,5 +130,5 @@ func buildDynamicStruct(m map[string]interface{}, camelizedKeys map[string]strin
 		}
 	}
 
-	return b.Build(), nil
+	return b.Build()
 }
