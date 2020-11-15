@@ -81,8 +81,8 @@ chk-latest-viper:
 chk-latest-gocmp:
 	@$(call chk_latest,$(PKG_GOCMP))
 
-.PHONY: upgrade-all-modeuls
-upgrade-all-modeuls:
+.PHONY: update-all-modeuls
+update-all-modeuls:
 	@go get -u && make test
 
 
