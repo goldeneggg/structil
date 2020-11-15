@@ -81,9 +81,24 @@ chk-latest-viper:
 chk-latest-gocmp:
 	@$(call chk_latest,$(PKG_GOCMP))
 
-.PHONY: update-all-modeuls
-update-all-modeuls:
+.PHONY: update-all-modules
+update-all-modules:
 	@go get -u && make test
+
+upgrade_module = echo module-query="$2"; GO111MODULE=on go get $1@$2
+upgrade_to_latest = $(call upgrade_module,$1,latest)
+
+.PHONY: upgrade-latest-mapstructure
+upgrade-latest-mapstructure:
+	@$(call upgrade_to_latest,$(PKG_MAPSTRUCTURE))
+
+.PHONY: upgrade-latest-viper
+upgrade-latest-viper:
+	@$(call upgrade_to_latest,$(PKG_VIPER))
+
+.PHONY: upgrade-latest-gocmp
+upgrade-latest-gocmp:
+	@$(call upgrade_to_latest,$(PKG_GOCMP))
 
 
 ###
