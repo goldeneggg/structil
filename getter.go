@@ -8,74 +8,16 @@ import (
 	"github.com/goldeneggg/structil/util"
 )
 
-// // Getter is the interface that wraps the basic Getter method.
-// // TODO: return values should be got value and 'ok' bool flag combination instead of panic
-// type Getter interface {
-// 	NumField() int
-// 	Has(name string) bool
-// 	Names() []string
-// 	GetType(name string) reflect.Type
-// 	GetValue(name string) reflect.Value
-// 	Get(name string) interface{}
-// 	EGet(name string) (interface{}, error)
-// 	Byte(name string) byte
-// 	Bytes(name string) []byte
-// 	String(name string) string
-// 	Int(name string) int
-// 	Int8(name string) int8
-// 	Int16(name string) int16
-// 	Int32(name string) int32
-// 	Int64(name string) int64
-// 	Uint(name string) uint
-// 	Uint8(name string) uint8
-// 	Uint16(name string) uint16
-// 	Uint32(name string) uint32
-// 	Uint64(name string) uint64
-// 	Uintptr(name string) uintptr
-// 	Float32(name string) float32
-// 	Float64(name string) float64
-// 	Bool(name string) bool
-// 	Complex64(name string) complex64
-// 	Complex128(name string) complex128
-// 	UnsafePointer(name string) unsafe.Pointer
-// 	IsByte(name string) bool
-// 	IsBytes(name string) bool
-// 	IsString(name string) bool
-// 	IsInt(name string) bool
-// 	IsInt8(name string) bool
-// 	IsInt16(name string) bool
-// 	IsInt32(name string) bool
-// 	IsInt64(name string) bool
-// 	IsUint(name string) bool
-// 	IsUint8(name string) bool
-// 	IsUint16(name string) bool
-// 	IsUint32(name string) bool
-// 	IsUint64(name string) bool
-// 	IsUintptr(name string) bool
-// 	IsFloat32(name string) bool
-// 	IsFloat64(name string) bool
-// 	IsBool(name string) bool
-// 	IsComplex64(name string) bool
-// 	IsComplex128(name string) bool
-// 	IsUnsafePointer(name string) bool
-// 	IsMap(name string) bool
-// 	IsFunc(name string) bool
-// 	IsChan(name string) bool
-// 	IsStruct(name string) bool
-// 	IsSlice(name string) bool
-// 	IsArray(name string) bool
-// 	MapGet(name string, f func(int, Getter) (interface{}, error)) ([]interface{}, error)
-// }
-
 // Getter is the struct that wraps the basic Getter method..
 type Getter struct {
-	rv     reflect.Value // Value of input interface
-	numf   int
-	names  []string
-	hases  map[string]bool
+	rv     reflect.Value            // Value of input interface
+	numf   int                      // Field nums
+	names  []string                 // Field names
+	hases  map[string]bool          // Field existing condition map of struct fields
 	types  map[string]reflect.Type  // Type map of struct fields
 	values map[string]reflect.Value // Value map of indirected struct fields
 	intfs  map[string]interface{}   // interface map of struct fields
+	cached map[string]bool
 }
 
 // NewGetter returns a concrete Getter that uses and obtains from i.
@@ -106,6 +48,7 @@ func NewGetter(i interface{}) (*Getter, error) {
 		values: map[string]reflect.Value{},
 		types:  map[string]reflect.Type{},
 		intfs:  map[string]interface{}{},
+		cached: map[string]bool{},
 	}, nil
 }
 
@@ -116,25 +59,11 @@ func (g *Getter) NumField() int {
 
 // Has tests whether the original struct has a field named name arg.
 func (g *Getter) Has(name string) bool {
-	_, ok := g.hases[name]
-	if !ok {
+	if _, ok := g.cached[name]; !ok {
 		g.cache(name)
 	}
 
 	return g.hases[name]
-}
-
-// Names returns names of struct field.
-func (g *Getter) Names() []string {
-	if g.numf > 0 && len(g.names) == 0 {
-		var sf reflect.StructField
-		for i := 0; i < g.numf; i++ {
-			sf = g.rv.Type().Field(i)
-			g.names = append(g.names, sf.Name)
-		}
-	}
-
-	return g.names
 }
 
 func (g *Getter) cache(name string) {
@@ -149,265 +78,312 @@ func (g *Getter) cache(name string) {
 
 	frv = reflect.Indirect(frv)
 	g.values[name] = frv
-
 	g.intfs[name] = util.ToI(frv)
+	g.cached[name] = true
+}
+
+// Names returns names of struct field.
+func (g *Getter) Names() []string {
+	// to setup g.names is run only once
+	if g.numf > 0 && len(g.names) == 0 {
+		var sf reflect.StructField
+		for i := 0; i < g.numf; i++ {
+			sf = g.rv.Type().Field(i)
+			g.names = append(g.names, sf.Name)
+		}
+	}
+
+	return g.names
 }
 
 // GetType returns the reflect.Type object of the original struct field named name.
-// It panics if the original struct does not have a field named name.
-func (g *Getter) GetType(name string) reflect.Type {
-	g.panicIfNotHave(name)
-
-	_, ok := g.types[name]
-	if !ok {
+// 2nd return value will be false if the original struct does not have a "name" field.
+func (g *Getter) GetType(name string) (reflect.Type, bool) {
+	if _, ok := g.cached[name]; !ok {
 		g.cache(name)
 	}
 
-	return g.types[name]
-}
-
-func (g *Getter) panicIfNotHave(name string) {
-	if !g.Has(name) {
-		panic(fmt.Sprintf("field name %s does not exist in the original struct.", name))
-	}
+	return g.types[name], g.hases[name]
 }
 
 // GetValue returns the reflect.Value object of the original struct field named name.
-// It panics if the original struct does not have a field named name.
-func (g *Getter) GetValue(name string) reflect.Value {
-	g.panicIfNotHave(name)
-
-	_, ok := g.values[name]
-	if !ok {
+// 2nd return value will be false if the original struct does not have a "name" field.
+func (g *Getter) GetValue(name string) (reflect.Value, bool) {
+	if _, ok := g.cached[name]; !ok {
 		g.cache(name)
 	}
 
-	return g.values[name]
+	return g.values[name], g.hases[name]
 }
 
 // Get returns the interface of the original struct field named name.
-// It panics if the original struct does not have a field named name.
-func (g *Getter) Get(name string) interface{} {
-	g.panicIfNotHave(name)
-
-	_, ok := g.intfs[name]
-	if !ok {
+// 2nd return value will be false if the original struct does not have a "name" field.
+func (g *Getter) Get(name string) (interface{}, bool) {
+	if _, ok := g.cached[name]; !ok {
 		g.cache(name)
 	}
 
-	return g.intfs[name]
+	return g.intfs[name], g.hases[name]
 }
 
-// EGet returns the interface of the original struct field named name.
-// It returns an error if the original struct does not have a field named name.
-func (g *Getter) EGet(name string) (intf interface{}, err error) {
-	defer func() {
-		err = util.RecoverToError(recover())
-	}()
+// Bool returns the byte of the original struct field named name.
+// 2nd return value will be false if the original struct does not have a "name" field.
+// 2nd return value will be false if type of the original struct "name" field is not bool.
+func (g *Getter) Bool(name string) (bool, bool) {
+	v, has := g.Get(name)
+	if !has {
+		return false, has
+	}
 
-	intf = g.Get(name)
-
-	return
+	res, ok := v.(bool)
+	return res, ok
 }
 
 // Byte returns the byte of the original struct field named name.
-// It panics if the original struct does not have a field named name.
-// It panics if type of the original struct field named name is not byte.
-func (g *Getter) Byte(name string) byte {
-	if v, ok := g.Get(name).(byte); ok {
-		return v
+// 2nd return value will be false if the original struct does not have a "name" field.
+// 2nd return value will be false if type of the original struct "name" field is not byte.
+func (g *Getter) Byte(name string) (byte, bool) {
+	v, has := g.Get(name)
+	if !has {
+		return 0, has
 	}
-	panic(fmt.Sprintf("field name %s is not byte type. value kind: %v", name, g.GetValue(name).Kind()))
+
+	res, ok := v.(byte)
+	return res, ok
 }
 
 // Bytes returns the []byte of the original struct field named name.
-// It panics if the original struct does not have a field named name.
-// It panics if type of the original struct field named name is not []byte.
-func (g *Getter) Bytes(name string) []byte {
-	if v, ok := g.Get(name).([]byte); ok {
-		return v
+// 2nd return value will be false if the original struct does not have a "name" field.
+// 2nd return value will be false if type of the original struct "name" field is not []byte.
+func (g *Getter) Bytes(name string) ([]byte, bool) {
+	v, has := g.Get(name)
+	if !has {
+		return nil, has
 	}
-	panic(fmt.Sprintf("field name %s is not []byte type. value kind: %v", name, g.GetValue(name).Kind()))
+
+	res, ok := v.([]byte)
+	return res, ok
 }
 
 // String returns the string of the original struct field named name.
-// It panics if the original struct does not have a field named name.
-// It panics if type of the original struct field named name is not string.
-func (g *Getter) String(name string) string {
-	if v, ok := g.Get(name).(string); ok {
-		return v
+// 2nd return value will be false if the original struct does not have a "name" field.
+// 2nd return value will be false if type of the original struct "name" field is not string.
+func (g *Getter) String(name string) (string, bool) {
+	v, has := g.Get(name)
+	if !has {
+		return "", has
 	}
-	panic(fmt.Sprintf("field name %s is not string type. value kind: %v", name, g.GetValue(name).Kind()))
+
+	res, ok := v.(string)
+	return res, ok
 }
 
 // Int returns the int of the original struct field named name.
-// It panics if the original struct does not have a field named name.
-// It panics if type of the original struct field named name is not int.
-func (g *Getter) Int(name string) int {
-	if v, ok := g.Get(name).(int); ok {
-		return v
+// 2nd return value will be false if the original struct does not have a "name" field.
+// 2nd return value will be false if type of the original struct "name" field is not int.
+func (g *Getter) Int(name string) (int, bool) {
+	v, has := g.Get(name)
+	if !has {
+		return 0, has
 	}
-	panic(fmt.Sprintf("field name %s is not int type. value kind: %v", name, g.GetValue(name).Kind()))
+
+	res, ok := v.(int)
+	return res, ok
 }
 
 // Int8 returns the int8 of the original struct field named name.
-// It panics if the original struct does not have a field named name.
-// It panics if type of the original struct field named name is not int8.
-func (g *Getter) Int8(name string) int8 {
-	if v, ok := g.Get(name).(int8); ok {
-		return v
+// 2nd return value will be false if the original struct does not have a "name" field.
+// 2nd return value will be false if type of the original struct "name" field is not int8.
+func (g *Getter) Int8(name string) (int8, bool) {
+	v, has := g.Get(name)
+	if !has {
+		return 0, has
 	}
-	panic(fmt.Sprintf("field name %s is not int8 type. value kind: %v", name, g.GetValue(name).Kind()))
+
+	res, ok := v.(int8)
+	return res, ok
 }
 
 // Int16 returns the int16 of the original struct field named name.
-// It panics if the original struct does not have a field named name.
-// It panics if type of the original struct field named name is not int16.
-func (g *Getter) Int16(name string) int16 {
-	if v, ok := g.Get(name).(int16); ok {
-		return v
+// 2nd return value will be false if the original struct does not have a "name" field.
+// 2nd return value will be false if type of the original struct "name" field is not int16.
+func (g *Getter) Int16(name string) (int16, bool) {
+	v, has := g.Get(name)
+	if !has {
+		return 0, has
 	}
-	panic(fmt.Sprintf("field name %s is not int16 type. value kind: %v", name, g.GetValue(name).Kind()))
+
+	res, ok := v.(int16)
+	return res, ok
 }
 
 // Int32 returns the int32 of the original struct field named name.
-// It panics if the original struct does not have a field named name.
-// It panics if type of the original struct field named name is not int32.
-func (g *Getter) Int32(name string) int32 {
-	if v, ok := g.Get(name).(int32); ok {
-		return v
+// 2nd return value will be false if the original struct does not have a "name" field.
+// 2nd return value will be false if type of the original struct "name" field is not int32.
+func (g *Getter) Int32(name string) (int32, bool) {
+	v, has := g.Get(name)
+	if !has {
+		return 0, has
 	}
-	panic(fmt.Sprintf("field name %s is not int32 type. value kind: %v", name, g.GetValue(name).Kind()))
+
+	res, ok := v.(int32)
+	return res, ok
 }
 
 // Int64 returns the int64 of the original struct field named name.
-// It panics if the original struct does not have a field named name.
-// It panics if type of the original struct field named name is not int64.
-func (g *Getter) Int64(name string) int64 {
-	if v, ok := g.Get(name).(int64); ok {
-		return v
+// 2nd return value will be false if the original struct does not have a "name" field.
+// 2nd return value will be false if type of the original struct "name" field is not int64.
+func (g *Getter) Int64(name string) (int64, bool) {
+	v, has := g.Get(name)
+	if !has {
+		return 0, has
 	}
-	panic(fmt.Sprintf("field name %s is not int64 type. value kind: %v", name, g.GetValue(name).Kind()))
+
+	res, ok := v.(int64)
+	return res, ok
 }
 
 // Uint returns the uint of the original struct field named name.
-// It panics if the original struct does not have a field named name.
-// It panics if type of the original struct field named name is not uint.
-func (g *Getter) Uint(name string) uint {
-	if v, ok := g.Get(name).(uint); ok {
-		return v
+// 2nd return value will be false if the original struct does not have a "name" field.
+// 2nd return value will be false if type of the original struct "name" field is not uint.
+func (g *Getter) Uint(name string) (uint, bool) {
+	v, has := g.Get(name)
+	if !has {
+		return 0, has
 	}
-	panic(fmt.Sprintf("field name %s is not uint type. value kind: %v", name, g.GetValue(name).Kind()))
+
+	res, ok := v.(uint)
+	return res, ok
 }
 
 // Uint8 returns the uint8 of the original struct field named name.
-// It panics if the original struct does not have a field named name.
-// It panics if type of the original struct field named name is not uint8.
-func (g *Getter) Uint8(name string) uint8 {
-	if v, ok := g.Get(name).(uint8); ok {
-		return v
+// 2nd return value will be false if the original struct does not have a "name" field.
+// 2nd return value will be false if type of the original struct "name" field is not uint8.
+func (g *Getter) Uint8(name string) (uint8, bool) {
+	v, has := g.Get(name)
+	if !has {
+		return 0, has
 	}
-	panic(fmt.Sprintf("field name %s is not uint8 type. value kind: %v", name, g.GetValue(name).Kind()))
+
+	res, ok := v.(uint8)
+	return res, ok
 }
 
 // Uint16 returns the uint16 of the original struct field named name.Getter
-// It panics if the original struct does not have a field named name.
-// It panics if type of the original struct field named name is not uint16.
-func (g *Getter) Uint16(name string) uint16 {
-	if v, ok := g.Get(name).(uint16); ok {
-		return v
+// 2nd return value will be false if the original struct does not have a "name" field.
+// 2nd return value will be false if type of the original struct "name" field is not uint16.
+func (g *Getter) Uint16(name string) (uint16, bool) {
+	v, has := g.Get(name)
+	if !has {
+		return 0, has
 	}
-	panic(fmt.Sprintf("field name %s is not uint16 type. value kind: %v", name, g.GetValue(name).Kind()))
+
+	res, ok := v.(uint16)
+	return res, ok
 }
 
 // Uint32 returns the uint32 of the original struct field named name.
-// It panics if the original struct does not have a field named name.
-// It panics if type of the original struct field named name is not uint32.
-func (g *Getter) Uint32(name string) uint32 {
-	if v, ok := g.Get(name).(uint32); ok {
-		return v
+// 2nd return value will be false if the original struct does not have a "name" field.
+// 2nd return value will be false if type of the original struct "name" field is not uint32.
+func (g *Getter) Uint32(name string) (uint32, bool) {
+	v, has := g.Get(name)
+	if !has {
+		return 0, has
 	}
-	panic(fmt.Sprintf("field name %s is not uint32 type. value kind: %v", name, g.GetValue(name).Kind()))
+
+	res, ok := v.(uint32)
+	return res, ok
 }
 
 // Uint64 returns the uint64 of the original struct field named name.
-// It panics if the original struct does not have a field named name.
-// It panics if type of the original struct field named name is not uint64.
-func (g *Getter) Uint64(name string) uint64 {
-	if v, ok := g.Get(name).(uint64); ok {
-		return v
+// 2nd return value will be false if the original struct does not have a "name" field.
+// 2nd return value will be false if type of the original struct "name" field is not uint64.
+func (g *Getter) Uint64(name string) (uint64, bool) {
+	v, has := g.Get(name)
+	if !has {
+		return 0, has
 	}
-	panic(fmt.Sprintf("field name %s is not uint64 type. value kind: %v", name, g.GetValue(name).Kind()))
+
+	res, ok := v.(uint64)
+	return res, ok
 }
 
 // Uintptr returns the uintptr of the original struct field named name.
-// It panics if the original struct does not have a field named name.
-// It panics if type of the original struct field named name is not uintptr.
-func (g *Getter) Uintptr(name string) uintptr {
-	if v, ok := g.Get(name).(uintptr); ok {
-		return v
+// 2nd return value will be false if the original struct does not have a "name" field.
+// 2nd return value will be false if type of the original struct "name" field is not uintptr.
+func (g *Getter) Uintptr(name string) (uintptr, bool) {
+	v, has := g.Get(name)
+	if !has {
+		return 0, has
 	}
-	panic(fmt.Sprintf("field name %s is not uintptr type. value kind: %v", name, g.GetValue(name).Kind()))
+
+	res, ok := v.(uintptr)
+	return res, ok
 }
 
 // Float32 returns the float32 of the original struct field named name.
-// It panics if the original struct does not have a field named name.
-// It panics if type of the original struct field named name is not float32.
-func (g *Getter) Float32(name string) float32 {
-	if v, ok := g.Get(name).(float32); ok {
-		return v
+// 2nd return value will be false if the original struct does not have a "name" field.
+// 2nd return value will be false if type of the original struct "name" field is not float32.
+func (g *Getter) Float32(name string) (float32, bool) {
+	v, has := g.Get(name)
+	if !has {
+		return 0, has
 	}
-	panic(fmt.Sprintf("field name %s is not float32 type. value kind: %v", name, g.GetValue(name).Kind()))
+
+	res, ok := v.(float32)
+	return res, ok
 }
 
 // Float64 returns the float64 of the original struct field named name.
-// It panics if the original struct does not have a field named name.
-// It panics if type of the original struct field named name is not float64.
-func (g *Getter) Float64(name string) float64 {
-	if v, ok := g.Get(name).(float64); ok {
-		return v
+// 2nd return value will be false if the original struct does not have a "name" field.
+// 2nd return value will be false if type of the original struct "name" field is not float64.
+func (g *Getter) Float64(name string) (float64, bool) {
+	v, has := g.Get(name)
+	if !has {
+		return 0, has
 	}
-	panic(fmt.Sprintf("field name %s is not float64 type. value kind: %v", name, g.GetValue(name).Kind()))
-}
 
-// Bool returns the bool of the original struct field named name.
-// It panics if the original struct does not have a field named name.
-// It panics if type of the original struct field named name is not bool.
-func (g *Getter) Bool(name string) bool {
-	if v, ok := g.Get(name).(bool); ok {
-		return v
-	}
-	panic(fmt.Sprintf("field name %s is not bool type. value kind: %v", name, g.GetValue(name).Kind()))
+	res, ok := v.(float64)
+	return res, ok
 }
 
 // Complex64 returns the complex64 of the original struct field named name.
-// It panics if the original struct does not have a field named name.
-// It panics if type of the original struct field named name is not complex64.
-func (g *Getter) Complex64(name string) complex64 {
-	if v, ok := g.Get(name).(complex64); ok {
-		return v
+// 2nd return value will be false if the original struct does not have a "name" field.
+// 2nd return value will be false if type of the original struct "name" field is not complex64.
+func (g *Getter) Complex64(name string) (complex64, bool) {
+	v, has := g.Get(name)
+	if !has {
+		return 0, has
 	}
-	panic(fmt.Sprintf("field name %s is not complex64 type. value kind: %v", name, g.GetValue(name).Kind()))
+
+	res, ok := v.(complex64)
+	return res, ok
 }
 
 // Complex128 returns the complex128 of the original struct field named name.
-// It panics if the original struct does not have a field named name.
-// It panics if type of the original struct field named name is not complex128.
-func (g *Getter) Complex128(name string) complex128 {
-	if v, ok := g.Get(name).(complex128); ok {
-		return v
+// 2nd return value will be false if the original struct does not have a "name" field.
+// 2nd return value will be false if type of the original struct "name" field is not complex128.
+func (g *Getter) Complex128(name string) (complex128, bool) {
+	v, has := g.Get(name)
+	if !has {
+		return 0, has
 	}
-	panic(fmt.Sprintf("field name %s is not complex128 type. value kind: %v", name, g.GetValue(name).Kind()))
+
+	res, ok := v.(complex128)
+	return res, ok
 }
 
 // UnsafePointer returns the unsafe.Pointer of the original struct field named name.
-// It panics if the original struct does not have a field named name.
-// It panics if type of the original struct field named name is not unsafe.Pointer.
-func (g *Getter) UnsafePointer(name string) unsafe.Pointer {
-	if v, ok := g.Get(name).(unsafe.Pointer); ok {
-		return v
+// 2nd return value will be false if the original struct does not have a "name" field.
+// 2nd return value will be false if type of the original struct "name" field is not unsafe.Pointer.
+func (g *Getter) UnsafePointer(name string) (unsafe.Pointer, bool) {
+	v, has := g.Get(name)
+	if !has {
+		return nil, has
 	}
-	panic(fmt.Sprintf("field name %s is not complex128 type. value kind: %v", name, g.GetValue(name).Kind()))
+
+	res, ok := v.(unsafe.Pointer)
+	return res, ok
 }
 
 // IsByte reports whether type of the original struct field named name is byte.
@@ -417,7 +393,13 @@ func (g *Getter) IsByte(name string) bool {
 
 // IsBytes reports whether type of the original struct field named name is []byte.
 func (g *Getter) IsBytes(name string) bool {
-	return g.IsSlice(name) && g.GetType(name).Elem().Kind() == reflect.Uint8
+	if g.IsSlice(name) {
+		t, ok := g.GetType(name)
+		if ok && t.Elem().Kind() == reflect.Uint8 {
+			return true
+		}
+	}
+	return false
 }
 
 // IsString reports whether type of the original struct field named name is string.
@@ -551,7 +533,7 @@ func (g *Getter) is(name string, exp reflect.Kind) bool {
 // MapGet returns the interface slice of mapped values of the original struct field named name.
 func (g *Getter) MapGet(name string, f func(int, *Getter) (interface{}, error)) ([]interface{}, error) {
 	if !g.IsSlice(name) {
-		return nil, fmt.Errorf("field %s is not slice", name)
+		return nil, fmt.Errorf("field %s does not exist or is not slice type", name)
 	}
 
 	var vi reflect.Value
@@ -559,7 +541,7 @@ func (g *Getter) MapGet(name string, f func(int, *Getter) (interface{}, error)) 
 	var err error
 	var r interface{}
 
-	srv := g.GetValue(name)
+	srv, _ := g.GetValue(name)
 	res := make([]interface{}, srv.Len())
 
 	for i := 0; i < srv.Len(); i++ {

@@ -37,7 +37,10 @@ func Example() {
 	b.SetStructName("MyStruct")
 
 	// Build returns a DynamicStruct
-	ds := b.Build()
+	ds, err := b.Build()
+	if err != nil {
+		panic(err)
+	}
 
 	// Print struct definition with Definition method
 	// Struct fields are automatically orderd by field name
@@ -63,16 +66,23 @@ func Example() {
 	if err != nil {
 		panic(err)
 	}
+	s, _ := g.String("StringField")
+	i, _ := g.Int("IntField")
+	bl, _ := g.Bool("BoolField")
+	m, _ := g.Get("MapField")
+	strct, _ := g.Get("StructPtrField")
+	sl, _ := g.Get("SliceField")
+	obj, _ := g.Get("SomeObjectField")
 	fmt.Printf(
 		"num of fields=%d\n'StringField'=%s\n'IntField'=%d\n'BoolField'=%t\n'MapField'=%+v\n'StructPtrField'=%+v\n'SliceField'=%+v\n'SomeObjectField'=%+v",
 		g.NumField(),
-		g.String("StringField"),
-		g.Int("IntField"),
-		g.Bool("BoolField"),
-		g.Get("MapField"),
-		g.Get("StructPtrField"),
-		g.Get("SliceField"),
-		g.Get("SomeObjectField"),
+		s,
+		i,
+		bl,
+		m,
+		strct,
+		sl,
+		obj,
 	)
 	// Output:
 	// type MyStruct struct {
@@ -109,7 +119,11 @@ func Example_unmarshalJSON() {
 		AddBoolWithTag("BoolField", `json:"bool_field"`).
 		AddStructPtrWithTag("StructPtrField", hogePtr, `json:"struct_ptr_field"`).
 		AddSliceWithTag("SliceField", "", `json:"slice_string_field"`)
-	ds := b.Build()
+	ds, err := b.Build()
+	if err != nil {
+		panic(err)
+	}
+
 	fmt.Println(ds.Definition())
 
 	// try json unmarshal with NewInterface
@@ -130,7 +144,7 @@ func Example_unmarshalJSON() {
 }
 `)
 	intf := ds.NewInterface() // returns a new interface of this DynamicStruct
-	err := json.Unmarshal(input, &intf)
+	err = json.Unmarshal(input, &intf)
 	if err != nil {
 		panic(err)
 	}
@@ -139,14 +153,17 @@ func Example_unmarshalJSON() {
 	if err != nil {
 		panic(err)
 	}
-
+	s, _ := g.String("StringField")
+	f, _ := g.Float32("Float32Field")
+	strct, _ := g.Get("StructPtrField")
+	sl, _ := g.Get("SliceField")
 	fmt.Printf(
 		"num of fields=%d\n'StringField'=%s\n'Float32Field'=%f\n'StructPtrField'=%+v\n'SliceField'=%+v",
 		g.NumField(),
-		g.String("StringField"),
-		g.Float32("Float32Field"),
-		g.Get("StructPtrField"),
-		g.Get("SliceField"),
+		s,
+		f,
+		strct,
+		sl,
 	)
 	// Output:
 	// type DynamicStruct struct {

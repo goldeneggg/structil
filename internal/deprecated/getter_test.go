@@ -1,14 +1,16 @@
-package structil_test
+package deprecated_test
 
 import (
 	"fmt"
 	"math"
 	"reflect"
+	"runtime"
 	"testing"
 	"unsafe"
 
-	. "github.com/goldeneggg/structil"
 	"github.com/google/go-cmp/cmp"
+
+	. "github.com/goldeneggg/structil/internal/deprecated"
 )
 
 type (
@@ -144,6 +146,31 @@ func newTestGetter() (*Getter, error) {
 	return NewGetter(newGetterTestStructPtr())
 }
 
+func deferGetterTestPanic(t *testing.T, wantPanic bool, args interface{}) {
+	r := recover()
+	if r != nil {
+		msg := fmt.Sprintf("\n%v\n", r)
+		for d := 0; ; d++ {
+			pc, file, line, ok := runtime.Caller(d)
+			if !ok {
+				break
+			}
+
+			msg = msg + fmt.Sprintf(" -> %d: %s: %s:%d\n", d, runtime.FuncForPC(pc).Name(), file, line)
+		}
+
+		if wantPanic {
+			t.Logf("OK panic is expected: args: %+v, %s", args, msg)
+		} else {
+			t.Errorf("unexpected panic occured: args: %+v, %s", args, msg)
+		}
+	} else {
+		if wantPanic {
+			t.Errorf("expect to occur panic but does not: args: %+v, %+v", args, r)
+		}
+	}
+}
+
 type getterTestArgs struct {
 	name  string
 	mapfn func(int, *Getter) (interface{}, error)
@@ -157,7 +184,7 @@ type getterTest struct {
 	wantType  reflect.Type
 	wantValue reflect.Value
 	wantError bool
-	wantNotOK bool
+	wantPanic bool
 }
 
 func newGetterTests() []*getterTest {
@@ -451,7 +478,7 @@ func TestNames(t *testing.T) {
 	}
 }
 
-func testGetSeries(t *testing.T, wantNotOK bool, wantError bool, fn func(*testing.T, *getterTest, *Getter)) {
+func testGetSeries(t *testing.T, wantPanic bool, wantError bool, fn func(*testing.T, *getterTest, *Getter)) {
 	t.Parallel()
 
 	testStructPtr := newGetterTestStructPtr()
@@ -582,9 +609,11 @@ func testGetSeries(t *testing.T, wantNotOK bool, wantError bool, fn func(*testin
 				tt.wantValue = reflect.ValueOf(testStructPtr.privateString)
 				tt.wantIntf = nil // Note: unexported field is nil
 			case "NotExist":
-				tt.wantNotOK = wantNotOK
+				tt.wantPanic = wantPanic
 				tt.wantError = wantError
 			}
+
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
 			fn(t, tt, g)
 		})
@@ -593,18 +622,11 @@ func testGetSeries(t *testing.T, wantNotOK bool, wantError bool, fn func(*testin
 
 func TestGetType(t *testing.T) {
 	assertionFunc := func(t *testing.T, tt *getterTest, g *Getter) {
-		got, ok := g.GetType(tt.args.name)
-
-		if ok {
-			if tt.wantNotOK {
-				t.Errorf("expected ok is false but true. args: %+v", tt.args)
-			} else if d := cmp.Diff(got.String(), tt.wantType.String()); d != "" {
-				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
-			}
-		} else {
-			if !tt.wantNotOK {
-				t.Errorf("expected ok is true but false. args: %+v", tt.args)
-			}
+		got := g.GetType(tt.args.name)
+		if tt.wantPanic {
+			t.Errorf("expected panic did not occur. args: %+v", tt.args)
+		} else if d := cmp.Diff(got.String(), tt.wantType.String()); d != "" {
+			t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 		}
 	}
 
@@ -613,18 +635,11 @@ func TestGetType(t *testing.T) {
 
 func TestGetValue(t *testing.T) {
 	assertionFunc := func(t *testing.T, tt *getterTest, g *Getter) {
-		got, ok := g.GetValue(tt.args.name)
-
-		if ok {
-			if tt.wantNotOK {
-				t.Errorf("expected ok is false but true. args: %+v", tt.args)
-			} else if d := cmp.Diff(got.String(), tt.wantValue.String()); d != "" {
-				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
-			}
-		} else {
-			if !tt.wantNotOK {
-				t.Errorf("expected ok is true but false. args: %+v", tt.args)
-			}
+		got := g.GetValue(tt.args.name)
+		if tt.wantPanic {
+			t.Errorf("expected panic did not occur. args: %+v", tt.args)
+		} else if d := cmp.Diff(got.String(), tt.wantValue.String()); d != "" {
+			t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 		}
 	}
 
@@ -633,12 +648,39 @@ func TestGetValue(t *testing.T) {
 
 func TestGet(t *testing.T) {
 	assertionFunc := func(t *testing.T, tt *getterTest, g *Getter) {
-		got, ok := g.Get(tt.args.name)
+		got := g.Get(tt.args.name)
+		if tt.wantPanic {
+			t.Errorf("expected panic did not occur. args: %+v", tt.args)
+		} else if tt.args.name == "Func" {
+			// Note: cmp.Diff does not support comparing func and func
+			gp := reflect.ValueOf(got).Pointer()
+			wp := reflect.ValueOf(tt.wantIntf).Pointer()
+			if gp != wp {
+				t.Errorf("unexpected mismatch func type: gp: %v, wp: %v", gp, wp)
+			}
+		} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+			t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
+		}
+	}
 
-		if ok {
-			if tt.wantNotOK {
-				t.Errorf("expected ok is false but true. args: %+v", tt.args)
-			} else if tt.args.name == "Func" {
+	testGetSeries(t, true, false, assertionFunc)
+}
+
+func TestEGet(t *testing.T) {
+	assertionFunc := func(t *testing.T, tt *getterTest, g *Getter) {
+		got, err := g.EGet(tt.args.name)
+		if tt.wantPanic {
+			t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			return
+		}
+
+		if err == nil {
+			if tt.wantError {
+				t.Errorf("error did not occur. got: %v", got)
+				return
+			}
+
+			if tt.args.name == "Func" {
 				// Note: cmp.Diff does not support comparing func and func
 				gp := reflect.ValueOf(got).Pointer()
 				wp := reflect.ValueOf(tt.wantIntf).Pointer()
@@ -648,14 +690,12 @@ func TestGet(t *testing.T) {
 			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
 				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
-		} else {
-			if !tt.wantNotOK {
-				t.Errorf("expected ok is true but false. args: %+v", tt.args)
-			}
+		} else if !tt.wantError {
+			t.Errorf("unexpected error occured. wantError %v, err: %v", tt.wantError, err)
 		}
 	}
 
-	testGetSeries(t, true, false, assertionFunc)
+	testGetSeries(t, false, true, assertionFunc)
 }
 
 func TestByte(t *testing.T) {
@@ -676,21 +716,16 @@ func TestByte(t *testing.T) {
 			case "Uint8":
 				tt.wantIntf = testStructPtr.Uint8
 			default:
-				tt.wantNotOK = true
+				tt.wantPanic = true
 			}
 
-			got, ok := g.Byte(tt.args.name)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
-			if ok {
-				if tt.wantNotOK {
-					t.Errorf("expected ok is false but true. args: %+v", tt.args)
-				} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
-					t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
-				}
-			} else {
-				if !tt.wantNotOK {
-					t.Errorf("expected ok is true but false. args: %+v", tt.args)
-				}
+			got := g.Byte(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
 		})
 	}
@@ -712,21 +747,16 @@ func TestBytes(t *testing.T) {
 			case "Bytes":
 				tt.wantIntf = testStructPtr.Bytes
 			default:
-				tt.wantNotOK = true
+				tt.wantPanic = true
 			}
 
-			got, ok := g.Bytes(tt.args.name)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
-			if ok {
-				if tt.wantNotOK {
-					t.Errorf("expected ok is false but true. args: %+v", tt.args)
-				} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
-					t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
-				}
-			} else {
-				if !tt.wantNotOK {
-					t.Errorf("expected ok is true but false. args: %+v", tt.args)
-				}
+			got := g.Bytes(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
 		})
 	}
@@ -748,21 +778,16 @@ func TestString(t *testing.T) {
 			case "String":
 				tt.wantIntf = testStructPtr.String
 			default:
-				tt.wantNotOK = true
+				tt.wantPanic = true
 			}
 
-			got, ok := g.String(tt.args.name)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
-			if ok {
-				if tt.wantNotOK {
-					t.Errorf("expected ok is false but true. args: %+v", tt.args)
-				} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
-					t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
-				}
-			} else {
-				if !tt.wantNotOK {
-					t.Errorf("expected ok is true but false. args: %+v", tt.args)
-				}
+			got := g.String(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
 		})
 	}
@@ -784,21 +809,16 @@ func TestInt(t *testing.T) {
 			case "Int":
 				tt.wantIntf = testStructPtr.Int
 			default:
-				tt.wantNotOK = true
+				tt.wantPanic = true
 			}
 
-			got, ok := g.Int(tt.args.name)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
-			if ok {
-				if tt.wantNotOK {
-					t.Errorf("expected ok is false but true. args: %+v", tt.args)
-				} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
-					t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
-				}
-			} else {
-				if !tt.wantNotOK {
-					t.Errorf("expected ok is true but false. args: %+v", tt.args)
-				}
+			got := g.Int(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
 		})
 	}
@@ -820,21 +840,16 @@ func TestInt8(t *testing.T) {
 			case "Int8":
 				tt.wantIntf = testStructPtr.Int8
 			default:
-				tt.wantNotOK = true
+				tt.wantPanic = true
 			}
 
-			got, ok := g.Int8(tt.args.name)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
-			if ok {
-				if tt.wantNotOK {
-					t.Errorf("expected ok is false but true. args: %+v", tt.args)
-				} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
-					t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
-				}
-			} else {
-				if !tt.wantNotOK {
-					t.Errorf("expected ok is true but false. args: %+v", tt.args)
-				}
+			got := g.Int8(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
 		})
 	}
@@ -856,21 +871,16 @@ func TestInt16(t *testing.T) {
 			case "Int16":
 				tt.wantIntf = testStructPtr.Int16
 			default:
-				tt.wantNotOK = true
+				tt.wantPanic = true
 			}
 
-			got, ok := g.Int16(tt.args.name)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
-			if ok {
-				if tt.wantNotOK {
-					t.Errorf("expected ok is false but true. args: %+v", tt.args)
-				} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
-					t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
-				}
-			} else {
-				if !tt.wantNotOK {
-					t.Errorf("expected ok is true but false. args: %+v", tt.args)
-				}
+			got := g.Int16(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
 		})
 	}
@@ -892,21 +902,16 @@ func TestInt32(t *testing.T) {
 			case "Int32":
 				tt.wantIntf = testStructPtr.Int32
 			default:
-				tt.wantNotOK = true
+				tt.wantPanic = true
 			}
 
-			got, ok := g.Int32(tt.args.name)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
-			if ok {
-				if tt.wantNotOK {
-					t.Errorf("expected ok is false but true. args: %+v", tt.args)
-				} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
-					t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
-				}
-			} else {
-				if !tt.wantNotOK {
-					t.Errorf("expected ok is true but false. args: %+v", tt.args)
-				}
+			got := g.Int32(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
 		})
 	}
@@ -928,21 +933,16 @@ func TestInt64(t *testing.T) {
 			case "Int64":
 				tt.wantIntf = testStructPtr.Int64
 			default:
-				tt.wantNotOK = true
+				tt.wantPanic = true
 			}
 
-			got, ok := g.Int64(tt.args.name)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
-			if ok {
-				if tt.wantNotOK {
-					t.Errorf("expected ok is false but true. args: %+v", tt.args)
-				} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
-					t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
-				}
-			} else {
-				if !tt.wantNotOK {
-					t.Errorf("expected ok is true but false. args: %+v", tt.args)
-				}
+			got := g.Int64(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
 		})
 	}
@@ -964,21 +964,16 @@ func TestUint(t *testing.T) {
 			case "Uint":
 				tt.wantIntf = testStructPtr.Uint
 			default:
-				tt.wantNotOK = true
+				tt.wantPanic = true
 			}
 
-			got, ok := g.Uint(tt.args.name)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
-			if ok {
-				if tt.wantNotOK {
-					t.Errorf("expected ok is false but true. args: %+v", tt.args)
-				} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
-					t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
-				}
-			} else {
-				if !tt.wantNotOK {
-					t.Errorf("expected ok is true but false. args: %+v", tt.args)
-				}
+			got := g.Uint(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
 		})
 	}
@@ -1002,21 +997,16 @@ func TestUint8(t *testing.T) {
 			case "Uint8":
 				tt.wantIntf = testStructPtr.Uint8
 			default:
-				tt.wantNotOK = true
+				tt.wantPanic = true
 			}
 
-			got, ok := g.Uint8(tt.args.name)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
-			if ok {
-				if tt.wantNotOK {
-					t.Errorf("expected ok is false but true. args: %+v", tt.args)
-				} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
-					t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
-				}
-			} else {
-				if !tt.wantNotOK {
-					t.Errorf("expected ok is true but false. args: %+v", tt.args)
-				}
+			got := g.Uint8(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
 		})
 	}
@@ -1038,21 +1028,16 @@ func TestUint16(t *testing.T) {
 			case "Uint16":
 				tt.wantIntf = testStructPtr.Uint16
 			default:
-				tt.wantNotOK = true
+				tt.wantPanic = true
 			}
 
-			got, ok := g.Uint16(tt.args.name)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
-			if ok {
-				if tt.wantNotOK {
-					t.Errorf("expected ok is false but true. args: %+v", tt.args)
-				} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
-					t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
-				}
-			} else {
-				if !tt.wantNotOK {
-					t.Errorf("expected ok is true but false. args: %+v", tt.args)
-				}
+			got := g.Uint16(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
 		})
 	}
@@ -1074,21 +1059,16 @@ func TestUint32(t *testing.T) {
 			case "Uint32":
 				tt.wantIntf = testStructPtr.Uint32
 			default:
-				tt.wantNotOK = true
+				tt.wantPanic = true
 			}
 
-			got, ok := g.Uint32(tt.args.name)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
-			if ok {
-				if tt.wantNotOK {
-					t.Errorf("expected ok is false but true. args: %+v", tt.args)
-				} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
-					t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
-				}
-			} else {
-				if !tt.wantNotOK {
-					t.Errorf("expected ok is true but false. args: %+v", tt.args)
-				}
+			got := g.Uint32(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
 		})
 	}
@@ -1110,21 +1090,16 @@ func TestUint64(t *testing.T) {
 			case "Uint64":
 				tt.wantIntf = testStructPtr.Uint64
 			default:
-				tt.wantNotOK = true
+				tt.wantPanic = true
 			}
 
-			got, ok := g.Uint64(tt.args.name)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
-			if ok {
-				if tt.wantNotOK {
-					t.Errorf("expected ok is false but true. args: %+v", tt.args)
-				} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
-					t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
-				}
-			} else {
-				if !tt.wantNotOK {
-					t.Errorf("expected ok is true but false. args: %+v", tt.args)
-				}
+			got := g.Uint64(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
 		})
 	}
@@ -1146,21 +1121,16 @@ func TestUintptr(t *testing.T) {
 			case "Uintptr":
 				tt.wantIntf = testStructPtr.Uintptr
 			default:
-				tt.wantNotOK = true
+				tt.wantPanic = true
 			}
 
-			got, ok := g.Uintptr(tt.args.name)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
-			if ok {
-				if tt.wantNotOK {
-					t.Errorf("expected ok is false but true. args: %+v", tt.args)
-				} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
-					t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
-				}
-			} else {
-				if !tt.wantNotOK {
-					t.Errorf("expected ok is true but false. args: %+v", tt.args)
-				}
+			got := g.Uintptr(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
 		})
 	}
@@ -1182,21 +1152,16 @@ func TestFloat32(t *testing.T) {
 			case "Float32":
 				tt.wantIntf = testStructPtr.Float32
 			default:
-				tt.wantNotOK = true
+				tt.wantPanic = true
 			}
 
-			got, ok := g.Float32(tt.args.name)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
-			if ok {
-				if tt.wantNotOK {
-					t.Errorf("expected ok is false but true. args: %+v", tt.args)
-				} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
-					t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
-				}
-			} else {
-				if !tt.wantNotOK {
-					t.Errorf("expected ok is true but false. args: %+v", tt.args)
-				}
+			got := g.Float32(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
 		})
 	}
@@ -1218,21 +1183,16 @@ func TestFloat64(t *testing.T) {
 			case "Float64":
 				tt.wantIntf = testStructPtr.Float64
 			default:
-				tt.wantNotOK = true
+				tt.wantPanic = true
 			}
 
-			got, ok := g.Float64(tt.args.name)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
-			if ok {
-				if tt.wantNotOK {
-					t.Errorf("expected ok is false but true. args: %+v", tt.args)
-				} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
-					t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
-				}
-			} else {
-				if !tt.wantNotOK {
-					t.Errorf("expected ok is true but false. args: %+v", tt.args)
-				}
+			got := g.Float64(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
 		})
 	}
@@ -1254,21 +1214,16 @@ func TestBool(t *testing.T) {
 			case "Bool":
 				tt.wantIntf = testStructPtr.Bool
 			default:
-				tt.wantNotOK = true
+				tt.wantPanic = true
 			}
 
-			got, ok := g.Bool(tt.args.name)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
-			if ok {
-				if tt.wantNotOK {
-					t.Errorf("expected ok is false but true. args: %+v", tt.args)
-				} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
-					t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
-				}
-			} else {
-				if !tt.wantNotOK {
-					t.Errorf("expected ok is true but false. args: %+v", tt.args)
-				}
+			got := g.Bool(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
 		})
 	}
@@ -1290,21 +1245,16 @@ func TestComplex64(t *testing.T) {
 			case "Complex64":
 				tt.wantIntf = testStructPtr.Complex64
 			default:
-				tt.wantNotOK = true
+				tt.wantPanic = true
 			}
 
-			got, ok := g.Complex64(tt.args.name)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
-			if ok {
-				if tt.wantNotOK {
-					t.Errorf("expected ok is false but true. args: %+v", tt.args)
-				} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
-					t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
-				}
-			} else {
-				if !tt.wantNotOK {
-					t.Errorf("expected ok is true but false. args: %+v", tt.args)
-				}
+			got := g.Complex64(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
 		})
 	}
@@ -1326,21 +1276,16 @@ func TestComplex128(t *testing.T) {
 			case "Complex128":
 				tt.wantIntf = testStructPtr.Complex128
 			default:
-				tt.wantNotOK = true
+				tt.wantPanic = true
 			}
 
-			got, ok := g.Complex128(tt.args.name)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
-			if ok {
-				if tt.wantNotOK {
-					t.Errorf("expected ok is false but true. args: %+v", tt.args)
-				} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
-					t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
-				}
-			} else {
-				if !tt.wantNotOK {
-					t.Errorf("expected ok is true but false. args: %+v", tt.args)
-				}
+			got := g.Complex128(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
 		})
 	}
@@ -1362,21 +1307,16 @@ func TestUnsafePointer(t *testing.T) {
 			case "Unsafeptr":
 				tt.wantIntf = testStructPtr.Unsafeptr
 			default:
-				tt.wantNotOK = true
+				tt.wantPanic = true
 			}
 
-			got, ok := g.UnsafePointer(tt.args.name)
+			defer deferGetterTestPanic(t, tt.wantPanic, tt.args)
 
-			if ok {
-				if tt.wantNotOK {
-					t.Errorf("expected ok is false but true. args: %+v", tt.args)
-				} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
-					t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
-				}
-			} else {
-				if !tt.wantNotOK {
-					t.Errorf("expected ok is true but false. args: %+v", tt.args)
-				}
+			got := g.UnsafePointer(tt.args.name)
+			if tt.wantPanic {
+				t.Errorf("expected panic did not occur. args: %+v", tt.args)
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
 		})
 	}
@@ -2024,16 +1964,12 @@ func TestMapGet(t *testing.T) {
 			switch tt.name {
 			case "GetterTestStruct4Slice":
 				tt.args.mapfn = func(i int, g *Getter) (interface{}, error) {
-					str, _ := g.String("String")
-					str2, _ := g.String("String2")
-					return fmt.Sprintf("%s=%s", str, str2), nil
+					return g.String("String") + "=" + g.String("String2"), nil
 				}
 				tt.wantIntf = []interface{}{string("key100=value100"), string("key200=value200")}
 			case "GetterTestStruct4PtrSlice":
 				tt.args.mapfn = func(i int, g *Getter) (interface{}, error) {
-					str, _ := g.String("String")
-					str2, _ := g.String("String2")
-					return fmt.Sprintf("%s:%s", str, str2), nil
+					return g.String("String") + ":" + g.String("String2"), nil
 				}
 				tt.wantIntf = []interface{}{string("key991:value991"), string("key992:value992")}
 			default:
@@ -2102,7 +2038,7 @@ func BenchmarkGetterGetType_String(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		t, _ = g.GetType("String")
+		t = g.GetType("String")
 		_ = t
 	}
 }
@@ -2118,7 +2054,7 @@ func BenchmarkGetterGetValue_String(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		v, _ = g.GetValue("String")
+		v = g.GetValue("String")
 		_ = v
 	}
 }
@@ -2150,8 +2086,28 @@ func BenchmarkGetterGet_String(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		it, _ = g.Get("String")
+		it = g.Get("String")
 		_ = it
+	}
+}
+
+func BenchmarkGetterEGet_String(b *testing.B) {
+	var it interface{}
+
+	g, err := newTestGetter()
+	if err != nil {
+		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
+		return
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		it, err = g.EGet("String")
+		if err == nil {
+			_ = it
+		} else {
+			b.Fatalf("abort benchmark because error %v occurd.", err)
+		}
 	}
 }
 
@@ -2166,7 +2122,7 @@ func BenchmarkGetterString(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		str, _ = g.String("String")
+		str = g.String("String")
 		_ = str
 	}
 }
@@ -2182,7 +2138,7 @@ func BenchmarkGetterUintptr(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		up, _ = g.Uintptr("Uintptr")
+		up = g.Uintptr("Uintptr")
 		_ = up
 	}
 }
@@ -2198,7 +2154,7 @@ func BenchmarkGetterUnsafePointer(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		up, _ = g.UnsafePointer("Unsafeptr")
+		up = g.UnsafePointer("Unsafeptr")
 		_ = up
 	}
 }
@@ -2276,9 +2232,7 @@ func BenchmarkGetterMapGet(b *testing.B) {
 		return
 	}
 	fn := func(i int, g *Getter) (interface{}, error) {
-		str, _ := g.String("String")
-		str2, _ := g.String("String")
-		return fmt.Sprintf("%s:%s", str, str2), nil
+		return g.String("String") + ":" + g.String("String2"), nil
 	}
 
 	b.ResetTimer()

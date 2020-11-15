@@ -11,6 +11,7 @@ import (
 )
 
 // DynamicStruct is the interface that built dynamic struct by Builder.Build().
+// FIXME: Maybe stop using interface (replece to a concrete struct)
 type DynamicStruct interface {
 	Name() string
 	NumField() int

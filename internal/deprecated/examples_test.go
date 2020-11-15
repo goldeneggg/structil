@@ -1,4 +1,4 @@
-package structil
+package deprecated
 
 import (
 	"fmt"
@@ -33,17 +33,13 @@ func ExampleGetter() {
 		panic(err)
 	}
 
-	name, _ := getter.String("Name")    // get as string
-	age, _ := getter.Int("Age")         // get as int
-	company, _ := getter.Get("Company") // get as interface{}
-
 	fmt.Printf(
 		"num of fields=%d\nfield names=%v\n'Name'=%s\n'Age'=%d\n'Company'=%+v",
-		getter.NumField(), // get num of fields
-		getter.Names(),    // get field names
-		name,
-		age,
-		company,
+		getter.NumField(),     // get num of fields
+		getter.Names(),        // get field names
+		getter.String("Name"), // get as string
+		getter.Int("Age"),     // get as int
+		getter.Get("Company"), // get as interface{}
 	)
 	// Output:
 	// num of fields=3
@@ -90,13 +86,10 @@ func ExampleGetter_MapGet() {
 
 	// Each of "Companies" field are applied map function as follows.
 	fn := func(i int, g *Getter) (interface{}, error) {
-		period, _ := g.Int("Period")
-		name, _ := g.String("Name")
-
 		return fmt.Sprintf(
 			"You worked for %d years since you joined the company %s",
-			period,
-			name,
+			g.Int("Period"),
+			g.String("Name"),
 		), nil
 	}
 
@@ -183,7 +176,7 @@ func ExampleFinder() {
 
 	fmt.Printf("%#v", m)
 	// Output:
-	// map[string]interface {}{"Company>Address":"New York", "Company>Group>Boss":"Donald", "Company>Group>Name":"YYY Group Holdings", "School":structil.School{Name:"ABC College", GraduatedYear:1995}}
+	// map[string]interface {}{"Company>Address":"New York", "Company>Group>Boss":"Donald", "Company>Group>Name":"YYY Group Holdings", "School":deprecated.School{Name:"ABC College", GraduatedYear:1995}}
 }
 
 func ExampleFinder_FromKeys_yml() {
@@ -243,7 +236,7 @@ func ExampleFinder_FromKeys_yml() {
 
 	// Get `FinderKeys` object by calling `NewFinderKeys` with config file dir and baseName
 	// This config file path is "examples/finder_from_conf/ex_json.json"
-	fks, err := NewFinderKeys("examples/finder_from_conf", "ex_yml")
+	fks, err := NewFinderKeys("../../examples/finder_from_conf", "ex_yml")
 	if err != nil {
 		panic(err)
 	}
@@ -332,7 +325,7 @@ func ExampleFinder_FromKeys_json() {
 	//     "Age"
 	//   ]
 	// }
-	fks, err := NewFinderKeys("examples/finder_from_conf", "ex_json")
+	fks, err := NewFinderKeys("../../examples/finder_from_conf", "ex_json")
 	if err != nil {
 		panic(err)
 	}

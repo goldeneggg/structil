@@ -1,4 +1,4 @@
-package genericdecoder
+package decoder
 
 import (
 	"fmt"
@@ -39,11 +39,12 @@ func Example() {
 }
 `)
 
-	dr, err := NewJSONGenericDecoder().Decode(unknownFormatJSON)
+	dr, err := NewJSONDecoder().Decode(unknownFormatJSON)
 	if err != nil {
 		panic(err)
 	}
 
+	// Print struct definition from DynamicStruct
 	fmt.Println(dr.DynamicStruct.Definition())
 
 	// Confirm decoded result using Getter with DecodedInterface
@@ -51,17 +52,25 @@ func Example() {
 	if err != nil {
 		panic(err)
 	}
+	s, _ := g.String("StringField")   // field names of DynamicStruct are camelized original json field key
+	i, _ := g.Float64("IntField")     // Note: type of unmarshalled number fields are float64. See: https://golang.org/pkg/encoding/json/#Unmarshal
+	f, _ := g.Float64("Float32Field") // same as above
+	b, _ := g.Bool("BoolField")
+	strct, _ := g.Get("StructPtrField")
+	arrS, _ := g.Get("ArrayStringField")
+	arrStrct, _ := g.Get("ArrayStructField")
+	null, _ := g.Get("NullField")
 	fmt.Printf(
 		"num of fields=%d\n'StringField'=%s\n'IntField'=%f\n'Float32Field'=%f\n'BoolField'=%t\n'StructPtrField'=%+v\n'ArrayStringField'=%+v\n'ArrayStructField'=%+v\n'NullField'=%+v",
 		g.NumField(),
-		g.String("StringField"),   // field names of DynamicStruct are camelized original json field key
-		g.Float64("IntField"),     // Note: type of unmarshalled number fields are float64. See: https://golang.org/pkg/encoding/json/#Unmarshal
-		g.Float64("Float32Field"), // same as above
-		g.Bool("BoolField"),
-		g.Get("StructPtrField"),
-		g.Get("ArrayStringField"),
-		g.Get("ArrayStructField"),
-		g.Get("NullField"),
+		s,
+		i, // Note: type of unmarshalled number fields are float64. See: https://golang.org/pkg/encoding/json/#Unmarshal
+		f, // same as above
+		b,
+		strct,
+		arrS,
+		arrStrct,
+		null,
 	)
 	// Output:
 	//type DynamicStruct struct {

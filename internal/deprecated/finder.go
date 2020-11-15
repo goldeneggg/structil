@@ -1,4 +1,4 @@
-package structil
+package deprecated
 
 import (
 	"fmt"
@@ -103,7 +103,6 @@ func (f *Finder) Into(names ...string) *Finder {
 	var nextGetter *Getter
 	var ok bool
 	var err error
-	var intf interface{}
 	nextKey := ""
 
 	for _, name := range names {
@@ -121,8 +120,7 @@ func (f *Finder) Into(names ...string) *Finder {
 		nextGetter, ok = f.gMap[nextKey]
 		if !ok {
 			if f.gMap[f.ck].Has(name) {
-				intf, _ = f.gMap[f.ck].Get(name)
-				nextGetter, err = NewGetter(intf)
+				nextGetter, err = NewGetter(f.gMap[f.ck].Get(name))
 			} else {
 				err = fmt.Errorf("name %s does not exist", name)
 			}
@@ -204,7 +202,7 @@ func (f *Finder) ToMap() (map[string]interface{}, error) {
 				break
 			}
 
-			res[key], _ = getter.Get(name)
+			res[key] = getter.Get(name)
 		}
 	}
 

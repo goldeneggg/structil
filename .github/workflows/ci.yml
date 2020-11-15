@@ -210,12 +210,10 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: MAYBE-${{ steps.confirm-version.outputs.master-version }}
-        release_name: Release MAYBE-${{ steps.confirm-version.outputs.master-version }}
+        tag_name: v${{ steps.confirm-version.outputs.master-version }}
+        release_name: Release v${{ steps.confirm-version.outputs.master-version }} (${{ github.ref }})
         body: |
-          Changes in this Release
-          - TODO1
-          - TODO2
+          TODO
         draft: true
         prerelease: false
 

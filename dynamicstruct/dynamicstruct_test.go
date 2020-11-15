@@ -1,9 +1,9 @@
+// FIXME: Remove unnessesary table-driven tests (and simplifize tests)
+
 package dynamicstruct_test
 
 import (
-	"fmt"
 	"reflect"
-	"runtime"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -177,31 +177,6 @@ func newDynamicTestBuilderWithStructName(name string) *Builder {
 	return b
 }
 
-func deferDynamicTestPanic(t *testing.T, wantPanic bool, args interface{}) {
-	r := recover()
-	if r != nil {
-		msg := fmt.Sprintf("\n%v\n", r)
-		for d := 0; ; d++ {
-			pc, file, line, ok := runtime.Caller(d)
-			if !ok {
-				break
-			}
-
-			msg = msg + fmt.Sprintf(" -> %d: %s: %s:%d\n", d, runtime.FuncForPC(pc).Name(), file, line)
-		}
-
-		if wantPanic {
-			t.Logf("OK panic is expected: args: %+v, %s", args, msg)
-		} else {
-			t.Errorf("unexpected panic occured: args: %+v, %s", args, msg)
-		}
-	} else {
-		if wantPanic {
-			t.Errorf("expect to occur panic but does not: args: %+v, %+v", args, r)
-		}
-	}
-}
-
 func TestBuilderAddRemoveExistsNumField(t *testing.T) {
 	t.Parallel()
 
@@ -214,7 +189,6 @@ func TestBuilderAddRemoveExistsNumField(t *testing.T) {
 		wantExistsIntField bool
 		wantNumField       int
 		wantStructName     string
-		wantPanic          bool
 	}{
 		{
 			name:               "have fields set by newDynamicTestBuilder()",
@@ -241,8 +215,6 @@ func TestBuilderAddRemoveExistsNumField(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			defer deferDynamicTestPanic(t, tt.wantPanic, tt.args)
-
 			if tt.args.builder.Exists("IntField") != tt.wantExistsIntField {
 				t.Errorf("result Exists(IntField) is unexpected. got: %v, want: %v", tt.args.builder.Exists("IntField"), tt.wantExistsIntField)
 				return
@@ -268,22 +240,21 @@ func TestBuilderAddStringWithEmptyName(t *testing.T) {
 		builder *Builder
 	}
 	tests := []struct {
-		name      string
-		args      args
-		wantPanic bool
+		name string
+		args args
 	}{
 		{
-			name:      "try to AddString with empty name",
-			args:      args{builder: newDynamicTestBuilder()},
-			wantPanic: false, // FIXME: or NOT panic but error
+			name: "try to AddString with empty name",
+			args: args{builder: newDynamicTestBuilder()},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			defer deferDynamicTestPanic(t, tt.wantPanic, tt.args)
-
-			tt.args.builder.AddString("")
+			_, err := tt.args.builder.AddString("").Build()
+			if err == nil {
+				t.Errorf("expect to occur error but does not: args: %+v", tt.args)
+			}
 		})
 	}
 }
@@ -295,22 +266,21 @@ func TestBuilderAddMapWithNilKey(t *testing.T) {
 		builder *Builder
 	}
 	tests := []struct {
-		name      string
-		args      args
-		wantPanic bool
+		name string
+		args args
 	}{
 		{
-			name:      "try to AddMap with nil key",
-			args:      args{builder: newDynamicTestBuilder()},
-			wantPanic: true, // expect to occur panic  FIXME: is error better than panic?
+			name: "try to AddMap with nil key",
+			args: args{builder: newDynamicTestBuilder()},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			defer deferDynamicTestPanic(t, tt.wantPanic, tt.args)
-
-			tt.args.builder.AddMap("MapFieldWithNilKey", nil, SampleFloat32)
+			_, err := tt.args.builder.AddMap("MapFieldWithNilKey", nil, SampleFloat32).Build()
+			if err == nil {
+				t.Errorf("expect to occur error but does not: args: %+v", tt.args)
+			}
 		})
 	}
 }
@@ -322,22 +292,21 @@ func TestBuilderAddMapWithNilValue(t *testing.T) {
 		builder *Builder
 	}
 	tests := []struct {
-		name      string
-		args      args
-		wantPanic bool
+		name string
+		args args
 	}{
 		{
-			name:      "try to AddMap with nil key",
-			args:      args{builder: newDynamicTestBuilder()},
-			wantPanic: true, // expect to occur panic  FIXME: is error better than panic?
+			name: "try to AddMap with nil key",
+			args: args{builder: newDynamicTestBuilder()},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			defer deferDynamicTestPanic(t, tt.wantPanic, tt.args)
-
-			tt.args.builder.AddMap("MapFieldWithNilKey", SampleString, nil)
+			_, err := tt.args.builder.AddMap("MapFieldWithNilKey", SampleString, nil).Build()
+			if err == nil {
+				t.Errorf("expect to occur error but does not: args: %+v", tt.args)
+			}
 		})
 	}
 }
@@ -349,22 +318,21 @@ func TestBuilderAddFuncWithNilArgs(t *testing.T) {
 		builder *Builder
 	}
 	tests := []struct {
-		name      string
-		args      args
-		wantPanic bool
+		name string
+		args args
 	}{
 		{
-			name:      "try to AddFunc with nil args",
-			args:      args{builder: newDynamicTestBuilder()},
-			wantPanic: false,
+			name: "try to AddFunc with nil args",
+			args: args{builder: newDynamicTestBuilder()},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			defer deferDynamicTestPanic(t, tt.wantPanic, tt.args)
-
-			tt.args.builder.AddFunc("FuncFieldWithNilArgs", nil, []interface{}{SampleBool})
+			_, err := tt.args.builder.AddFunc("FuncFieldWithNilArgs", nil, []interface{}{SampleBool}).Build()
+			if err != nil {
+				t.Errorf("unexpected error occured: args: %+v, %v", tt.args, err)
+			}
 		})
 	}
 }
@@ -376,22 +344,21 @@ func TestBuilderAddFuncWithNilReturns(t *testing.T) {
 		builder *Builder
 	}
 	tests := []struct {
-		name      string
-		args      args
-		wantPanic bool
+		name string
+		args args
 	}{
 		{
-			name:      "try to AddFunc with nil returns",
-			args:      args{builder: newDynamicTestBuilder()},
-			wantPanic: false,
+			name: "try to AddFunc with nil returns",
+			args: args{builder: newDynamicTestBuilder()},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			defer deferDynamicTestPanic(t, tt.wantPanic, tt.args)
-
-			tt.args.builder.AddFunc("FuncFieldWithNilReturns", []interface{}{SampleInt}, nil)
+			_, err := tt.args.builder.AddFunc("FuncFieldWithNilReturns", []interface{}{SampleInt}, nil).Build()
+			if err != nil {
+				t.Errorf("unexpected error occured: args: %+v, %v", tt.args, err)
+			}
 		})
 	}
 }
@@ -403,22 +370,21 @@ func TestBuilderAddChanBothWithNilElem(t *testing.T) {
 		builder *Builder
 	}
 	tests := []struct {
-		name      string
-		args      args
-		wantPanic bool
+		name string
+		args args
 	}{
 		{
-			name:      "try to AddChanBoth with nil elem",
-			args:      args{builder: newDynamicTestBuilder()},
-			wantPanic: true, // expect to occur panic  FIXME: is error better than panic?
+			name: "try to AddChanBoth with nil elem",
+			args: args{builder: newDynamicTestBuilder()},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			defer deferDynamicTestPanic(t, tt.wantPanic, tt.args)
-
-			tt.args.builder.AddChanBoth("MapFieldWithNilKey", nil)
+			_, err := tt.args.builder.AddChanBoth("MapFieldWithNilKey", nil).Build()
+			if err == nil {
+				t.Errorf("expect to occur error but does not: args: %+v", tt.args)
+			}
 		})
 	}
 }
@@ -432,20 +398,21 @@ func TestBuilderAddChanRecvWithNilElem(t *testing.T) {
 	tests := []struct {
 		name      string
 		args      args
-		wantPanic bool
+		wantError bool
 	}{
 		{
 			name:      "try to AddChanRecv with nil elem",
 			args:      args{builder: newDynamicTestBuilder()},
-			wantPanic: true, // expect to occur panic  FIXME: is error better than panic?
+			wantError: true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			defer deferDynamicTestPanic(t, tt.wantPanic, tt.args)
-
-			tt.args.builder.AddChanRecv("MapFieldWithNilKey", nil)
+			_, err := tt.args.builder.AddChanRecv("MapFieldWithNilKey", nil).Build()
+			if err == nil {
+				t.Errorf("expect to occur error but does not: args: %+v", tt.args)
+			}
 		})
 	}
 }
@@ -457,22 +424,21 @@ func TestBuilderAddChanSendWithNilElem(t *testing.T) {
 		builder *Builder
 	}
 	tests := []struct {
-		name      string
-		args      args
-		wantPanic bool
+		name string
+		args args
 	}{
 		{
-			name:      "try to AddChanSend with nil elem",
-			args:      args{builder: newDynamicTestBuilder()},
-			wantPanic: true, // expect to occur panic  FIXME: is error better than panic?
+			name: "try to AddChanSend with nil elem",
+			args: args{builder: newDynamicTestBuilder()},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			defer deferDynamicTestPanic(t, tt.wantPanic, tt.args)
-
-			tt.args.builder.AddChanSend("MapFieldWithNilKey", nil)
+			_, err := tt.args.builder.AddChanSend("MapFieldWithNilKey", nil).Build()
+			if err == nil {
+				t.Errorf("expect to occur error but does not: args: %+v", tt.args)
+			}
 		})
 	}
 }
@@ -484,22 +450,21 @@ func TestBuilderAddStructWithNil(t *testing.T) {
 		builder *Builder
 	}
 	tests := []struct {
-		name      string
-		args      args
-		wantPanic bool
+		name string
+		args args
 	}{
 		{
-			name:      "try to AddStruct with nil",
-			args:      args{builder: newDynamicTestBuilder()},
-			wantPanic: true, // expect to occur panic  FIXME: is error better than panic?
+			name: "try to AddStruct with nil",
+			args: args{builder: newDynamicTestBuilder()},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			defer deferDynamicTestPanic(t, tt.wantPanic, tt.args)
-
-			tt.args.builder.AddStruct("StructFieldWithNil", nil, false)
+			_, err := tt.args.builder.AddStruct("StructFieldWithNil", nil, false).Build()
+			if err == nil {
+				t.Errorf("expect to occur error but does not: args: %+v", tt.args)
+			}
 		})
 	}
 }
@@ -511,22 +476,21 @@ func TestBuilderAddStructPtrWithNil(t *testing.T) {
 		builder *Builder
 	}
 	tests := []struct {
-		name      string
-		args      args
-		wantPanic bool
+		name string
+		args args
 	}{
 		{
-			name:      "try to AddStructWith with nil",
-			args:      args{builder: newDynamicTestBuilder()},
-			wantPanic: true, // expect to occur panic  FIXME: is error better than panic?
+			name: "try to AddStructWith with nil",
+			args: args{builder: newDynamicTestBuilder()},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			defer deferDynamicTestPanic(t, tt.wantPanic, tt.args)
-
-			tt.args.builder.AddStructPtr("StructPtrFieldWithNil", nil)
+			_, err := tt.args.builder.AddStructPtr("StructPtrFieldWithNil", nil).Build()
+			if err == nil {
+				t.Errorf("expect to occur error but does not: args: %+v", tt.args)
+			}
 		})
 	}
 }
@@ -538,22 +502,21 @@ func TestBuilderAddSliceWithNil(t *testing.T) {
 		builder *Builder
 	}
 	tests := []struct {
-		name      string
-		args      args
-		wantPanic bool
+		name string
+		args args
 	}{
 		{
-			name:      "try to AddStructWith with nil",
-			args:      args{builder: newDynamicTestBuilder()},
-			wantPanic: true, // expect to occur panic  FIXME: is error better than panic?
+			name: "try to AddStructWith with nil",
+			args: args{builder: newDynamicTestBuilder()},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			defer deferDynamicTestPanic(t, tt.wantPanic, tt.args)
-
-			tt.args.builder.AddSlice("SliceFieldWithNil", nil)
+			_, err := tt.args.builder.AddSlice("SliceFieldWithNil", nil).Build()
+			if err == nil {
+				t.Errorf("expect to occur error but does not: args: %+v", tt.args)
+			}
 		})
 	}
 }
@@ -572,7 +535,6 @@ type buildTest struct {
 	wantDefinition     string
 	testMap            map[string]interface{}
 	wantErrorDecodeMap bool
-	wantPanic          bool
 }
 
 func TestBuilderBuild(t *testing.T) {
@@ -653,15 +615,18 @@ func TestBuilderBuild(t *testing.T) {
 		},
 	}
 
+	var got DynamicStruct
+	var err error
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			defer deferDynamicTestPanic(t, tt.wantPanic, tt.args)
-
-			var got DynamicStruct
 			if tt.args.isPtr {
-				got = tt.args.builder.Build()
+				got, err = tt.args.builder.Build()
 			} else {
-				got = tt.args.builder.BuildNonPtr()
+				got, err = tt.args.builder.BuildNonPtr()
+			}
+			if err != nil {
+				t.Errorf("unexpected error caused by DynamicStruct Build: %v", err)
 			}
 
 			if !testBuilderBuildWant(t, got, tt) {
@@ -777,9 +742,9 @@ func testBuilderBuildDecodeMap(t *testing.T, got DynamicStruct, tt buildTest) bo
 	}
 
 	for k, v := range tt.testMap {
-		gotValue, err := getter.EGet(k)
-		if err != nil {
-			t.Errorf("unexpected error occured from Getter.EGet: %v. name: %s", err, k)
+		gotValue, ok := getter.Get(k)
+		if !ok {
+			t.Errorf("key does not exist. It's unexpected. name: %s", k)
 			return false
 		}
 
@@ -792,8 +757,9 @@ func testBuilderBuildDecodeMap(t *testing.T, got DynamicStruct, tt buildTest) bo
 			}
 
 			ds, _ := v.(DynamicTestStruct)
-			if getter.Get("String") != ds.String {
-				t.Errorf("unexpected mismatch Struct String field: got: %v, want: %v", getter.Get("String"), ds.String)
+			gotString, _ := getter.Get("String")
+			if gotString != ds.String {
+				t.Errorf("unexpected mismatch Struct String field: got: %v, want: %v", gotString, ds.String)
 				return false
 			}
 		default:
@@ -1130,7 +1096,7 @@ func BenchmarkBuild(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = builder.Build()
+		_, _ = builder.Build()
 	}
 }
 
@@ -1139,13 +1105,13 @@ func BenchmarkBuildNonPtr(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = builder.BuildNonPtr()
+		_, _ = builder.BuildNonPtr()
 	}
 }
 
 func BenchmarkDefinition(b *testing.B) {
 	builder := newDynamicTestBuilder()
-	ds := builder.Build()
+	ds, _ := builder.Build()
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

@@ -1,9 +1,9 @@
-package genericdecoder_test
+package decoder_test
 
 import (
 	"testing"
 
-	. "github.com/goldeneggg/structil/dynamicstruct/genericdecoder"
+	. "github.com/goldeneggg/structil/dynamicstruct/decoder"
 )
 
 var (
@@ -101,7 +101,7 @@ var (
 ]`)
 )
 
-func TestJSONGenericDecoder(t *testing.T) {
+func TestJSONDecoder(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
@@ -191,7 +191,7 @@ func TestJSONGenericDecoder(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			gd := NewJSONGenericDecoder()
+			gd := NewJSONDecoder()
 			dr, err := gd.Decode(tt.args.jsonData)
 			if err == nil {
 				if tt.wantError {
@@ -225,7 +225,7 @@ func TestJSONGenericDecoder(t *testing.T) {
 // benchmark tests
 
 func BenchmarkSingleJSONDecode(b *testing.B) {
-	gd := NewJSONGenericDecoder()
+	gd := NewJSONDecoder()
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -234,7 +234,7 @@ func BenchmarkSingleJSONDecode(b *testing.B) {
 }
 
 func BenchmarkArrayJSONDecode(b *testing.B) {
-	gd := NewJSONGenericDecoder()
+	gd := NewJSONDecoder()
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

@@ -1,4 +1,4 @@
-package genericdecoder
+package decoder
 
 import (
 	"fmt"
@@ -8,12 +8,12 @@ import (
 	"github.com/goldeneggg/structil/dynamicstruct"
 )
 
-// GenericDecoder is the interface for decoding generic data(JSON, YAML, and more).
-type GenericDecoder interface {
+// Decoder is the interface for decoding generic data(JSON, YAML, and more).
+type Decoder interface {
 	Decode(data []byte) (*DecodedResult, error)
 }
 
-// DecodedResult is the result of GenericDecoder.Decode.
+// DecodedResult is the result of Decoder.Decode.
 type DecodedResult struct {
 	dynamicstruct.DynamicStruct
 	DecodedInterface interface{}
@@ -62,6 +62,7 @@ func decodeMap(m map[string]interface{}, ds dynamicstruct.DynamicStruct) (*Decod
 
 	// camelizedKeys for building DynamicStruct with exported fields
 	// e.g. if json item name is "hoge_huga", same field name in DynamicStruct is "HogeHuga"
+	// FIXME: support case that input json field names are not snake_case but camelCase
 	camelizedKeys, camelizedMap := camelizeMap(m)
 
 	if dr.DynamicStruct == nil {
@@ -129,5 +130,5 @@ func buildDynamicStruct(m map[string]interface{}, camelizedKeys map[string]strin
 		}
 	}
 
-	return b.Build(), nil
+	return b.Build()
 }
