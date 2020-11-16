@@ -331,7 +331,7 @@ func TestBuilderAddFuncWithNilArgs(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := tt.args.builder.AddFunc("FuncFieldWithNilArgs", nil, []interface{}{SampleBool}).Build()
 			if err != nil {
-				t.Errorf("unexpected error occured: args: %+v, %v", tt.args, err)
+				t.Errorf("unexpected error occurred: args: %+v, %v", tt.args, err)
 			}
 		})
 	}
@@ -357,7 +357,7 @@ func TestBuilderAddFuncWithNilReturns(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := tt.args.builder.AddFunc("FuncFieldWithNilReturns", []interface{}{SampleInt}, nil).Build()
 			if err != nil {
-				t.Errorf("unexpected error occured: args: %+v, %v", tt.args, err)
+				t.Errorf("unexpected error occurred: args: %+v, %v", tt.args, err)
 			}
 		})
 	}
@@ -727,7 +727,7 @@ func testBuilderBuildDecodeMap(t *testing.T, got DynamicStruct, tt buildTest) bo
 	dec, err := got.DecodeMap(tt.testMap)
 	if err != nil {
 		if !tt.wantErrorDecodeMap {
-			t.Errorf("unexpected error occured from DecodeMap: %v", err)
+			t.Errorf("unexpected error occurred from DecodeMap: %v", err)
 		}
 		return false
 	} else if tt.wantErrorDecodeMap {
@@ -737,7 +737,7 @@ func testBuilderBuildDecodeMap(t *testing.T, got DynamicStruct, tt buildTest) bo
 
 	getter, err := structil.NewGetter(dec)
 	if err != nil {
-		t.Errorf("unexpected error occured from NewGetter: %v", err)
+		t.Errorf("unexpected error occurred from NewGetter: %v", err)
 		return false
 	}
 
@@ -752,7 +752,7 @@ func testBuilderBuildDecodeMap(t *testing.T, got DynamicStruct, tt buildTest) bo
 		case "StructField":
 			getter, err := structil.NewGetter(gotValue)
 			if err != nil {
-				t.Errorf("unexpected error occured from NewGetter for StructField: %v", err)
+				t.Errorf("unexpected error occurred from NewGetter for StructField: %v", err)
 				return false
 			}
 
@@ -963,7 +963,7 @@ func TestJSONToDynamicStructInterface(t *testing.T) {
 				}
 
 			} else if !tt.wantError {
-				t.Errorf("unexpected error occured. wantError %v, err: %v", tt.wantError, err)
+				t.Errorf("unexpected error occurred. wantError %v, err: %v", tt.wantError, err)
 			}
 		})
 	}

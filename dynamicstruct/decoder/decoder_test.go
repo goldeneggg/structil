@@ -216,7 +216,7 @@ func TestJSONDecoder(t *testing.T) {
 				}
 
 			} else if !tt.wantError {
-				t.Errorf("unexpected error occured. wantError %v, err: %v", tt.wantError, err)
+				t.Errorf("unexpected error occurred. wantError %v, err: %v", tt.wantError, err)
 			}
 		})
 	}

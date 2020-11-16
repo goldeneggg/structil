@@ -38,7 +38,7 @@ func ElemTypeOf(i interface{}) reflect.Type {
 func RecoverToError(r interface{}) (err error) {
 	if r != nil {
 		msg := fmt.Sprintf("\n%v\n", r) + stackTrace()
-		err = fmt.Errorf("unexpected panic occured: %s", msg)
+		err = fmt.Errorf("unexpected panic occurred: %s", msg)
 	}
 
 	return
