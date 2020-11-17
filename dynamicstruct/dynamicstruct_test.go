@@ -548,7 +548,7 @@ func TestBuilderBuild(t *testing.T) {
 		"Float64Field": float64(2.3),
 		"BoolField":    true,
 		"MapField":     map[string]float32{"mfkey": float32(4.56)},
-		//"FuncField":   func(i1 int, i2 int) (bool, error) { return true, nil },  // FIXME
+		//"FuncField":   func(i1 int, i2 int) (bool, error) { return true, nil },  // FIXME: func support
 		"StructField": DynamicTestStruct{String: "Hoge"},
 		"SliceField":  []*DynamicTestStruct{{String: "Huga1"}, {String: "Huga2"}},
 	}
