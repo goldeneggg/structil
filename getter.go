@@ -99,8 +99,8 @@ func (g *Getter) Names() []string {
 // GetType returns the reflect.Type object of the original struct field named name.
 // 2nd return value will be false if the original struct does not have a "name" field.
 func (g *Getter) GetType(name string) (reflect.Type, bool) {
-	if _, ok := g.cached[name]; !ok {
-		g.cache(name)
+	if !g.Has(name) {
+		return nil, false
 	}
 
 	return g.types[name], g.hases[name]
@@ -109,8 +109,8 @@ func (g *Getter) GetType(name string) (reflect.Type, bool) {
 // GetValue returns the reflect.Value object of the original struct field named name.
 // 2nd return value will be false if the original struct does not have a "name" field.
 func (g *Getter) GetValue(name string) (reflect.Value, bool) {
-	if _, ok := g.cached[name]; !ok {
-		g.cache(name)
+	if !g.Has(name) {
+		return reflect.ValueOf(nil), false
 	}
 
 	return g.values[name], g.hases[name]
@@ -119,8 +119,8 @@ func (g *Getter) GetValue(name string) (reflect.Value, bool) {
 // Get returns the interface of the original struct field named name.
 // 2nd return value will be false if the original struct does not have a "name" field.
 func (g *Getter) Get(name string) (interface{}, bool) {
-	if _, ok := g.cached[name]; !ok {
-		g.cache(name)
+	if !g.Has(name) {
+		return nil, false
 	}
 
 	return g.intfs[name], g.hases[name]
@@ -130,11 +130,11 @@ func (g *Getter) Get(name string) (interface{}, bool) {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not bool.
 func (g *Getter) Bool(name string) (bool, bool) {
-	v, has := g.Get(name)
-	if !has {
-		return false, has
+	if !g.Has(name) {
+		return false, false
 	}
 
+	v, _ := g.Get(name)
 	res, ok := v.(bool)
 	return res, ok
 }
@@ -143,11 +143,11 @@ func (g *Getter) Bool(name string) (bool, bool) {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not byte.
 func (g *Getter) Byte(name string) (byte, bool) {
-	v, has := g.Get(name)
-	if !has {
-		return 0, has
+	if !g.Has(name) {
+		return 0, false
 	}
 
+	v, _ := g.Get(name)
 	res, ok := v.(byte)
 	return res, ok
 }
@@ -156,11 +156,11 @@ func (g *Getter) Byte(name string) (byte, bool) {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not []byte.
 func (g *Getter) Bytes(name string) ([]byte, bool) {
-	v, has := g.Get(name)
-	if !has {
-		return nil, has
+	if !g.Has(name) {
+		return nil, false
 	}
 
+	v, _ := g.Get(name)
 	res, ok := v.([]byte)
 	return res, ok
 }
@@ -169,11 +169,11 @@ func (g *Getter) Bytes(name string) ([]byte, bool) {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not string.
 func (g *Getter) String(name string) (string, bool) {
-	v, has := g.Get(name)
-	if !has {
-		return "", has
+	if !g.Has(name) {
+		return "", false
 	}
 
+	v, _ := g.Get(name)
 	res, ok := v.(string)
 	return res, ok
 }
@@ -182,11 +182,11 @@ func (g *Getter) String(name string) (string, bool) {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not int.
 func (g *Getter) Int(name string) (int, bool) {
-	v, has := g.Get(name)
-	if !has {
-		return 0, has
+	if !g.Has(name) {
+		return 0, false
 	}
 
+	v, _ := g.Get(name)
 	res, ok := v.(int)
 	return res, ok
 }
@@ -195,11 +195,11 @@ func (g *Getter) Int(name string) (int, bool) {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not int8.
 func (g *Getter) Int8(name string) (int8, bool) {
-	v, has := g.Get(name)
-	if !has {
-		return 0, has
+	if !g.Has(name) {
+		return 0, false
 	}
 
+	v, _ := g.Get(name)
 	res, ok := v.(int8)
 	return res, ok
 }
@@ -208,11 +208,11 @@ func (g *Getter) Int8(name string) (int8, bool) {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not int16.
 func (g *Getter) Int16(name string) (int16, bool) {
-	v, has := g.Get(name)
-	if !has {
-		return 0, has
+	if !g.Has(name) {
+		return 0, false
 	}
 
+	v, _ := g.Get(name)
 	res, ok := v.(int16)
 	return res, ok
 }
@@ -221,11 +221,11 @@ func (g *Getter) Int16(name string) (int16, bool) {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not int32.
 func (g *Getter) Int32(name string) (int32, bool) {
-	v, has := g.Get(name)
-	if !has {
-		return 0, has
+	if !g.Has(name) {
+		return 0, false
 	}
 
+	v, _ := g.Get(name)
 	res, ok := v.(int32)
 	return res, ok
 }
@@ -234,11 +234,11 @@ func (g *Getter) Int32(name string) (int32, bool) {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not int64.
 func (g *Getter) Int64(name string) (int64, bool) {
-	v, has := g.Get(name)
-	if !has {
-		return 0, has
+	if !g.Has(name) {
+		return 0, false
 	}
 
+	v, _ := g.Get(name)
 	res, ok := v.(int64)
 	return res, ok
 }
@@ -247,11 +247,11 @@ func (g *Getter) Int64(name string) (int64, bool) {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not uint.
 func (g *Getter) Uint(name string) (uint, bool) {
-	v, has := g.Get(name)
-	if !has {
-		return 0, has
+	if !g.Has(name) {
+		return 0, false
 	}
 
+	v, _ := g.Get(name)
 	res, ok := v.(uint)
 	return res, ok
 }
@@ -260,11 +260,11 @@ func (g *Getter) Uint(name string) (uint, bool) {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not uint8.
 func (g *Getter) Uint8(name string) (uint8, bool) {
-	v, has := g.Get(name)
-	if !has {
-		return 0, has
+	if !g.Has(name) {
+		return 0, false
 	}
 
+	v, _ := g.Get(name)
 	res, ok := v.(uint8)
 	return res, ok
 }
@@ -273,11 +273,11 @@ func (g *Getter) Uint8(name string) (uint8, bool) {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not uint16.
 func (g *Getter) Uint16(name string) (uint16, bool) {
-	v, has := g.Get(name)
-	if !has {
-		return 0, has
+	if !g.Has(name) {
+		return 0, false
 	}
 
+	v, _ := g.Get(name)
 	res, ok := v.(uint16)
 	return res, ok
 }
@@ -286,11 +286,11 @@ func (g *Getter) Uint16(name string) (uint16, bool) {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not uint32.
 func (g *Getter) Uint32(name string) (uint32, bool) {
-	v, has := g.Get(name)
-	if !has {
-		return 0, has
+	if !g.Has(name) {
+		return 0, false
 	}
 
+	v, _ := g.Get(name)
 	res, ok := v.(uint32)
 	return res, ok
 }
@@ -299,11 +299,11 @@ func (g *Getter) Uint32(name string) (uint32, bool) {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not uint64.
 func (g *Getter) Uint64(name string) (uint64, bool) {
-	v, has := g.Get(name)
-	if !has {
-		return 0, has
+	if !g.Has(name) {
+		return 0, false
 	}
 
+	v, _ := g.Get(name)
 	res, ok := v.(uint64)
 	return res, ok
 }
@@ -312,11 +312,11 @@ func (g *Getter) Uint64(name string) (uint64, bool) {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not uintptr.
 func (g *Getter) Uintptr(name string) (uintptr, bool) {
-	v, has := g.Get(name)
-	if !has {
-		return 0, has
+	if !g.Has(name) {
+		return 0, false
 	}
 
+	v, _ := g.Get(name)
 	res, ok := v.(uintptr)
 	return res, ok
 }
@@ -325,11 +325,11 @@ func (g *Getter) Uintptr(name string) (uintptr, bool) {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not float32.
 func (g *Getter) Float32(name string) (float32, bool) {
-	v, has := g.Get(name)
-	if !has {
-		return 0, has
+	if !g.Has(name) {
+		return 0, false
 	}
 
+	v, _ := g.Get(name)
 	res, ok := v.(float32)
 	return res, ok
 }
@@ -338,11 +338,11 @@ func (g *Getter) Float32(name string) (float32, bool) {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not float64.
 func (g *Getter) Float64(name string) (float64, bool) {
-	v, has := g.Get(name)
-	if !has {
-		return 0, has
+	if !g.Has(name) {
+		return 0, false
 	}
 
+	v, _ := g.Get(name)
 	res, ok := v.(float64)
 	return res, ok
 }
@@ -351,11 +351,11 @@ func (g *Getter) Float64(name string) (float64, bool) {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not complex64.
 func (g *Getter) Complex64(name string) (complex64, bool) {
-	v, has := g.Get(name)
-	if !has {
-		return 0, has
+	if !g.Has(name) {
+		return 0, false
 	}
 
+	v, _ := g.Get(name)
 	res, ok := v.(complex64)
 	return res, ok
 }
@@ -364,11 +364,11 @@ func (g *Getter) Complex64(name string) (complex64, bool) {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not complex128.
 func (g *Getter) Complex128(name string) (complex128, bool) {
-	v, has := g.Get(name)
-	if !has {
-		return 0, has
+	if !g.Has(name) {
+		return 0, false
 	}
 
+	v, _ := g.Get(name)
 	res, ok := v.(complex128)
 	return res, ok
 }
@@ -377,11 +377,11 @@ func (g *Getter) Complex128(name string) (complex128, bool) {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not unsafe.Pointer.
 func (g *Getter) UnsafePointer(name string) (unsafe.Pointer, bool) {
-	v, has := g.Get(name)
-	if !has {
-		return nil, has
+	if !g.Has(name) {
+		return nil, false
 	}
 
+	v, _ := g.Get(name)
 	res, ok := v.(unsafe.Pointer)
 	return res, ok
 }
