@@ -62,7 +62,8 @@ jobs:
 
     - id: add-gobin-path
       name: Add GITHUB_WORKSPACE/bin into PATH
-      run: echo "::add-path::${GITHUB_WORKSPACE}/bin"
+      # DEPRECATED: run: echo "::add-path::${GITHUB_WORKSPACE}/bin"
+      run: echo "${GITHUB_WORKSPACE}/bin" >> $GITHUB_PATH
 
     - id: ci
       name: Run tests and linters
@@ -117,7 +118,8 @@ jobs:
 
     - id: add-gobin-path
       name: Add GITHUB_WORKSPACE/bin into PATH
-      run: echo "::add-path::${GITHUB_WORKSPACE}/bin"
+      # DEPRECATED: run: echo "::add-path::${GITHUB_WORKSPACE}/bin"
+      run: echo "${GITHUB_WORKSPACE}/bin" >> $GITHUB_PATH
 
     - id: bench
       name: Run benchmarks
