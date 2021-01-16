@@ -12,19 +12,6 @@ const (
 	topLevelKey = "!"
 )
 
-// // Finder is the interface that builds the nested struct finder.
-// type Finder interface {
-// 	FindTop(names ...string) Finder
-// 	Find(names ...string) Finder
-// 	Into(names ...string) Finder
-// 	FromKeys(fks *FinderKeys) Finder
-// 	ToMap() (map[string]interface{}, error)
-// 	HasError() bool
-// 	Error() string
-// 	GetNameSeparator() string
-// 	Reset() Finder
-// }
-
 // Finder is the struct that builds the nested struct finder.
 type Finder struct {
 	topLevelGetter *Getter
