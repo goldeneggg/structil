@@ -615,7 +615,7 @@ func TestBuilderBuild(t *testing.T) {
 		},
 	}
 
-	var got DynamicStruct
+	var got *DynamicStruct
 	var err error
 
 	for _, tt := range tests {
@@ -646,7 +646,7 @@ func TestBuilderBuild(t *testing.T) {
 	}
 }
 
-func testBuilderBuildWant(t *testing.T, got DynamicStruct, tt buildTest) bool {
+func testBuilderBuildWant(t *testing.T, got *DynamicStruct, tt buildTest) bool {
 	if got.IsPtr() != tt.wantIsPtr {
 		t.Errorf("unexpected pointer or not result. got: %v, want: %v", got.IsPtr(), tt.wantIsPtr)
 		return false
@@ -673,7 +673,7 @@ func testBuilderBuildWant(t *testing.T, got DynamicStruct, tt buildTest) bool {
 	return true
 }
 
-func testBuilderBuildTag(t *testing.T, got DynamicStruct, tt buildTest) bool {
+func testBuilderBuildTag(t *testing.T, got *DynamicStruct, tt buildTest) bool {
 	prefixes := map[string]string{
 		"String":    stringFieldTag,
 		"Int":       intFieldTag,
@@ -723,7 +723,7 @@ func testBuilderBuildTag(t *testing.T, got DynamicStruct, tt buildTest) bool {
 	return true
 }
 
-func testBuilderBuildDecodeMap(t *testing.T, got DynamicStruct, tt buildTest) bool {
+func testBuilderBuildDecodeMap(t *testing.T, got *DynamicStruct, tt buildTest) bool {
 	dec, err := got.DecodeMap(tt.testMap)
 	if err != nil {
 		if !tt.wantErrorDecodeMap {

@@ -10,21 +10,8 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-// DynamicStruct is the interface that built dynamic struct by Builder.Build().
-// FIXME: Maybe stop using interface (replece to a concrete struct)
-type DynamicStruct interface {
-	Name() string
-	NumField() int
-	Field(i int) reflect.StructField
-	FieldByName(name string) (reflect.StructField, bool)
-	IsPtr() bool
-	NewInterface() interface{}
-	DecodeMap(m map[string]interface{}) (interface{}, error)
-	Definition() string
-}
-
-// impl is the default DynamicStruct implementation.
-type impl struct {
+// DynamicStruct is the struct that built dynamic struct by Builder.Build().
+type DynamicStruct struct {
 	name       string
 	structType reflect.Type
 	isPtr      bool
@@ -33,50 +20,48 @@ type impl struct {
 }
 
 // TODO: add "sortedFields" slice string argument
-func newDynamicStruct(fields []reflect.StructField, isPtr bool) DynamicStruct {
+func newDynamicStruct(fields []reflect.StructField, isPtr bool) *DynamicStruct {
 	return newDynamicStructWithName(fields, isPtr, defaultStructName)
 }
 
 // newDynamicStructWithName returns a concrete DynamicStruct
 // Note: Create DynamicStruct via Builder.Build(), instead of calling this method directly.
-func newDynamicStructWithName(fields []reflect.StructField, isPtr bool, name string) DynamicStruct {
-	ds := &impl{
+func newDynamicStructWithName(fields []reflect.StructField, isPtr bool, name string) *DynamicStruct {
+	return &DynamicStruct{
 		name:       name,
 		structType: reflect.StructOf(fields),
 		isPtr:      isPtr,
 	}
-
-	return ds
 }
 
 // Name returns the name of this.
-func (ds *impl) Name() string {
+func (ds *DynamicStruct) Name() string {
 	return ds.name
 }
 
 // NumField returns the number of built struct fields.
-func (ds *impl) NumField() int {
+func (ds *DynamicStruct) NumField() int {
 	return ds.structType.NumField()
 }
 
 // Field returns the i'th field of the built struct.
-func (ds *impl) Field(i int) reflect.StructField {
+func (ds *DynamicStruct) Field(i int) reflect.StructField {
 	return ds.structType.Field(i)
 }
 
 // FieldByName returns the struct field with the given name
 // and a boolean indicating if the field was found.
-func (ds *impl) FieldByName(name string) (reflect.StructField, bool) {
+func (ds *DynamicStruct) FieldByName(name string) (reflect.StructField, bool) {
 	return ds.structType.FieldByName(name)
 }
 
 // IsPtr reports whether the built struct type is pointer.
-func (ds *impl) IsPtr() bool {
+func (ds *DynamicStruct) IsPtr() bool {
 	return ds.isPtr
 }
 
 // NewInterface returns the new interface value of built struct.
-func (ds *impl) NewInterface() interface{} {
+func (ds *DynamicStruct) NewInterface() interface{} {
 	rv := reflect.New(ds.structType)
 	if ds.isPtr {
 		return rv.Interface()
@@ -86,7 +71,7 @@ func (ds *impl) NewInterface() interface{} {
 }
 
 // DecodeMap returns the interface that was decoded from input map.
-func (ds *impl) DecodeMap(m map[string]interface{}) (interface{}, error) {
+func (ds *DynamicStruct) DecodeMap(m map[string]interface{}) (interface{}, error) {
 	if !ds.IsPtr() {
 		return nil, errors.New("DecodeMap can execute only if dynamic struct is pointer. But this is false")
 	}
@@ -98,7 +83,7 @@ func (ds *impl) DecodeMap(m map[string]interface{}) (interface{}, error) {
 
 // Definition returns the struct definition string with field indention by TAB.
 // Fields are sorted by field name.
-func (ds *impl) Definition() string {
+func (ds *DynamicStruct) Definition() string {
 	// TODO: build definition only once
 	if ds.definition != "" {
 		return ds.definition

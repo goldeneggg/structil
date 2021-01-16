@@ -15,12 +15,12 @@ type Decoder interface {
 
 // DecodedResult is the result of Decoder.Decode.
 type DecodedResult struct {
-	dynamicstruct.DynamicStruct
+	*dynamicstruct.DynamicStruct
 	DecodedInterface interface{}
 }
 
 // ui must be a unmarshalled interface from JSON, and others
-func decode(ui interface{}, ds dynamicstruct.DynamicStruct) (*DecodedResult, error) {
+func decode(ui interface{}, ds *dynamicstruct.DynamicStruct) (*DecodedResult, error) {
 	var err error
 
 	switch t := ui.(type) {
@@ -29,7 +29,7 @@ func decode(ui interface{}, ds dynamicstruct.DynamicStruct) (*DecodedResult, err
 	case []interface{}:
 		// TODO: should check length and if length == 1, then call decodeMap directly and once instead of current implementation.
 		var drElem *DecodedResult
-		var dsOnce dynamicstruct.DynamicStruct
+		var dsOnce *dynamicstruct.DynamicStruct
 		iArr := make([]interface{}, len(t))
 		for idx, elemIntf := range t {
 			// call this function recursively
@@ -54,7 +54,7 @@ func decode(ui interface{}, ds dynamicstruct.DynamicStruct) (*DecodedResult, err
 	return nil, fmt.Errorf("unexpected return. unmarshalledJSON %+v is not map or array", ui)
 }
 
-func decodeMap(m map[string]interface{}, ds dynamicstruct.DynamicStruct) (*DecodedResult, error) {
+func decodeMap(m map[string]interface{}, ds *dynamicstruct.DynamicStruct) (*DecodedResult, error) {
 	dr := &DecodedResult{
 		DynamicStruct: ds,
 	}
@@ -92,7 +92,7 @@ func camelizeMap(m map[string]interface{}) (map[string]string, map[string]interf
 	return camelizedKeys, camelizedMap
 }
 
-func buildDynamicStruct(m map[string]interface{}, camelizedKeys map[string]string) (dynamicstruct.DynamicStruct, error) {
+func buildDynamicStruct(m map[string]interface{}, camelizedKeys map[string]string) (*dynamicstruct.DynamicStruct, error) {
 	var tag, name string
 	b := dynamicstruct.NewBuilder()
 
