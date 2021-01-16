@@ -41,47 +41,6 @@ var (
 	ErrSample = errors.New("SampleError")
 )
 
-// // Builder is thi interface that builds a dynamic and runtime struct.
-// type Builder interface {
-// 	AddString(name string) Builder
-// 	AddStringWithTag(name string, tag string) Builder
-// 	AddInt(name string) Builder
-// 	AddIntWithTag(name string, tag string) Builder
-// 	AddByte(name string) Builder
-// 	AddByteWithTag(name string, tag string) Builder
-// 	AddFloat32(name string) Builder
-// 	AddFloat32WithTag(name string, tag string) Builder
-// 	AddFloat64(name string) Builder
-// 	AddFloat64WithTag(name string, tag string) Builder
-// 	AddBool(name string) Builder
-// 	AddBoolWithTag(name string, tag string) Builder
-// 	AddMap(name string, ki interface{}, vi interface{}) Builder
-// 	AddMapWithTag(name string, ki interface{}, vi interface{}, tag string) Builder
-// 	AddFunc(name string, in []interface{}, out []interface{}) Builder
-// 	AddFuncWithTag(name string, in []interface{}, out []interface{}, tag string) Builder
-// 	AddChanBoth(name string, i interface{}) Builder
-// 	AddChanBothWithTag(name string, i interface{}, tag string) Builder
-// 	AddChanRecv(name string, i interface{}) Builder
-// 	AddChanRecvWithTag(name string, i interface{}, tag string) Builder
-// 	AddChanSend(name string, i interface{}) Builder
-// 	AddChanSendWithTag(name string, i interface{}, tag string) Builder
-// 	AddStruct(name string, i interface{}, isPtr bool) Builder
-// 	AddStructWithTag(name string, i interface{}, isPtr bool, tag string) Builder
-// 	AddStructPtr(name string, i interface{}) Builder
-// 	AddStructPtrWithTag(name string, i interface{}, tag string) Builder
-// 	AddSlice(name string, i interface{}) Builder
-// 	AddSliceWithTag(name string, i interface{}, tag string) Builder
-// 	AddInterface(name string, isPtr bool) Builder
-// 	AddInterfaceWithTag(name string, isPtr bool, tag string) Builder
-// 	Remove(name string) Builder
-// 	Exists(name string) bool
-// 	NumField() int
-// 	GetStructName() string
-// 	SetStructName(name string)
-// 	Build() DynamicStruct
-// 	BuildNonPtr() DynamicStruct
-// }
-
 // Builder is thi interface that builds a dynamic and runtime struct.
 type Builder struct {
 	fields map[string]reflect.Type
@@ -497,16 +456,16 @@ func (b *Builder) SetStructName(name string) {
 }
 
 // Build returns a concrete struct pointer built by Builder.
-func (b *Builder) Build() (DynamicStruct, error) {
+func (b *Builder) Build() (*DynamicStruct, error) {
 	return b.build(true)
 }
 
 // BuildNonPtr returns a concrete struct built by Builder.
-func (b *Builder) BuildNonPtr() (DynamicStruct, error) {
+func (b *Builder) BuildNonPtr() (*DynamicStruct, error) {
 	return b.build(false)
 }
 
-func (b *Builder) build(isPtr bool) (ds DynamicStruct, err error) {
+func (b *Builder) build(isPtr bool) (ds *DynamicStruct, err error) {
 	if b.err != nil {
 		err = b.err
 		return
