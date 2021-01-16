@@ -336,7 +336,7 @@ func TestNewGetter(t *testing.T) {
 					return
 				}
 			} else if !tt.wantErr {
-				t.Errorf("NewGetter() unexpected error [%v] occured. wantErr %v", err, tt.wantErr)
+				t.Errorf("NewGetter() unexpected error [%v] occurred. wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
@@ -369,7 +369,7 @@ func TestNumField(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			g, err := NewGetter(tt.args.i)
 			if err != nil {
-				t.Errorf("NewGetter() unexpected error [%v] occured", err)
+				t.Errorf("NewGetter() unexpected error [%v] occurred", err)
 			}
 
 			nf := g.NumField()
@@ -437,7 +437,7 @@ func TestNames(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			g, err := NewGetter(tt.args.i)
 			if err != nil {
-				t.Errorf("NewGetter() unexpected error [%v] occured", err)
+				t.Errorf("NewGetter() unexpected error [%v] occurred", err)
 			}
 
 			names := g.Names()
@@ -457,7 +457,7 @@ func testGetSeries(t *testing.T, wantNotOK bool, wantError bool, fn func(*testin
 	testStructPtr := newGetterTestStructPtr()
 	g, err := NewGetter(testStructPtr)
 	if err != nil {
-		t.Errorf("NewGetter() unexpected error [%v] occured.", err)
+		t.Errorf("NewGetter() unexpected error [%v] occurred.", err)
 		return
 	}
 
@@ -2051,7 +2051,7 @@ func TestMapGet(t *testing.T) {
 					t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 				}
 			} else if !tt.wantError {
-				t.Errorf("MapGet() unexpected error %v occured. wantErr %v", err, tt.wantError)
+				t.Errorf("MapGet() unexpected error %v occurred. wantErr %v", err, tt.wantError)
 			}
 		})
 	}

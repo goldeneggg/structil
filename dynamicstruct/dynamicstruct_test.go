@@ -331,7 +331,7 @@ func TestBuilderAddFuncWithNilArgs(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := tt.args.builder.AddFunc("FuncFieldWithNilArgs", nil, []interface{}{SampleBool}).Build()
 			if err != nil {
-				t.Errorf("unexpected error occured: args: %+v, %v", tt.args, err)
+				t.Errorf("unexpected error occurred: args: %+v, %v", tt.args, err)
 			}
 		})
 	}
@@ -357,7 +357,7 @@ func TestBuilderAddFuncWithNilReturns(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := tt.args.builder.AddFunc("FuncFieldWithNilReturns", []interface{}{SampleInt}, nil).Build()
 			if err != nil {
-				t.Errorf("unexpected error occured: args: %+v, %v", tt.args, err)
+				t.Errorf("unexpected error occurred: args: %+v, %v", tt.args, err)
 			}
 		})
 	}
@@ -548,7 +548,7 @@ func TestBuilderBuild(t *testing.T) {
 		"Float64Field": float64(2.3),
 		"BoolField":    true,
 		"MapField":     map[string]float32{"mfkey": float32(4.56)},
-		//"FuncField":   func(i1 int, i2 int) (bool, error) { return true, nil },  // FIXME
+		//"FuncField":   func(i1 int, i2 int) (bool, error) { return true, nil },  // FIXME: func support
 		"StructField": DynamicTestStruct{String: "Hoge"},
 		"SliceField":  []*DynamicTestStruct{{String: "Huga1"}, {String: "Huga2"}},
 	}
@@ -615,7 +615,7 @@ func TestBuilderBuild(t *testing.T) {
 		},
 	}
 
-	var got DynamicStruct
+	var got *DynamicStruct
 	var err error
 
 	for _, tt := range tests {
@@ -646,7 +646,7 @@ func TestBuilderBuild(t *testing.T) {
 	}
 }
 
-func testBuilderBuildWant(t *testing.T, got DynamicStruct, tt buildTest) bool {
+func testBuilderBuildWant(t *testing.T, got *DynamicStruct, tt buildTest) bool {
 	if got.IsPtr() != tt.wantIsPtr {
 		t.Errorf("unexpected pointer or not result. got: %v, want: %v", got.IsPtr(), tt.wantIsPtr)
 		return false
@@ -673,7 +673,7 @@ func testBuilderBuildWant(t *testing.T, got DynamicStruct, tt buildTest) bool {
 	return true
 }
 
-func testBuilderBuildTag(t *testing.T, got DynamicStruct, tt buildTest) bool {
+func testBuilderBuildTag(t *testing.T, got *DynamicStruct, tt buildTest) bool {
 	prefixes := map[string]string{
 		"String":    stringFieldTag,
 		"Int":       intFieldTag,
@@ -723,11 +723,11 @@ func testBuilderBuildTag(t *testing.T, got DynamicStruct, tt buildTest) bool {
 	return true
 }
 
-func testBuilderBuildDecodeMap(t *testing.T, got DynamicStruct, tt buildTest) bool {
+func testBuilderBuildDecodeMap(t *testing.T, got *DynamicStruct, tt buildTest) bool {
 	dec, err := got.DecodeMap(tt.testMap)
 	if err != nil {
 		if !tt.wantErrorDecodeMap {
-			t.Errorf("unexpected error occured from DecodeMap: %v", err)
+			t.Errorf("unexpected error occurred from DecodeMap: %v", err)
 		}
 		return false
 	} else if tt.wantErrorDecodeMap {
@@ -737,7 +737,7 @@ func testBuilderBuildDecodeMap(t *testing.T, got DynamicStruct, tt buildTest) bo
 
 	getter, err := structil.NewGetter(dec)
 	if err != nil {
-		t.Errorf("unexpected error occured from NewGetter: %v", err)
+		t.Errorf("unexpected error occurred from NewGetter: %v", err)
 		return false
 	}
 
@@ -752,7 +752,7 @@ func testBuilderBuildDecodeMap(t *testing.T, got DynamicStruct, tt buildTest) bo
 		case "StructField":
 			getter, err := structil.NewGetter(gotValue)
 			if err != nil {
-				t.Errorf("unexpected error occured from NewGetter for StructField: %v", err)
+				t.Errorf("unexpected error occurred from NewGetter for StructField: %v", err)
 				return false
 			}
 
@@ -772,203 +772,6 @@ func testBuilderBuildDecodeMap(t *testing.T, got DynamicStruct, tt buildTest) bo
 
 	return true
 }
-
-/*
-func TestJSONToDynamicStructInterface(t *testing.T) {
-	t.Parallel()
-
-	type args struct {
-		jsonData []byte
-	}
-	tests := []struct {
-		name           string
-		args           args
-		wantError      bool
-		numField       int
-		hasStringField bool
-	}{
-		{
-			name: "JSON does not have null field",
-			args: args{
-				jsonData: []byte(`
-{
-	"null_field":null,
-	"string_field":"かきくけこ",
-	"int_field":45678,
-	"float32_field":9.876,
-	"bool_field":false,
-	"struct_ptr_field":{
-		"key":"hugakey",
-		"value":"hugavalue"
-	},
-	"array_string_field":[
-		"array_str_1",
-		"array_str_2"
-	],
-	"array_struct_field":[
-		{
-			"kkk":"kkk1",
-			"vvvv":"vvv1"
-		},
-		{
-			"kkk":"kkk2",
-			"vvvv":"vvv2"
-		},
-		{
-			"kkk":"kkk3",
-			"vvvv":"vvv3"
-		}
-	]
-}
-`),
-			},
-			wantError:      false,
-			numField:       7,
-			hasStringField: true,
-		},
-		{
-			name: "JSON is valid array",
-			args: args{
-				jsonData: []byte(`
-		[
-			{
-				"null_field":null,
-				"string_field":"かきくけこ",
-				"int_field":45678,
-				"float32_field":9.876,
-				"bool_field":false,
-				"struct_ptr_field":{
-					"key":"hugakey",
-					"value":"hugavalue"
-				},
-				"array_string_field":[
-					"array_str_1",
-					"array_str_2"
-				],
-				"array_struct_field":[
-					{
-						"kkk":"kkk1",
-						"vvvv":"vvv1"
-					},
-					{
-						"kkk":"kkk2",
-						"vvvv":"vvv2"
-					},
-					{
-						"kkk":"kkk3",
-						"vvvv":"vvv3"
-					}
-				]
-			},
-			{
-				"null_field":null,
-				"string_field":"さしすせそ",
-				"int_field":7890,
-				"float32_field":4.99,
-				"bool_field":true,
-				"struct_ptr_field":{
-					"key":"hugakeyXXX",
-					"value":"hugavalueXXX"
-				},
-				"array_string_field":[
-					"array_str_111",
-					"array_str_222"
-				],
-				"array_struct_field":[
-					{
-						"kkk":"kkk99",
-						"vvvv":"vvv99"
-					},
-					{
-						"kkk":"kkk999",
-						"vvvv":"vvv999"
-					},
-					{
-						"kkk":"kkk9999",
-						"vvvv":"vvv9999"
-					}
-				]
-			}
-		]
-		`),
-			},
-			wantError:      false,
-			numField:       1,
-			hasStringField: false,
-		},
-		{
-			name: "Only one null field",
-			args: args{
-				jsonData: []byte(`{"nullfield":null}`),
-			},
-			wantError:      false,
-			numField:       0,
-			hasStringField: false,
-		},
-		{
-			name: "Empty JSON",
-			args: args{
-				jsonData: []byte(`{}`),
-			},
-			wantError:      false,
-			numField:       0,
-			hasStringField: false,
-		},
-		{
-			name: "Empty array JSON",
-			args: args{
-				jsonData: []byte(`[]`),
-			},
-			wantError:      false,
-			numField:       0,
-			hasStringField: false,
-		},
-		{
-			name: "empty",
-			args: args{
-				jsonData: []byte(``),
-			},
-			wantError:      true,
-			numField:       0,
-			hasStringField: false,
-		},
-		{
-			name: "null",
-			args: args{
-				jsonData: []byte(`null`),
-			},
-			wantError:      true,
-			numField:       0,
-			hasStringField: false,
-		},
-		{
-			name: "Invalid string",
-			args: args{
-				jsonData: []byte(`invalid`),
-			},
-			wantError:      true,
-			numField:       0,
-			hasStringField: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			intf, err := JSONToDynamicStructInterface(tt.args.jsonData)
-			if err == nil {
-				if tt.wantError {
-					t.Errorf("error did not occur. intf: %#v", intf)
-					return
-				}
-
-			} else if !tt.wantError {
-				t.Errorf("unexpected error occured. wantError %v, err: %v", tt.wantError, err)
-			}
-		})
-	}
-}
-*/
 
 // benchmark tests
 

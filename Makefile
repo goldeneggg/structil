@@ -3,6 +3,10 @@ LOCAL_GO := go$${LOCAL_GOVERSION}
 PKG_STRUCTIL := github.com/goldeneggg/structil
 PKG_DYNAMICSTRUCT := github.com/goldeneggg/structil/dynamicstruct
 
+PKG_MAPSTRUCTURE := github.com/mitchellh/mapstructure
+PKG_VIPER := github.com/spf13/viper
+PKG_GOCMP := github.com/google/go-cmp
+
 TESTDIR := ./.test
 TESTBIN_STRUCTIL := $(TESTDIR)/structil.test
 TESTBIN_DYNAMICSTRUCT := $(TESTDIR)/dynamicstruct.test
@@ -62,6 +66,40 @@ mod-benchstat-install: mod-tidy
 .PHONY: vendor
 vendor:
 	@GO111MODULE=on $(LOCAL_GO) mod vendor
+
+chk_latest = go list -u -m $1
+
+.PHONY: chk-latest-mapstructure
+chk-latest-mapstructure:
+	@$(call chk_latest,$(PKG_MAPSTRUCTURE))
+
+.PHONY: chk-latest-viper
+chk-latest-viper:
+	@$(call chk_latest,$(PKG_VIPER))
+
+.PHONY: chk-latest-gocmp
+chk-latest-gocmp:
+	@$(call chk_latest,$(PKG_GOCMP))
+
+.PHONY: update-all-modules
+update-all-modules:
+	@go get -u && make test
+
+upgrade_module = echo module-query="$2"; GO111MODULE=on go get $1@$2
+upgrade_to_latest = $(call upgrade_module,$1,latest)
+
+.PHONY: upgrade-latest-mapstructure
+upgrade-latest-mapstructure:
+	@$(call upgrade_to_latest,$(PKG_MAPSTRUCTURE))
+
+.PHONY: upgrade-latest-viper
+upgrade-latest-viper:
+	@$(call upgrade_to_latest,$(PKG_VIPER))
+
+.PHONY: upgrade-latest-gocmp
+upgrade-latest-gocmp:
+	@$(call upgrade_to_latest,$(PKG_GOCMP))
+
 
 ###
 # run tests

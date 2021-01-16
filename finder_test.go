@@ -158,7 +158,7 @@ func TestNewFinder(t *testing.T) {
 					return
 				}
 			} else if !tt.wantError {
-				t.Errorf("NewFinder() unexpected error [%v] occured. wantError: %v", err, tt.wantError)
+				t.Errorf("NewFinder() unexpected error [%v] occurred. wantError: %v", err, tt.wantError)
 			}
 		})
 	}
@@ -202,7 +202,7 @@ func TestNewFinderWithGetterAndSep(t *testing.T) {
 					return
 				}
 			} else if !tt.wantError {
-				t.Errorf("NewFinderWithGetterAndSep() unexpected error [%v] occured. wantError %v", err, tt.wantError)
+				t.Errorf("NewFinderWithGetterAndSep() unexpected error [%v] occurred. wantError %v", err, tt.wantError)
 			}
 		})
 	}
@@ -736,7 +736,7 @@ func TestNewFinderKeys(t *testing.T) {
 				}
 
 			} else if !tt.wantError {
-				t.Errorf("NewFinderKeys() unexpected error [%v] occured. wantError: %v", err, tt.wantError)
+				t.Errorf("NewFinderKeys() unexpected error [%v] occurred. wantError: %v", err, tt.wantError)
 			}
 		})
 	}
