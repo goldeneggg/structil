@@ -36,43 +36,50 @@ Please see [my medium post](https://medium.com/@s0k0mata/dynamic-and-runtime-str
 
 ## Examples
 
+### `Decoder`
+
+A decoding example from __unknown format__ JSON to __interface of `DynamicStruct`__ with `JSONDecoder.Decode` as follows.
+
+See [example code](/dynamicstruct/decoder/examples_test.go)
+
+
 ### `DynamicStruct`
+
 We can create the dynamic and runtime struct.
 
 See [example code](/dynamicstruct/examples_test.go)
 
 
 #### JSON unmershal with `DynamicStruct`
+
 A decoding example from JSON to `DynamicStruct` with `StructTag` using `json.Unmarshal([]byte)` as follows.
 This example works correctly not only JSON but also YAML, TOML and more.
 
 See [example code](/dynamicstruct/examples_test.go)
 
-### `Decoder`
-A decoding example from __unknown format__ JSON to interface of `DynamicStruct` with `JSONDecoder.Decode` as follows.
-
-See [example code](/dynamicstruct/decoder/examples_test.go)
-
-
 ### `Getter`
+
 We can access a struct using field name string, like (typed) map.
 
 See [example code](/examples_test.go)
 
 
 #### `MapGet` method
+
 `MapGet` method provides the __Map__ collection function for slice of struct
 
 See [example code](/examples_test.go)
 
 
 ### `Finder`
+
 We can access usefully nested struct fields using field name string.
 
 See [example code](/examples_test.go)
 
 
 #### With config file? use `FinderKeys`
+
 We can create a Finder from the configuration file that have some finding target keys. We support some file formats of configuration file such as `yaml`, `json`, `toml` and more.
 
 See [example code](/examples_test.go)
@@ -81,6 +88,7 @@ ___Thanks for the awesome configuration management library [spf13/viper](https:/
 
 
 ## Benchmark
+
 See [this file](https://github.com/goldeneggg/structil/blob/bench-latest/BENCHMARK_LATEST.txt)
 
 It's the latest benchmark result that is executed on GitHub Actions runner instance.
