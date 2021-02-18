@@ -9,9 +9,11 @@ import (
 )
 
 // Decoder is the interface for decoding generic data(JSON, YAML, and more).
-type Decoder interface {
-	Decode(data []byte) (*DecodedResult, error)
-}
+//
+// FIXME: Is this interface really required??
+// type Decoder interface {
+// 	Decode(data []byte) (*DecodedResult, error)
+// }
 
 // DecodedResult is the result of Decoder.Decode.
 type DecodedResult struct {

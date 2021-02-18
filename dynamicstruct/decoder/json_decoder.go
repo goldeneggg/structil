@@ -9,7 +9,7 @@ type JSONDecoder struct {
 }
 
 // NewJSONDecoder returns a concrete Decoder for JSON
-func NewJSONDecoder() Decoder {
+func NewJSONDecoder() *JSONDecoder {
 	return &JSONDecoder{}
 }
 
