@@ -31,7 +31,7 @@ func Decode(data []byte, dt DataType) (*DecodedResult, error) {
 
 	switch dt {
 	case TypeJSON:
-		err = unmersnalJSON(data, &ui)
+		err = unmarshalJSON(data, &ui)
 	default:
 		err = fmt.Errorf("invalid datatype: %v", dt)
 	}
@@ -47,7 +47,7 @@ func Decode(data []byte, dt DataType) (*DecodedResult, error) {
 	return dr, nil
 }
 
-func unmersnalJSON(data []byte, uiptr interface{}) error {
+func unmarshalJSON(data []byte, uiptr interface{}) error {
 	// FIXME:
 	// want to add json validation. but is json.Valid(data) too slow?
 	// See: https://stackoverflow.com/questions/22128282/how-to-check-string-is-in-json-format
