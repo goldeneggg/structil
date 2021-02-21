@@ -327,6 +327,7 @@ func (fks *FinderKeys) addRecursive(key interface{}, prefix string) error {
 		var nk string
 		var nd interface{}
 		for key, value := range t {
+			// FIXME: Should this code be changed to 'nk = fmt.Sprintf("%v", key)' ?
 			nk = key.(string)
 			if prefix != "" {
 				nk = prefix + "." + nk
