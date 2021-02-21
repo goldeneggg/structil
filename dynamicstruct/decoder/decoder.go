@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/iancoleman/strcase"
+	"gopkg.in/yaml.v2"
 
 	"github.com/goldeneggg/structil/dynamicstruct"
 )
@@ -21,6 +22,9 @@ type DataType int
 const (
 	// TypeJSON is the type sign of JSON
 	TypeJSON DataType = iota
+
+	// TypeYAML is the type sign of YAML
+	TypeYAML
 )
 
 // Decode decodes original data to interface via DynamicStruct.DecodeMap.
@@ -32,6 +36,8 @@ func Decode(data []byte, dt DataType) (*DecodedResult, error) {
 	switch dt {
 	case TypeJSON:
 		err = unmarshalJSON(data, &ui)
+	case TypeYAML:
+		err = unmarshalYAML(data, &ui)
 	default:
 		err = fmt.Errorf("invalid datatype: %v", dt)
 	}
@@ -54,60 +60,70 @@ func unmarshalJSON(data []byte, uiptr interface{}) error {
 	return json.Unmarshal(data, uiptr)
 }
 
+func unmarshalYAML(data []byte, uiptr interface{}) error {
+	return yaml.Unmarshal(data, uiptr)
+}
+
 // ui must be a unmarshalled interface from JSON, and others
 func decode(ui interface{}, dt DataType, ds *dynamicstruct.DynamicStruct) (*DecodedResult, error) {
 	var err error
 
 	switch t := ui.(type) {
 	case map[string]interface{}:
-		return decodeMap(t, ds)
+		return decodeMap(t, dt, ds)
+	case map[interface{}]interface{}:
+		m := make(map[string]interface{})
+		for k, v := range t {
+			m[fmt.Sprintf("%v", k)] = v
+		}
+		return decodeMap(m, dt, ds)
 	case []interface{}:
 		// TODO: should check length and if length == 1, then call decodeMap directly and once instead of current implementation.
-		var drElem *DecodedResult
-		var dsOnce *dynamicstruct.DynamicStruct
+		var dr *DecodedResult
+		var ds *dynamicstruct.DynamicStruct
 		iArr := make([]interface{}, len(t))
 		for idx, elemIntf := range t {
 			// call this function recursively
 			// we want to build DynamicStruct only once
 			// FIXME: current code can not support "omitempty" field for JSON array
 			// TODO: DynamicStruct bulding not only once but only once *with omitempty support*
-			drElem, err = decode(elemIntf, dt, dsOnce)
+			dr, err = decode(elemIntf, dt, ds)
 			if err != nil {
 				return nil, err
 			}
-			dsOnce = drElem.DynamicStruct
+			ds = dr.DynamicStruct
 
-			iArr[idx] = drElem.DecodedInterface
+			iArr[idx] = dr.DecodedInterface
 		}
 
 		return &DecodedResult{
-			DynamicStruct:    dsOnce,
+			DynamicStruct:    ds,
 			DecodedInterface: iArr,
 		}, nil
 	}
 
-	return nil, fmt.Errorf("unexpected return. unmarshalledJSON %+v is not map or array", ui)
+	return nil, fmt.Errorf("unexpected unmarshalled interface: %#v", ui)
 }
 
-func decodeMap(m map[string]interface{}, ds *dynamicstruct.DynamicStruct) (*DecodedResult, error) {
+func decodeMap(m map[string]interface{}, dt DataType, ds *dynamicstruct.DynamicStruct) (*DecodedResult, error) {
 	dr := &DecodedResult{
 		DynamicStruct: ds,
 	}
 	var err error
 
-	// camelizedKeys for building DynamicStruct with exported fields
+	// ck for building DynamicStruct with exported fields
 	// e.g. if json item name is "hoge_huga", same field name in DynamicStruct is "HogeHuga"
 	// FIXME: support case that input json field names are not snake_case but camelCase
-	camelizedKeys, camelizedMap := camelizeMap(m)
+	cKeys, cMap := camelizeMap(m)
 
 	if dr.DynamicStruct == nil {
-		dr.DynamicStruct, err = buildDynamicStruct(m, camelizedKeys)
+		dr.DynamicStruct, err = buildDynamicStruct(m, cKeys, dt)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	dr.DecodedInterface, err = dr.DynamicStruct.DecodeMap(camelizedMap)
+	dr.DecodedInterface, err = dr.DynamicStruct.DecodeMap(cMap)
 	if err != nil {
 		return nil, err
 	}
@@ -116,18 +132,18 @@ func decodeMap(m map[string]interface{}, ds *dynamicstruct.DynamicStruct) (*Deco
 }
 
 func camelizeMap(m map[string]interface{}) (map[string]string, map[string]interface{}) {
-	camelizedKeys := make(map[string]string, len(m))
-	camelizedMap := make(map[string]interface{}, len(m))
+	cKeys := make(map[string]string, len(m))
+	cMap := make(map[string]interface{}, len(m))
 
 	for k, v := range m {
-		camelizedKeys[k] = strcase.ToCamel(k)
-		camelizedMap[camelizedKeys[k]] = v
+		cKeys[k] = strcase.ToCamel(k)
+		cMap[cKeys[k]] = v
 	}
 
-	return camelizedKeys, camelizedMap
+	return cKeys, cMap
 }
 
-func buildDynamicStruct(m map[string]interface{}, camelizedKeys map[string]string) (*dynamicstruct.DynamicStruct, error) {
+func buildDynamicStruct(m map[string]interface{}, cKeys map[string]string, dt DataType) (*dynamicstruct.DynamicStruct, error) {
 	var tag, name string
 	b := dynamicstruct.NewBuilder()
 
@@ -140,7 +156,7 @@ func buildDynamicStruct(m map[string]interface{}, camelizedKeys map[string]strin
 		// See: https://golang.org/pkg/encoding/json/#Marshal
 		// See: https://m-zajac.github.io/json2go/
 		tag = fmt.Sprintf(`json:"%s"`, k)
-		name = camelizedKeys[k]
+		name = cKeys[k]
 
 		// See: https://golang.org/pkg/encoding/json/#Unmarshal
 		switch value := v.(type) {
@@ -157,11 +173,21 @@ func buildDynamicStruct(m map[string]interface{}, camelizedKeys map[string]strin
 				b = b.AddMapWithTag(name, kk, interface{}(vv), tag)
 				break
 			}
+		case map[interface{}]interface{}:
+			m := make(map[string]interface{})
+			for k, v := range value {
+				m[fmt.Sprintf("%v", k)] = v
+			}
+
+			for kk, vv := range m {
+				b = b.AddMapWithTag(name, kk, interface{}(vv), tag)
+				break
+			}
 		case nil:
 			// Note: Is this ok?
 			b = b.AddInterfaceWithTag(name, false, tag)
 		default:
-			return nil, fmt.Errorf("jsonData %#v has invalid typed key", m)
+			return nil, fmt.Errorf("value %#v has invalid type. m is %#v", value, m)
 		}
 	}
 

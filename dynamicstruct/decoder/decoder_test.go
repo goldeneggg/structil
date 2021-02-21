@@ -310,11 +310,12 @@ array_string_field = ["array_str_1", "array_str_2"]
 `)
 )
 
-func TestDecodeJSON(t *testing.T) {
+func TestDecode(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
-		jsonData []byte
+		data     []byte
+		dataType DataType
 	}
 	tests := []struct {
 		name         string
@@ -326,7 +327,8 @@ func TestDecodeJSON(t *testing.T) {
 		{
 			name: "JSON does not have null field",
 			args: args{
-				jsonData: singleJSON,
+				data:     singleJSON,
+				dataType: TypeJSON,
 			},
 			wantError:    false,
 			wantDsIsNull: false,
@@ -335,7 +337,8 @@ func TestDecodeJSON(t *testing.T) {
 		{
 			name: "JSON is valid array",
 			args: args{
-				jsonData: arrayJSON,
+				data:     arrayJSON,
+				dataType: TypeJSON,
 			},
 			wantError:    false,
 			wantDsIsNull: false,
@@ -344,7 +347,8 @@ func TestDecodeJSON(t *testing.T) {
 		{
 			name: "Only one null field",
 			args: args{
-				jsonData: []byte(`{"nullfield":null}`),
+				data:     []byte(`{"nullfield":null}`),
+				dataType: TypeJSON,
 			},
 			wantError:    false,
 			wantDsIsNull: false,
@@ -353,7 +357,8 @@ func TestDecodeJSON(t *testing.T) {
 		{
 			name: "Empty JSON",
 			args: args{
-				jsonData: []byte(`{}`),
+				data:     []byte(`{}`),
+				dataType: TypeJSON,
 			},
 			wantError:    false,
 			wantDsIsNull: false,
@@ -362,45 +367,79 @@ func TestDecodeJSON(t *testing.T) {
 		{
 			name: "Empty array JSON",
 			args: args{
-				jsonData: []byte(`[]`),
+				data:     []byte(`[]`),
+				dataType: TypeJSON,
 			},
 			wantError:    false,
 			wantDsIsNull: true,
 			numField:     0,
 		},
 		{
-			name: "empty",
+			name: "empty with TypeJSON",
 			args: args{
-				jsonData: []byte(``),
+				data:     []byte(``),
+				dataType: TypeJSON,
 			},
 			wantError:    true,
 			wantDsIsNull: true,
 			numField:     0,
 		},
 		{
-			name: "null",
+			name: "null with TypeJSON",
 			args: args{
-				jsonData: []byte(`null`),
+				data:     []byte(`null`),
+				dataType: TypeJSON,
 			},
 			wantError:    true,
 			wantDsIsNull: true,
 			numField:     0,
 		},
 		{
-			name: "Invalid string",
+			name: "Invalid string with TypeJSON",
 			args: args{
-				jsonData: []byte(`invalid`),
+				data:     []byte(`invalid`),
+				dataType: TypeJSON,
 			},
 			wantError:    true,
 			wantDsIsNull: true,
 			numField:     0,
+		},
+		{
+			name: "Invalid DataType",
+			args: args{
+				data:     singleJSON,
+				dataType: -1,
+			},
+			wantError:    true,
+			wantDsIsNull: true,
+			numField:     0,
+		},
+		{
+			name: "YAML does not have null field",
+			args: args{
+				data:     singleYAML,
+				dataType: TypeYAML,
+			},
+			wantError:    false,
+			wantDsIsNull: false,
+			numField:     8,
+		},
+		{
+			name: "YAML is valid array",
+			args: args{
+				data:     arrayYAML,
+				dataType: TypeYAML,
+			},
+			wantError:    false,
+			wantDsIsNull: false,
+			numField:     8,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			dr, err := Decode(tt.args.jsonData, TypeJSON)
+			dr, err := Decode(tt.args.data, tt.args.dataType)
 			if err == nil {
 				if tt.wantError {
 					t.Errorf("error did not occur. DecodedInterface: %#v", dr.DecodedInterface)
