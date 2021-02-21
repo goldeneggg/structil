@@ -191,7 +191,6 @@ func TestDecodeJSON(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			// gd := NewJSONDecoder()
 			dr, err := Decode(tt.args.jsonData, TypeJSON)
 			if err == nil {
 				if tt.wantError {
