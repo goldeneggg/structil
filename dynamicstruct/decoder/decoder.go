@@ -1,6 +1,7 @@
 package decoder
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/iancoleman/strcase"
@@ -8,19 +9,53 @@ import (
 	"github.com/goldeneggg/structil/dynamicstruct"
 )
 
-// Decoder is the interface for decoding generic data(JSON, YAML, and more).
-type Decoder interface {
-	Decode(data []byte) (*DecodedResult, error)
-}
-
 // DecodedResult is the result of Decoder.Decode.
 type DecodedResult struct {
 	*dynamicstruct.DynamicStruct
 	DecodedInterface interface{}
 }
 
+// DataType is the type of original data format
+type DataType int
+
+const (
+	// TypeJSON is the type sign of JSON
+	TypeJSON DataType = iota
+)
+
+// Decode decodes original data to interface via DynamicStruct.DecodeMap.
+// data argument must be a byte array data of valid format(JSON, YAML, TOML).
+func Decode(data []byte, dt DataType) (*DecodedResult, error) {
+	var ui interface{}
+	var err error
+
+	switch dt {
+	case TypeJSON:
+		err = unmarshalJSON(data, &ui)
+	default:
+		err = fmt.Errorf("invalid datatype: %v", dt)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	dr, err := decode(ui, dt, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return dr, nil
+}
+
+func unmarshalJSON(data []byte, uiptr interface{}) error {
+	// FIXME:
+	// want to add json validation. but is json.Valid(data) too slow?
+	// See: https://stackoverflow.com/questions/22128282/how-to-check-string-is-in-json-format
+	return json.Unmarshal(data, uiptr)
+}
+
 // ui must be a unmarshalled interface from JSON, and others
-func decode(ui interface{}, ds *dynamicstruct.DynamicStruct) (*DecodedResult, error) {
+func decode(ui interface{}, dt DataType, ds *dynamicstruct.DynamicStruct) (*DecodedResult, error) {
 	var err error
 
 	switch t := ui.(type) {
@@ -36,7 +71,7 @@ func decode(ui interface{}, ds *dynamicstruct.DynamicStruct) (*DecodedResult, er
 			// we want to build DynamicStruct only once
 			// FIXME: current code can not support "omitempty" field for JSON array
 			// TODO: DynamicStruct bulding not only once but only once *with omitempty support*
-			drElem, err = decode(elemIntf, dsOnce)
+			drElem, err = decode(elemIntf, dt, dsOnce)
 			if err != nil {
 				return nil, err
 			}
