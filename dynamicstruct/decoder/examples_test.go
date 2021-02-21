@@ -6,7 +6,7 @@ import (
 	"github.com/goldeneggg/structil"
 )
 
-func Example() {
+func ExampleDecode_json() {
 	unknownFormatJSON := []byte(`
 {
 	"string_field":"かきくけこ",
@@ -39,7 +39,7 @@ func Example() {
 }
 `)
 
-	dr, err := NewJSONDecoder().Decode(unknownFormatJSON)
+	dr, err := Decode(unknownFormatJSON, TypeJSON)
 	if err != nil {
 		panic(err)
 	}

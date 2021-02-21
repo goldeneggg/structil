@@ -101,7 +101,7 @@ var (
 ]`)
 )
 
-func TestJSONDecoder(t *testing.T) {
+func TestDecodeJSON(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
@@ -191,8 +191,8 @@ func TestJSONDecoder(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			gd := NewJSONDecoder()
-			dr, err := gd.Decode(tt.args.jsonData)
+			// gd := NewJSONDecoder()
+			dr, err := Decode(tt.args.jsonData, TypeJSON)
 			if err == nil {
 				if tt.wantError {
 					t.Errorf("error did not occur. DecodedInterface: %#v", dr.DecodedInterface)
@@ -225,19 +225,15 @@ func TestJSONDecoder(t *testing.T) {
 // benchmark tests
 
 func BenchmarkSingleJSONDecode(b *testing.B) {
-	gd := NewJSONDecoder()
-
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _ = gd.Decode(singleJSON)
+		_, _ = Decode(singleJSON, TypeJSON)
 	}
 }
 
 func BenchmarkArrayJSONDecode(b *testing.B) {
-	gd := NewJSONDecoder()
-
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _ = gd.Decode(arrayJSON)
+		_, _ = Decode(arrayJSON, TypeJSON)
 	}
 }
