@@ -5,18 +5,20 @@ on:
     branches:
       - master
     paths-ignore:
-      - '**/*.md'
+      - '**.md'
       - 'LICENSE'
       - '**/.gitignore'
       - 'Dockerfile'
       - '.dockerignore'
+      - '**.sample'
   pull_request:
     paths-ignore:
-      - '**/*.md'
+      - '**.md'
       - 'LICENSE'
       - '**/.gitignore'
       - 'Dockerfile'
       - '.dockerignore'
+      - '**.sample'
 
 env:
   # See: Makefile
