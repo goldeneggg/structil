@@ -3,7 +3,7 @@ package decoder_test
 import (
 	"testing"
 
-	. "github.com/goldeneggg/structil/dynamicstruct/decoder"
+	. "github.com/goldeneggg/structil/decoder"
 )
 
 var (
@@ -442,7 +442,7 @@ func TestDecode(t *testing.T) {
 			dr, err := Decode(tt.args.data, tt.args.dataType)
 			if err == nil {
 				if tt.wantError {
-					t.Errorf("error did not occur. DecodedInterface: %#v", dr.DecodedInterface)
+					t.Errorf("error did not occur. Interface: %#v", dr.Interface)
 					return
 				}
 
@@ -457,7 +457,7 @@ func TestDecode(t *testing.T) {
 					}
 				} else {
 					if !tt.wantDsIsNull {
-						t.Errorf("unexpected DynamicStruct is null. got: is null, want: is not null, DecodedInterface:\n%#v", dr.DecodedInterface)
+						t.Errorf("unexpected DynamicStruct is null. got: is null, want: is not null, Interface:\n%#v", dr.Interface)
 						return
 					}
 				}
@@ -497,7 +497,7 @@ func TestDecodeInvalidType(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			dr, err := Decode(tt.args.data, -1)
 			if err == nil {
-				t.Errorf("error did not occur. DecodedInterface: %#v", dr.DecodedInterface)
+				t.Errorf("error did not occur. Interface: %#v", dr.Interface)
 				return
 			}
 		})

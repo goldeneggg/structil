@@ -13,7 +13,7 @@ import (
 // DecodedResult is the result of Decoder.Decode.
 type DecodedResult struct {
 	*dynamicstruct.DynamicStruct
-	DecodedInterface interface{}
+	Interface interface{}
 }
 
 // DataType is the type of original data format
@@ -30,14 +30,14 @@ const (
 // Decode decodes original data to interface via DynamicStruct.DecodeMap.
 // data argument must be a byte array data of valid format(JSON, YAML, TOML).
 func Decode(data []byte, dt DataType) (*DecodedResult, error) {
-	var ui interface{}
+	var intf interface{}
 	var err error
 
 	switch dt {
 	case TypeJSON:
-		err = unmarshalJSON(data, &ui)
+		err = unmarshalJSON(data, &intf)
 	case TypeYAML:
-		err = unmarshalYAML(data, &ui)
+		err = unmarshalYAML(data, &intf)
 	default:
 		err = fmt.Errorf("invalid datatype: %v", dt)
 	}
@@ -45,7 +45,7 @@ func Decode(data []byte, dt DataType) (*DecodedResult, error) {
 		return nil, err
 	}
 
-	dr, err := decode(ui, dt, nil)
+	dr, err := decode(intf, dt, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -53,15 +53,15 @@ func Decode(data []byte, dt DataType) (*DecodedResult, error) {
 	return dr, nil
 }
 
-func unmarshalJSON(data []byte, uiptr interface{}) error {
+func unmarshalJSON(data []byte, ptr interface{}) error {
 	// FIXME:
 	// want to add json validation. but is json.Valid(data) too slow?
 	// See: https://stackoverflow.com/questions/22128282/how-to-check-string-is-in-json-format
-	return json.Unmarshal(data, uiptr)
+	return json.Unmarshal(data, ptr)
 }
 
-func unmarshalYAML(data []byte, uiptr interface{}) error {
-	return yaml.Unmarshal(data, uiptr)
+func unmarshalYAML(data []byte, ptr interface{}) error {
+	return yaml.Unmarshal(data, ptr)
 }
 
 // ui must be a unmarshalled interface from JSON, and others
@@ -71,12 +71,12 @@ func decode(ui interface{}, dt DataType, ds *dynamicstruct.DynamicStruct) (*Deco
 	switch t := ui.(type) {
 	case map[string]interface{}:
 		return decodeMap(t, dt, ds)
-	case map[interface{}]interface{}:
-		m := make(map[string]interface{})
-		for k, v := range t {
-			m[fmt.Sprintf("%v", k)] = v
-		}
-		return decodeMap(m, dt, ds)
+	// case map[interface{}]interface{}:
+	// 	m := make(map[string]interface{})
+	// 	for k, v := range t {
+	// 		m[fmt.Sprintf("%v", k)] = v
+	// 	}
+	// 	return decodeMap(m, dt, ds)
 	case []interface{}:
 		// TODO: should check length and if length == 1, then call decodeMap directly and once instead of current implementation.
 		var dr *DecodedResult
@@ -93,12 +93,12 @@ func decode(ui interface{}, dt DataType, ds *dynamicstruct.DynamicStruct) (*Deco
 			}
 			ds = dr.DynamicStruct
 
-			iArr[idx] = dr.DecodedInterface
+			iArr[idx] = dr.Interface
 		}
 
 		return &DecodedResult{
-			DynamicStruct:    ds,
-			DecodedInterface: iArr,
+			DynamicStruct: ds,
+			Interface:     iArr,
 		}, nil
 	}
 
@@ -123,7 +123,7 @@ func decodeMap(m map[string]interface{}, dt DataType, ds *dynamicstruct.DynamicS
 		}
 	}
 
-	dr.DecodedInterface, err = dr.DynamicStruct.DecodeMap(cMap)
+	dr.Interface, err = dr.DynamicStruct.DecodeMap(cMap)
 	if err != nil {
 		return nil, err
 	}
@@ -173,16 +173,16 @@ func buildDynamicStruct(m map[string]interface{}, cKeys map[string]string, dt Da
 				b = b.AddMapWithTag(name, kk, interface{}(vv), tag)
 				break
 			}
-		case map[interface{}]interface{}:
-			m := make(map[string]interface{})
-			for k, v := range value {
-				m[fmt.Sprintf("%v", k)] = v
-			}
+		// case map[interface{}]interface{}:
+		// 	m := make(map[string]interface{})
+		// 	for k, v := range value {
+		// 		m[fmt.Sprintf("%v", k)] = v
+		// 	}
 
-			for kk, vv := range m {
-				b = b.AddMapWithTag(name, kk, interface{}(vv), tag)
-				break
-			}
+		// 	for kk, vv := range m {
+		// 		b = b.AddMapWithTag(name, kk, interface{}(vv), tag)
+		// 		break
+		// 	}
 		case nil:
 			// Note: Is this ok?
 			b = b.AddInterfaceWithTag(name, false, tag)

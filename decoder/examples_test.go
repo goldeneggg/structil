@@ -47,8 +47,8 @@ func ExampleDecode_json() {
 	// Print struct definition from DynamicStruct
 	fmt.Println(dr.DynamicStruct.Definition())
 
-	// Confirm decoded result using Getter with DecodedInterface
-	g, err := structil.NewGetter(dr.DecodedInterface)
+	// Confirm decoded result using Getter with Interface
+	g, err := structil.NewGetter(dr.Interface)
 	if err != nil {
 		panic(err)
 	}
