@@ -39,6 +39,11 @@ func (ds *DynamicStruct) Name() string {
 	return ds.name
 }
 
+// Type returns the reflect.Type for struct type of this.
+func (ds *DynamicStruct) Type() reflect.Type {
+	return ds.rt
+}
+
 // NumField returns the number of built struct fields.
 func (ds *DynamicStruct) NumField() int {
 	return ds.rt.NumField()
