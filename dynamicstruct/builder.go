@@ -34,6 +34,7 @@ const (
 	patternSlice
 	patternPrmtv
 	patternInterface
+	patternDynamicStruct
 )
 
 var (
@@ -294,7 +295,6 @@ func (b *Builder) AddChanSendWithTag(name string, i interface{}, tag string) *Bu
 
 // AddStruct returns a Builder that was added a struct field named by name parameter.
 // Type of struct is type of i.
-// TODO: add test if i is a DynamicStruct
 func (b *Builder) AddStruct(name string, i interface{}, isPtr bool) *Builder {
 	b.AddStructWithTag(name, i, isPtr, "")
 	return b
@@ -316,7 +316,6 @@ func (b *Builder) AddStructWithTag(name string, i interface{}, isPtr bool, tag s
 
 // AddStructPtr returns a Builder that was added a struct pointer field named by name parameter.
 // Type of struct is type of i.
-// TODO: add test if i is a DynamicStruct pointer
 func (b *Builder) AddStructPtr(name string, i interface{}) *Builder {
 	return b.AddStruct(name, i, true)
 }
@@ -365,6 +364,35 @@ func (b *Builder) AddInterfaceWithTag(name string, isPtr bool, tag string) *Buil
 	}
 	b.add(p)
 	return b
+}
+
+// AddDynamicStruct returns a Builder that was added a DynamicStruct field named by name parameter.
+func (b *Builder) AddDynamicStruct(name string, ds *DynamicStruct, isPtr bool) *Builder {
+	b.AddDynamicStructWithTag(name, ds, isPtr, "")
+	return b
+}
+
+// AddDynamicStructWithTag returns a Builder that was added a DynamicStruct field with tag named by name parameter.
+func (b *Builder) AddDynamicStructWithTag(name string, ds *DynamicStruct, isPtr bool, tag string) *Builder {
+	p := &addParam{
+		name:    name,
+		intfs:   []interface{}{ds.NewInterface()}, // use ds.NewInterface() for building concrete fields of ds
+		pattern: patternInterface,                 // use patternInterface for building concrete fields of ds
+		isPtr:   isPtr,
+		tag:     tag,
+	}
+	b.add(p)
+	return b
+}
+
+// AddDynamicStructPtr returns a Builder that was added a DynamicStruct pointer field named by name parameter.
+func (b *Builder) AddDynamicStructPtr(name string, ds *DynamicStruct) *Builder {
+	return b.AddDynamicStruct(name, ds, true)
+}
+
+// AddDynamicStructPtrWithTag returns a Builder that was added a DynamicStruct pointer field with tag named by name parameter.
+func (b *Builder) AddDynamicStructPtrWithTag(name string, ds *DynamicStruct, tag string) *Builder {
+	return b.AddDynamicStructWithTag(name, ds, true, tag)
 }
 
 func (b *Builder) add(p *addParam) {

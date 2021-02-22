@@ -527,14 +527,15 @@ type buildArgs struct {
 }
 
 type buildTest struct {
-	name               string
-	args               buildArgs
-	wantIsPtr          bool
-	wantStructName     string
-	wantNumField       int
-	wantDefinition     string
-	testMap            map[string]interface{}
-	wantErrorDecodeMap bool
+	name                string
+	args                buildArgs
+	wantIsPtr           bool
+	wantStructName      string
+	wantNumField        int
+	wantDefinition      string
+	testMap             map[string]interface{}
+	wantErrorDecodeMap  bool
+	tryAddDynamicStruct bool
 }
 
 func TestBuilderBuild(t *testing.T) {
@@ -594,7 +595,8 @@ func TestBuilderBuild(t *testing.T) {
 	StructPtrField *struct { Byte uint8; Bytes []uint8; Int int; Int64 int64; Uint uint; Uint64 uint64; Float32 float32; Float64 float64; String string; Stringptr *string; Stringslice []string; Bool bool; Map map[string]interface {}; Func func(string) interface {}; DynamicTestStruct2 dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct2Ptr *dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct4Slice []dynamicstruct_test.DynamicTestStruct4; DynamicTestStruct4PtrSlice []*dynamicstruct_test.DynamicTestStruct4 }
 	StructPtrFieldWithTag *struct { Byte uint8; Bytes []uint8; Int int; Int64 int64; Uint uint; Uint64 uint64; Float32 float32; Float64 float64; String string; Stringptr *string; Stringslice []string; Bool bool; Map map[string]interface {}; Func func(string) interface {}; DynamicTestStruct2 dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct2Ptr *dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct4Slice []dynamicstruct_test.DynamicTestStruct4; DynamicTestStruct4PtrSlice []*dynamicstruct_test.DynamicTestStruct4 } ` + "`json:\"struct_ptr_field_with_tag\"`" + `
 }`,
-			testMap: testMap,
+			testMap:             testMap,
+			tryAddDynamicStruct: true,
 		},
 		{
 			name:               "BuildNonPtr() with valid Builder",
@@ -639,6 +641,12 @@ func TestBuilderBuild(t *testing.T) {
 
 			if tt.testMap != nil {
 				if !testBuilderBuildDecodeMap(t, got, tt) {
+					return
+				}
+			}
+
+			if tt.tryAddDynamicStruct {
+				if !testBuilderBuildAddDynamicStruct(t, got, tt) {
 					return
 				}
 			}
@@ -769,6 +777,37 @@ func testBuilderBuildDecodeMap(t *testing.T, got *DynamicStruct, tt buildTest) b
 			}
 		}
 	}
+
+	return true
+}
+
+func testBuilderBuildAddDynamicStruct(t *testing.T, got *DynamicStruct, tt buildTest) bool {
+	builder := newDynamicTestBuilder()
+	builder.AddDynamicStructWithTag("AdditionalDynamicStruct", got, false, "json")
+	builder.AddDynamicStructPtrWithTag("AdditionalDynamicStructPtr", got, "json")
+	newds, err := builder.Build()
+	if err != nil {
+		t.Errorf("unexpected error occurred from Build: %v", err)
+		return false
+	}
+
+	if newds.NumField() != tt.wantNumField+2 {
+		t.Errorf("result numfield is unexpected. got: %d, want: %d", newds.NumField(), tt.wantNumField+2)
+		return false
+	}
+
+	_, ok := newds.FieldByName("AdditionalDynamicStruct")
+	if !ok {
+		t.Errorf("additional DynamicStruct field does not exist")
+		return false
+	}
+	_, ok = newds.FieldByName("AdditionalDynamicStructPtr")
+	if !ok {
+		t.Errorf("additional DynamicStructPtr field does not exist")
+		return false
+	}
+
+	newds.NewInterface()
 
 	return true
 }
