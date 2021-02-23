@@ -124,6 +124,7 @@ func Example_unmarshalJSON() {
 		panic(err)
 	}
 
+	// prints Go struct definition of this DynamicStruct
 	fmt.Println(ds.Definition())
 
 	// try json unmarshal with NewInterface
