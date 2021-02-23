@@ -5,28 +5,149 @@ import (
 	"fmt"
 
 	"github.com/iancoleman/strcase"
-	"gopkg.in/yaml.v2"
 
 	"github.com/goldeneggg/structil/dynamicstruct"
 )
 
 // DecodedResult is the result of Decoder.Decode.
+// deprecated
 type DecodedResult struct {
 	*dynamicstruct.DynamicStruct
 	Interface interface{}
 }
 
-// DataType is the type of original data format
 type DataType int
+
+type Decoder struct {
+	data []byte
+	dt   DataType
+	unm  interface{}
+	ds   dynamicstruct.DynamicStruct
+}
+
+// DataType is the type of original data format
 
 const (
 	// TypeJSON is the type sign of JSON
 	TypeJSON DataType = iota
 
 	// TypeYAML is the type sign of YAML
-	TypeYAML
+	// TypeYAML
 )
 
+func New(data []byte, dt DataType) (*Decoder, error) {
+	d := &Decoder{
+		data: data,
+		dt:   dt,
+	}
+
+	err := d.unmarshal()
+
+	return d, err
+}
+
+func (d *Decoder) unmarshal() (err error) {
+	var intf interface{}
+
+	switch d.dt {
+	case TypeJSON:
+		err = json.Unmarshal(d.data, &intf)
+	// case TypeYAML:
+	// 	err = yaml.Unmarshal(d.data, &intf)
+	default:
+		err = fmt.Errorf("invalid datatype: %v", d.dt)
+	}
+	d.unm = intf
+
+	return
+}
+
+func (d *Decoder) DynamicStruct(recur bool, format string) (*dynamicstruct.DynamicStruct, error) {
+	return d.toDs(d.unm, recur, format)
+}
+
+func (d *Decoder) toDs(i interface{}, recur bool, format string) (*dynamicstruct.DynamicStruct, error) {
+	switch t := i.(type) {
+	case map[string]interface{}:
+		return d.toDsFromStringMap(t, recur, format)
+	// FIXME: map[interface{}]interface{} support (for YAML)
+	// case map[interface{}]interface{}:
+	// 	m := make(map[string]interface{})
+	// 	for k, v := range t {
+	// 		m[fmt.Sprintf("%v", k)] = v
+	// 	}
+	// 	return decodeMap(m, dt, ds)
+	case []interface{}:
+		if len(t) > 0 {
+			if len(t) == 1 {
+				return d.toDs(t[0], recur, format)
+			}
+
+			// TODO: seek an element that have max size of t. And call d.toDs with this element
+			// 配列内の構造が可変なケースを考慮して、最も大きい構造の要素を取り出してその要素に対してtoDsを呼ぶようにする
+			return d.toDs(t[0], recur, format)
+		}
+	}
+
+	return nil, fmt.Errorf("unexpected interface: %#v", i)
+}
+
+func (d *Decoder) toDsFromStringMap(m map[string]interface{}, recur bool, format string) (*dynamicstruct.DynamicStruct, error) {
+	var tag, name string
+	b := dynamicstruct.NewBuilder()
+
+	for k, v := range m {
+		// TODO: "json" changes dynamic. e.g. "yaml", "xml" and others
+		// TODO: apply initialisms theories. See: https://github.com/golang/go/wiki/CodeReviewComments#initialisms
+		//   (and more golint theories validations)
+
+		// TODO: add "omitempty"? (e.g. when key is missing, type should be a pointer and have "omitempty")
+		// TODO: add ",string", ",boolean" extra options?
+		// See: https://golang.org/pkg/encoding/json/#Marshal
+		// See: https://m-zajac.github.io/json2go/
+		if format != "" {
+			tag = fmt.Sprintf(`%s:"%s"`, format, k)
+		}
+
+		name = strcase.ToCamel(k)
+
+		// See: https://golang.org/pkg/encoding/json/#Unmarshal
+		switch value := v.(type) {
+		case bool:
+			b = b.AddBoolWithTag(name, tag)
+		case float64:
+			b = b.AddFloat64WithTag(name, tag)
+		case string:
+			b = b.AddStringWithTag(name, tag)
+		case []interface{}:
+			b = b.AddSliceWithTag(name, interface{}(value[0]), tag)
+		case map[string]interface{}:
+			for kk, vv := range value {
+				b = b.AddMapWithTag(name, kk, interface{}(vv), tag)
+				break
+			}
+		// case map[interface{}]interface{}:
+		// 	m := make(map[string]interface{})
+		// 	for k, v := range value {
+		// 		m[fmt.Sprintf("%v", k)] = v
+		// 	}
+
+		// 	for kk, vv := range m {
+		// 		b = b.AddMapWithTag(name, kk, interface{}(vv), tag)
+		// 		break
+		// 	}
+		case nil:
+			// Note: Is this ok?
+			b = b.AddInterfaceWithTag(name, false, tag)
+		default:
+			return nil, fmt.Errorf("value %#v has invalid type. m is %#v", value, m)
+		}
+	}
+
+	return b.Build()
+}
+
+/*
 // Decode decodes original data to interface via DynamicStruct.DecodeMap.
 // data argument must be a byte array data of valid format(JSON, YAML, TOML).
 func Decode(data []byte, dt DataType) (*DecodedResult, error) {
@@ -131,6 +252,63 @@ func decodeMap(m map[string]interface{}, dt DataType, ds *dynamicstruct.DynamicS
 	return dr, nil
 }
 
+// TODO: implement
+func fromStringMapToDynamicStruct(m map[string]interface{}, recur bool, format string) (*DynamicStruct, error) {
+	var tag, name string
+	b := dynamicstruct.NewBuilder()
+
+	for k, v := range m {
+		// TODO: "json" changes dynamic. e.g. "yaml", "xml" and others
+		// TODO: apply initialisms theories. See: https://github.com/golang/go/wiki/CodeReviewComments#initialisms
+		//   (and more golint theories validations)
+
+		// TODO: add "omitempty"? (e.g. when key is missing, type should be a pointer and have "omitempty")
+		// TODO: add ",string", ",boolean" extra options?
+		// See: https://golang.org/pkg/encoding/json/#Marshal
+		// See: https://m-zajac.github.io/json2go/
+		if format != "" {
+			tag = fmt.Sprintf(`%s:"%s"`, format, k)
+		}
+
+		name = strcase.ToCamel(k)
+
+		// See: https://golang.org/pkg/encoding/json/#Unmarshal
+		switch value := v.(type) {
+		case bool:
+			b = b.AddBoolWithTag(name, tag)
+		case float64:
+			b = b.AddFloat64WithTag(name, tag)
+		case string:
+			b = b.AddStringWithTag(name, tag)
+		case []interface{}:
+			b = b.AddSliceWithTag(name, interface{}(value[0]), tag)
+		case map[string]interface{}:
+			for kk, vv := range value {
+				b = b.AddMapWithTag(name, kk, interface{}(vv), tag)
+				break
+			}
+		// case map[interface{}]interface{}:
+		// 	m := make(map[string]interface{})
+		// 	for k, v := range value {
+		// 		m[fmt.Sprintf("%v", k)] = v
+		// 	}
+
+		// 	for kk, vv := range m {
+		// 		b = b.AddMapWithTag(name, kk, interface{}(vv), tag)
+		// 		break
+		// 	}
+		case nil:
+			// Note: Is this ok?
+			b = b.AddInterfaceWithTag(name, false, tag)
+		default:
+			return nil, fmt.Errorf("value %#v has invalid type. m is %#v", value, m)
+		}
+	}
+
+	return b.Build()
+}
+
+// deprecated
 func camelizeMap(m map[string]interface{}) (map[string]string, map[string]interface{}) {
 	cKeys := make(map[string]string, len(m))
 	cMap := make(map[string]interface{}, len(m))
@@ -143,6 +321,7 @@ func camelizeMap(m map[string]interface{}) (map[string]string, map[string]interf
 	return cKeys, cMap
 }
 
+// deprecated
 func buildDynamicStruct(m map[string]interface{}, cKeys map[string]string, dt DataType) (*dynamicstruct.DynamicStruct, error) {
 	var tag, name string
 	b := dynamicstruct.NewBuilder()
@@ -193,3 +372,4 @@ func buildDynamicStruct(m map[string]interface{}, cKeys map[string]string, dt Da
 
 	return b.Build()
 }
+*/

@@ -3,7 +3,9 @@ package decoder_test
 import (
 	"testing"
 
-	. "github.com/goldeneggg/structil/decoder"
+	"github.com/google/go-cmp/cmp"
+
+	. "github.com/goldeneggg/structil/dynamicstruct/decoder"
 )
 
 var (
@@ -310,6 +312,57 @@ array_string_field = ["array_str_1", "array_str_2"]
 `)
 )
 
+func TestDecodeHasOnlyPrimitive(t *testing.T) {
+	t.Parallel()
+
+	data := []byte(`
+{
+  "null_field":null,
+  "string_field":"かきくけこ",
+  "int_field":45678,
+  "float32_field":9.876,
+  "bool_field":false
+}
+`)
+	expDef := `type DynamicStruct struct {
+	BoolField bool
+	Float32Field float64
+	IntField float64
+	NullField interface {}
+	StringField string
+}`
+
+	t.Run("TestDecodeHasOnlyPrimitive", func(t *testing.T) {
+		d, err := New(data, TypeJSON)
+		if err != nil {
+			t.Errorf("unexpected error is returned from New: %v", err)
+			return
+		}
+
+		ds, err := d.DynamicStruct(false, "")
+		if err != nil {
+			t.Errorf("unexpected error is returned from Decode: %v", err)
+			return
+		}
+
+		if ds == nil {
+			t.Errorf("unexpected DynamicStruct is null. got: is null, want: is not null")
+			return
+		}
+
+		if ds.NumField() != 5 {
+			t.Errorf("unmatch numfield. got: %d, want: %d, ds.Definition:\n%s", ds.NumField(), 5, ds.Definition())
+			return
+		}
+
+		if d := cmp.Diff(ds.Definition(), expDef); d != "" {
+			t.Errorf("mismatch Definition: (-got +want)\n%s", d)
+			return
+		}
+	})
+}
+
+/*
 func TestDecode(t *testing.T) {
 	t.Parallel()
 
@@ -503,19 +556,22 @@ func TestDecodeInvalidType(t *testing.T) {
 		})
 	}
 }
+*/
 
 // benchmark tests
 
-func BenchmarkSingleJSONDecode(b *testing.B) {
+func BenchmarkDynamicStructSingleJSON(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _ = Decode(singleJSON, TypeJSON)
+		d, _ := New(singleJSON, TypeJSON)
+		_, _ = d.DynamicStruct(false, "")
 	}
 }
 
-func BenchmarkArrayJSONDecode(b *testing.B) {
+func BenchmarkDynamicStructArrayJSON(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _ = Decode(arrayJSON, TypeJSON)
+		d, _ := New(arrayJSON, TypeJSON)
+		_, _ = d.DynamicStruct(false, "")
 	}
 }

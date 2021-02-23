@@ -2,11 +2,9 @@ package decoder
 
 import (
 	"fmt"
-
-	"github.com/goldeneggg/structil"
 )
 
-func ExampleDecode_json() {
+func ExampleDynamicStruct_json() {
 	unknownFormatJSON := []byte(`
 {
 	"string_field":"かきくけこ",
@@ -39,39 +37,47 @@ func ExampleDecode_json() {
 }
 `)
 
-	dr, err := Decode(unknownFormatJSON, TypeJSON)
+	decoder, err := New(unknownFormatJSON, TypeJSON)
+	if err != nil {
+		panic(err)
+	}
+
+	ds, err := decoder.DynamicStruct(false, "json")
 	if err != nil {
 		panic(err)
 	}
 
 	// Print struct definition from DynamicStruct
-	fmt.Println(dr.DynamicStruct.Definition())
+	fmt.Println(ds.Definition())
 
 	// Confirm decoded result using Getter with Interface
-	g, err := structil.NewGetter(dr.Interface)
-	if err != nil {
-		panic(err)
-	}
-	s, _ := g.String("StringField")   // field names of DynamicStruct are camelized original json field key
-	i, _ := g.Float64("IntField")     // Note: type of unmarshalled number fields are float64. See: https://golang.org/pkg/encoding/json/#Unmarshal
-	f, _ := g.Float64("Float32Field") // same as above
-	b, _ := g.Bool("BoolField")
-	strct, _ := g.Get("StructPtrField")
-	arrS, _ := g.Get("ArrayStringField")
-	arrStrct, _ := g.Get("ArrayStructField")
-	null, _ := g.Get("NullField")
-	fmt.Printf(
-		"num of fields=%d\n'StringField'=%s\n'IntField'=%f\n'Float32Field'=%f\n'BoolField'=%t\n'StructPtrField'=%+v\n'ArrayStringField'=%+v\n'ArrayStructField'=%+v\n'NullField'=%+v",
-		g.NumField(),
-		s,
-		i, // Note: type of unmarshalled number fields are float64. See: https://golang.org/pkg/encoding/json/#Unmarshal
-		f, // same as above
-		b,
-		strct,
-		arrS,
-		arrStrct,
-		null,
-	)
+	// TODO:
+	/*
+		g, err := structil.NewGetter(dr.Interface)
+		if err != nil {
+			panic(err)
+		}
+		s, _ := g.String("StringField")   // field names of DynamicStruct are camelized original json field key
+		i, _ := g.Float64("IntField")     // Note: type of unmarshalled number fields are float64. See: https://golang.org/pkg/encoding/json/#Unmarshal
+		f, _ := g.Float64("Float32Field") // same as above
+		b, _ := g.Bool("BoolField")
+		strct, _ := g.Get("StructPtrField")
+		arrS, _ := g.Get("ArrayStringField")
+		arrStrct, _ := g.Get("ArrayStructField")
+		null, _ := g.Get("NullField")
+		fmt.Printf(
+			"num of fields=%d\n'StringField'=%s\n'IntField'=%f\n'Float32Field'=%f\n'BoolField'=%t\n'StructPtrField'=%+v\n'ArrayStringField'=%+v\n'ArrayStructField'=%+v\n'NullField'=%+v",
+			g.NumField(),
+			s,
+			i, // Note: type of unmarshalled number fields are float64. See: https://golang.org/pkg/encoding/json/#Unmarshal
+			f, // same as above
+			b,
+			strct,
+			arrS,
+			arrStrct,
+			null,
+		)
+	*/
 	// Output:
 	//type DynamicStruct struct {
 	//	ArrayStringField []string `json:"array_string_field"`
@@ -83,6 +89,8 @@ func ExampleDecode_json() {
 	//	StringField string `json:"string_field"`
 	//	StructPtrField map[string]string `json:"struct_ptr_field"`
 	//}
+
+	// TODO:
 	// num of fields=8
 	// 'StringField'=かきくけこ
 	// 'IntField'=45678.000000
