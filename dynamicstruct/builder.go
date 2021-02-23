@@ -452,13 +452,31 @@ func (b *Builder) add(p *addParam) {
 	}
 
 	b.fields[p.name] = typeOf
-	b.tags[p.name] = reflect.StructTag(p.tag)
+	b.SetTag(p.name, p.tag)
 }
 
 // Remove returns a Builder that was removed a field named by name parameter.
 func (b *Builder) Remove(name string) *Builder {
 	delete(b.fields, name)
 	return b
+}
+
+// SetTag returns a Builder that was set the tag for the specific field.
+func (b *Builder) SetTag(name string, tag string) *Builder {
+	b.tags[name] = reflect.StructTag(tag)
+	return b
+}
+
+// SetStructName returns a Builder that was set the name of DynamicStruct.
+// Default name is "DynamicStruct"
+func (b *Builder) SetStructName(name string) *Builder {
+	b.name = name
+	return b
+}
+
+// GetStructName returns the name of this DynamicStruct.
+func (b *Builder) GetStructName() string {
+	return b.name
 }
 
 // Exists returns true if the specified name field exists
@@ -470,17 +488,6 @@ func (b *Builder) Exists(name string) bool {
 // NumField returns the number of built struct fields.
 func (b *Builder) NumField() int {
 	return len(b.fields)
-}
-
-// GetStructName returns the name of this DynamicStruct.
-func (b *Builder) GetStructName() string {
-	return b.name
-}
-
-// SetStructName sets the name of DynamicStruct.
-// Default is "DynamicStruct"
-func (b *Builder) SetStructName(name string) {
-	b.name = name
 }
 
 // Build returns a concrete struct pointer built by Builder.
