@@ -42,7 +42,7 @@ func ExampleDynamicStruct_json() {
 		panic(err)
 	}
 
-	ds, err := decoder.DynamicStruct(false, "json")
+	ds, err := decoder.DynamicStruct(false, false)
 	if err != nil {
 		panic(err)
 	}

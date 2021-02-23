@@ -1,7 +1,6 @@
 package decoder
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/iancoleman/strcase"
@@ -16,8 +15,6 @@ type DecodedResult struct {
 	Interface interface{}
 }
 
-type DataType int
-
 type Decoder struct {
 	data []byte
 	dt   DataType
@@ -25,51 +22,27 @@ type Decoder struct {
 	ds   dynamicstruct.DynamicStruct
 }
 
-// DataType is the type of original data format
+func New(data []byte, dt DataType) (d *Decoder, err error) {
+	var intf interface{}
+	err = dt.Unmarshal(data, &intf)
 
-const (
-	// TypeJSON is the type sign of JSON
-	TypeJSON DataType = iota
-
-	// TypeYAML is the type sign of YAML
-	// TypeYAML
-)
-
-func New(data []byte, dt DataType) (*Decoder, error) {
-	d := &Decoder{
+	d = &Decoder{
 		data: data,
 		dt:   dt,
+		unm:  intf,
 	}
-
-	err := d.unmarshal()
-
-	return d, err
-}
-
-func (d *Decoder) unmarshal() (err error) {
-	var intf interface{}
-
-	switch d.dt {
-	case TypeJSON:
-		err = json.Unmarshal(d.data, &intf)
-	// case TypeYAML:
-	// 	err = yaml.Unmarshal(d.data, &intf)
-	default:
-		err = fmt.Errorf("invalid datatype: %v", d.dt)
-	}
-	d.unm = intf
 
 	return
 }
 
-func (d *Decoder) DynamicStruct(recur bool, format string) (*dynamicstruct.DynamicStruct, error) {
-	return d.toDs(d.unm, recur, format)
+func (d *Decoder) DynamicStruct(nest bool, useTag bool) (*dynamicstruct.DynamicStruct, error) {
+	return d.toDs(d.unm, nest, useTag)
 }
 
-func (d *Decoder) toDs(i interface{}, recur bool, format string) (*dynamicstruct.DynamicStruct, error) {
+func (d *Decoder) toDs(i interface{}, nest bool, useTag bool) (*dynamicstruct.DynamicStruct, error) {
 	switch t := i.(type) {
 	case map[string]interface{}:
-		return d.toDsFromStringMap(t, recur, format)
+		return d.toDsFromStringMap(t, nest, useTag)
 	// FIXME: map[interface{}]interface{} support (for YAML)
 	// case map[interface{}]interface{}:
 	// 	m := make(map[string]interface{})
@@ -80,19 +53,19 @@ func (d *Decoder) toDs(i interface{}, recur bool, format string) (*dynamicstruct
 	case []interface{}:
 		if len(t) > 0 {
 			if len(t) == 1 {
-				return d.toDs(t[0], recur, format)
+				return d.toDs(t[0], nest, useTag)
 			}
 
 			// TODO: seek an element that have max size of t. And call d.toDs with this element
 			// 配列内の構造が可変なケースを考慮して、最も大きい構造の要素を取り出してその要素に対してtoDsを呼ぶようにする
-			return d.toDs(t[0], recur, format)
+			return d.toDs(t[0], nest, useTag)
 		}
 	}
 
 	return nil, fmt.Errorf("unexpected interface: %#v", i)
 }
 
-func (d *Decoder) toDsFromStringMap(m map[string]interface{}, recur bool, format string) (*dynamicstruct.DynamicStruct, error) {
+func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag bool) (*dynamicstruct.DynamicStruct, error) {
 	var tag, name string
 	b := dynamicstruct.NewBuilder()
 
@@ -105,8 +78,8 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, recur bool, format
 		// TODO: add ",string", ",boolean" extra options?
 		// See: https://golang.org/pkg/encoding/json/#Marshal
 		// See: https://m-zajac.github.io/json2go/
-		if format != "" {
-			tag = fmt.Sprintf(`%s:"%s"`, format, k)
+		if useTag {
+			tag = fmt.Sprintf(`%s:"%s"`, d.dt.String(), k)
 		}
 
 		name = strcase.ToCamel(k)
@@ -120,10 +93,14 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, recur bool, format
 		case string:
 			b = b.AddStringWithTag(name, tag)
 		case []interface{}:
+			// FIXME: fix nest mode support or not
 			b = b.AddSliceWithTag(name, interface{}(value[0]), tag)
 		case map[string]interface{}:
-			for kk, vv := range value {
-				b = b.AddMapWithTag(name, kk, interface{}(vv), tag)
+			// TODO: nest mode support
+			var zerov interface{}
+			for kk := range value {
+				b = b.AddMapWithTag(name, kk, zerov, tag)
+				// only one addition
 				break
 			}
 		// case map[interface{}]interface{}:

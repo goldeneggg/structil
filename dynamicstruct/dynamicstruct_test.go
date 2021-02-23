@@ -304,8 +304,9 @@ func TestBuilderAddMapWithNilValue(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := tt.args.builder.AddMap("MapFieldWithNilKey", SampleString, nil).Build()
-			if err == nil {
-				t.Errorf("expect to occur error but does not: args: %+v", tt.args)
+			// nil map value does NOT cause error
+			if err != nil {
+				t.Errorf("unexpected error occured %v: args: %+v", err, tt.args)
 			}
 		})
 	}

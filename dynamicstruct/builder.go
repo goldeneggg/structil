@@ -409,7 +409,13 @@ func (b *Builder) add(p *addParam) {
 
 	switch p.pattern {
 	case patternMap:
-		typeOf = reflect.MapOf(reflect.TypeOf(p.keyIntfs[0]), reflect.TypeOf(p.intfs[0]))
+		var vt reflect.Type
+		if p.intfs[0] == nil {
+			vt = reflect.TypeOf((*interface{})(nil)).Elem()
+		} else {
+			vt = reflect.TypeOf(p.intfs[0])
+		}
+		typeOf = reflect.MapOf(reflect.TypeOf(p.keyIntfs[0]), vt)
 	case patternFunc:
 		inTypes := make([]reflect.Type, len(p.keyIntfs))
 		for i := 0; i < len(p.keyIntfs); i++ {

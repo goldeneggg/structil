@@ -312,7 +312,7 @@ array_string_field = ["array_str_1", "array_str_2"]
 `)
 )
 
-func TestDecodeHasOnlyPrimitive(t *testing.T) {
+func TestDynamicStructHasOnlyPrimitive(t *testing.T) {
 	t.Parallel()
 
 	data := []byte(`
@@ -324,7 +324,7 @@ func TestDecodeHasOnlyPrimitive(t *testing.T) {
   "bool_field":false
 }
 `)
-	expDef := `type DynamicStruct struct {
+	wantDef := `type DynamicStruct struct {
 	BoolField bool
 	Float32Field float64
 	IntField float64
@@ -332,34 +332,104 @@ func TestDecodeHasOnlyPrimitive(t *testing.T) {
 	StringField string
 }`
 
-	t.Run("TestDecodeHasOnlyPrimitive", func(t *testing.T) {
-		d, err := New(data, TypeJSON)
-		if err != nil {
-			t.Errorf("unexpected error is returned from New: %v", err)
-			return
-		}
-
-		ds, err := d.DynamicStruct(false, "")
-		if err != nil {
-			t.Errorf("unexpected error is returned from Decode: %v", err)
-			return
-		}
-
-		if ds == nil {
-			t.Errorf("unexpected DynamicStruct is null. got: is null, want: is not null")
-			return
-		}
-
-		if ds.NumField() != 5 {
-			t.Errorf("unmatch numfield. got: %d, want: %d, ds.Definition:\n%s", ds.NumField(), 5, ds.Definition())
-			return
-		}
-
-		if d := cmp.Diff(ds.Definition(), expDef); d != "" {
-			t.Errorf("mismatch Definition: (-got +want)\n%s", d)
-			return
-		}
+	t.Run("TestDynamicStructHasOnlyPrimitive", func(t *testing.T) {
+		testCorrectCase(t, data, TypeJSON, false, false, 5, wantDef)
 	})
+}
+
+func TestDynamicStructHasObj(t *testing.T) {
+	t.Parallel()
+
+	data := []byte(`
+{
+  "string_field":"あああ",
+  "obj_field":{
+    "id":123,
+    "name":"Test Tarou"
+  }
+}
+`)
+	wantDef := `type DynamicStruct struct {
+	ObjField map[string]interface {}
+	StringField string
+}`
+
+	t.Run("TestDynamicStructHasObj", func(t *testing.T) {
+		testCorrectCase(t, data, TypeJSON, false, false, 2, wantDef)
+	})
+}
+
+func TestDynamicStructHasArrayString(t *testing.T) {
+	t.Parallel()
+
+	data := []byte(`
+{
+  "string_field":"あああ",
+  "string_array_field":[
+    "id1",
+    "id2"
+  ]
+}
+`)
+	wantDef := `type DynamicStruct struct {
+	StringArrayField []string
+	StringField string
+}`
+
+	t.Run("TestDynamicStructHasArrayString", func(t *testing.T) {
+		testCorrectCase(t, data, TypeJSON, false, false, 2, wantDef)
+	})
+}
+
+func TestDynamicStructHasArrayInt(t *testing.T) {
+	t.Parallel()
+
+	data := []byte(`
+{
+  "string_field":"あああ",
+  "int_array_field":[
+    3,
+    4
+  ]
+}
+`)
+	wantDef := `type DynamicStruct struct {
+	IntArrayField []float64
+	StringField string
+}`
+
+	t.Run("TestDynamicStructHasArrayInt", func(t *testing.T) {
+		testCorrectCase(t, data, TypeJSON, false, false, 2, wantDef)
+	})
+}
+
+func testCorrectCase(t *testing.T, data []byte, dt DataType, nest bool, useTag bool, wantNumF int, wantDef string) {
+	d, err := New(data, dt)
+	if err != nil {
+		t.Errorf("unexpected error is returned from New: %v", err)
+		return
+	}
+
+	ds, err := d.DynamicStruct(nest, useTag)
+	if err != nil {
+		t.Errorf("unexpected error is returned from Decode: %v", err)
+		return
+	}
+
+	if ds == nil {
+		t.Errorf("unexpected DynamicStruct is null. got: is null, want: is not null")
+		return
+	}
+
+	if ds.NumField() != wantNumF {
+		t.Errorf("unmatch numfield. got: %d, want: %d, ds.Definition:\n%s", ds.NumField(), wantNumF, ds.Definition())
+		return
+	}
+
+	if d := cmp.Diff(ds.Definition(), wantDef); d != "" {
+		t.Errorf("mismatch Definition: (-got +want)\n%s", d)
+		return
+	}
 }
 
 /*
@@ -564,7 +634,7 @@ func BenchmarkDynamicStructSingleJSON(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		d, _ := New(singleJSON, TypeJSON)
-		_, _ = d.DynamicStruct(false, "")
+		_, _ = d.DynamicStruct(false, false)
 	}
 }
 
@@ -572,6 +642,6 @@ func BenchmarkDynamicStructArrayJSON(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		d, _ := New(arrayJSON, TypeJSON)
-		_, _ = d.DynamicStruct(false, "")
+		_, _ = d.DynamicStruct(false, false)
 	}
 }
