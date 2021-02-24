@@ -95,6 +95,7 @@ func (ds *DynamicStruct) Definition() string {
 	}
 
 	// TODO: performance optimization
+	// TODO: nested DynamicStruct fields are also sorted as same as high-level DynamicStruct
 	fields := make([]reflect.StructField, ds.NumField())
 	for i := 0; i < ds.NumField(); i++ {
 		fields[i] = ds.Field(i)
