@@ -97,12 +97,20 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag 
 			b = b.AddSliceWithTag(name, interface{}(value[0]), tag)
 		case map[string]interface{}:
 			// TODO: nest mode support
-			var zerov interface{}
-			for kk := range value {
-				b = b.AddMapWithTag(name, kk, zerov, tag)
-				// only one addition
-				break
+			if nest {
+				nds, err := d.toDsFromStringMap(value, nest, useTag)
+				if err != nil {
+					return nil, err
+				}
+				b = b.AddDynamicStructPtr(name, nds)
+			} else {
+				for kk := range value {
+					b = b.AddMapWithTag(name, kk, nil, tag)
+					// only one addition
+					break
+				}
 			}
+
 		// case map[interface{}]interface{}:
 		// 	m := make(map[string]interface{})
 		// 	for k, v := range value {

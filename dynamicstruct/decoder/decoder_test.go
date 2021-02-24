@@ -359,6 +359,55 @@ func TestDynamicStructHasObj(t *testing.T) {
 	})
 }
 
+func TestDynamicStructHasObjNest(t *testing.T) {
+	t.Parallel()
+
+	data := []byte(`
+{
+  "string_field":"あああ",
+  "obj_field":{
+    "id":123,
+    "name":"Test Tarou"
+  }
+}
+`)
+	wantDef := `type DynamicStruct struct {
+	ObjField *struct { Name string; Id float64 }
+	StringField string
+}`
+
+	t.Run("TestDynamicStructHasObj", func(t *testing.T) {
+		testCorrectCase(t, data, TypeJSON, true, false, 2, wantDef)
+	})
+}
+
+func TestDynamicStructHasObTwoNest(t *testing.T) {
+	t.Parallel()
+
+	data := []byte(`
+{
+  "string_field":"あああ",
+  "obj_field":{
+    "id":45,
+    "name":"Test Jiou",
+		"boss":true,
+		"objobj_field":{
+			"user_id":678,
+			"status":"progress"
+		}
+  }
+}
+`)
+	wantDef := `type DynamicStruct struct {
+	ObjField *struct { ObjobjField *struct { Status string; UserId float64 }; Id float64; Name string; Boss bool }
+	StringField string
+}`
+
+	t.Run("TestDynamicStructHasObj", func(t *testing.T) {
+		testCorrectCase(t, data, TypeJSON, true, false, 2, wantDef)
+	})
+}
+
 func TestDynamicStructHasArrayString(t *testing.T) {
 	t.Parallel()
 
