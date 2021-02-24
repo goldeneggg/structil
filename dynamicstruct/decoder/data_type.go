@@ -13,11 +13,11 @@ type DataType interface {
 }
 
 // DefaultDataType is the type of original data format
-type DefaultDataType int
+type defaultDataType int
 
 const (
 	// TypeJSON is the type sign of JSON
-	TypeJSON DefaultDataType = iota
+	TypeJSON defaultDataType = iota
 
 	// TypeYAML is the type sign of YAML
 	TypeYAML
@@ -28,21 +28,21 @@ var formats = [...]string{
 	TypeYAML: "yaml",
 }
 
-func (dt DefaultDataType) String() string {
-	if dt >= 0 && int(dt) < len(formats) {
-		return formats[dt]
+func (ddt defaultDataType) String() string {
+	if ddt >= 0 && int(ddt) < len(formats) {
+		return formats[ddt]
 	}
 	return ""
 }
 
-func (dt DefaultDataType) Unmarshal(data []byte, ptr interface{}) (err error) {
-	switch dt {
+func (ddt defaultDataType) Unmarshal(data []byte, ptr interface{}) (err error) {
+	switch ddt {
 	case TypeJSON:
 		err = json.Unmarshal(data, ptr)
 	case TypeYAML:
 		err = yaml.Unmarshal(data, ptr)
 	default:
-		err = fmt.Errorf("invalid datatype: %v", dt)
+		err = fmt.Errorf("invalid datatype: %v", ddt)
 	}
 
 	return

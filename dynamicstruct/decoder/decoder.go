@@ -22,6 +22,14 @@ type Decoder struct {
 	ds   dynamicstruct.DynamicStruct
 }
 
+func NewJSON(data []byte) (*Decoder, error) {
+	return New(data, TypeJSON)
+}
+
+func NewYAML(data []byte) (*Decoder, error) {
+	return New(data, TypeYAML)
+}
+
 func New(data []byte, dt DataType) (d *Decoder, err error) {
 	var intf interface{}
 	err = dt.Unmarshal(data, &intf)
