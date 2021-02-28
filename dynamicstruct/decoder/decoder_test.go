@@ -676,21 +676,3 @@ func TestDecodeInvalidType(t *testing.T) {
 	}
 }
 */
-
-// benchmark tests
-
-func BenchmarkDynamicStructSingleJSON(b *testing.B) {
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		d, _ := New(singleJSON, TypeJSON)
-		_, _ = d.DynamicStruct(false, false)
-	}
-}
-
-func BenchmarkDynamicStructArrayJSON(b *testing.B) {
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		d, _ := New(arrayJSON, TypeJSON)
-		_, _ = d.DynamicStruct(false, false)
-	}
-}
