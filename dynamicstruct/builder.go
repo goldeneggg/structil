@@ -377,7 +377,7 @@ func (b *Builder) AddDynamicStructWithTag(name string, ds *DynamicStruct, isPtr 
 	p := &addParam{
 		name:    name,
 		intfs:   []interface{}{ds.NewInterface()}, // use ds.NewInterface() for building concrete fields of ds
-		pattern: patternInterface,                 // use patternInterface for building concrete fields of ds
+		pattern: patternStruct,                    // use patternStruct for building concrete fields of ds
 		isPtr:   isPtr,
 		tag:     tag,
 	}

@@ -357,27 +357,33 @@ func TestDynamicStructHasObj(t *testing.T) {
   }
 }
 `)
-	// 	wantDef := `type DynamicStruct struct {
-	// 	ObjField map[string]interface {}
-	// 	StringField string
-	// }`
-	// 	wantDefTag := `type DynamicStruct struct {
-	// 	ObjField map[string]interface {} ` + "`json:\"obj_field\"`" + `
-	// 	StringField string ` + "`json:\"string_field\"`" + `
-	// }`
-	// wantDefNest := `type DynamicStruct struct {
-	// 	ObjField struct { Name string; Id float64 }
-	// 	StringField string
-	// }`
+	wantDef := `type DynamicStruct struct {
+	ObjField map[string]interface {}
+	StringField string
+}`
+	wantDefTag := `type DynamicStruct struct {
+	ObjField map[string]interface {} ` + "`json:\"obj_field\"`" + `
+	StringField string ` + "`json:\"string_field\"`" + `
+}`
+	wantDefNest := `type DynamicStruct struct {
+	ObjField struct {
+		Id float64
+		Name string
+	}
+	StringField string
+}`
 	wantDefTagNest := `type DynamicStruct struct {
-	ObjField struct { Id float64 ` + "`json:\"id\"`" + `; Name string ` + "`json:\"name\"`" + ` }
+	ObjField struct {
+		Id float64 ` + "`json:\"id\"`" + `
+		Name string ` + "`json:\"name\"`" + `
+	}
 	StringField string ` + "`json:\"string_field\"`" + `
 }`
 
 	t.Run("TestDynamicStructHasObj", func(t *testing.T) {
-		// testCorrectCase(t, data, TypeJSON, false, false, 2, wantDef)
-		// testCorrectCase(t, data, TypeJSON, false, true, 2, wantDefTag)
-		// testCorrectCase(t, data, TypeJSON, true, false, 2, wantDefNest)
+		testCorrectCase(t, data, TypeJSON, false, false, 2, wantDef)
+		testCorrectCase(t, data, TypeJSON, false, true, 2, wantDefTag)
+		testCorrectCase(t, data, TypeJSON, true, false, 2, wantDefNest)
 		testCorrectCase(t, data, TypeJSON, true, true, 2, wantDefTagNest)
 	})
 }
@@ -400,7 +406,15 @@ func TestDynamicStructHasObjTwoNest(t *testing.T) {
 }
 `)
 	wantDef := `type DynamicStruct struct {
-	ObjField *struct { ObjobjField *struct { Status string; UserId float64 }; Id float64; Name string; Boss bool }
+	ObjField struct {
+		Boss bool
+		Id float64
+		Name string
+		ObjobjField struct {
+			Status string
+			UserId float64
+		}
+	}
 	StringField string
 }`
 

@@ -102,31 +102,54 @@ func (ds *DynamicStruct) Definition() string {
 	}
 
 	var stb strings.Builder
-	ds.def = definition(&stb, ds.fields, ds.name)
+	ds.def = definition(&stb, ds.fields, ds.name, 1)
 	return ds.def
 }
 
-func definition(stbp *strings.Builder, flds []reflect.StructField, n string) string {
-
+func definition(stbp *strings.Builder, flds []reflect.StructField, name string, indentLevel int) string {
 	sortedFlds := sortFields(flds)
 
-	if stbp.Len() == 0 {
-		stbp.WriteString("type " + n + " struct {\n")
+	if indentLevel == 1 {
+		stbp.WriteString("type ")
 	}
+	if name != "" {
+		stbp.WriteString(name + " ")
+	}
+	stbp.WriteString("struct {\n")
 
-	indent := "\t"
+	indent := strings.Repeat("\t", indentLevel)
+	//indent := "\t"
 	for _, sf := range sortedFlds {
-		// FIXME: DyanmicStructがネストしている事を検知して再帰処理したい
-		// これが出来ないとtagの出力が意図しないものになってしまう
 		stbp.WriteString(indent)
 		stbp.WriteString(sf.Name)
 		stbp.WriteString(" ")
-		stbp.WriteString(sf.Type.String())
-		if sf.Tag != "" {
-			stbp.WriteString(" ")
-			stbp.WriteString(fmt.Sprintf("`%s`", sf.Tag))
+
+		nt := sf.Type
+		if nt.Kind() == reflect.Ptr {
+			nt = nt.Elem()
 		}
+		if nt.Kind() == reflect.Struct {
+			// recursively call if type is struct
+			nflds := make([]reflect.StructField, nt.NumField())
+			for i := 0; i < nt.NumField(); i++ {
+				nflds[i] = nt.Field(i)
+			}
+			var nstb strings.Builder
+			nstr := definition(&nstb, nflds, "", indentLevel+1)
+			stbp.WriteString(nstr)
+		} else {
+			stbp.WriteString(sf.Type.String())
+			if sf.Tag != "" {
+				stbp.WriteString(" ")
+				stbp.WriteString(fmt.Sprintf("`%s`", sf.Tag))
+			}
+		}
+
 		stbp.WriteString("\n")
+	}
+
+	if indentLevel > 1 {
+		stbp.WriteString(strings.Repeat("\t", indentLevel-1))
 	}
 	stbp.WriteString("}")
 
