@@ -135,8 +135,7 @@ func definition(stbp *strings.Builder, flds []reflect.StructField, name string, 
 				nflds[i] = nt.Field(i)
 			}
 			var nstb strings.Builder
-			nstr := definition(&nstb, nflds, "", indentLevel+1)
-			stbp.WriteString(nstr)
+			stbp.WriteString(definition(&nstb, nflds, "", indentLevel+1))
 		} else {
 			stbp.WriteString(sf.Type.String())
 			if sf.Tag != "" {
