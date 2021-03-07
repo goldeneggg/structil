@@ -331,9 +331,17 @@ func TestDynamicStructHasOnlyPrimitive(t *testing.T) {
 	NullField interface {}
 	StringField string
 }`
+	wantDefTag := `type DynamicStruct struct {
+	BoolField bool ` + "`json:\"bool_field\"`" + `
+	Float32Field float64 ` + "`json:\"float32_field\"`" + `
+	IntField float64 ` + "`json:\"int_field\"`" + `
+	NullField interface {} ` + "`json:\"null_field\"`" + `
+	StringField string ` + "`json:\"string_field\"`" + `
+}`
 
 	t.Run("TestDynamicStructHasOnlyPrimitive", func(t *testing.T) {
 		testCorrectCase(t, data, TypeJSON, false, false, 5, wantDef)
+		testCorrectCase(t, data, TypeJSON, false, true, 5, wantDefTag)
 	})
 }
 
@@ -349,39 +357,32 @@ func TestDynamicStructHasObj(t *testing.T) {
   }
 }
 `)
-	wantDef := `type DynamicStruct struct {
-	ObjField map[string]interface {}
-	StringField string
+	// 	wantDef := `type DynamicStruct struct {
+	// 	ObjField map[string]interface {}
+	// 	StringField string
+	// }`
+	// 	wantDefTag := `type DynamicStruct struct {
+	// 	ObjField map[string]interface {} ` + "`json:\"obj_field\"`" + `
+	// 	StringField string ` + "`json:\"string_field\"`" + `
+	// }`
+	// wantDefNest := `type DynamicStruct struct {
+	// 	ObjField struct { Name string; Id float64 }
+	// 	StringField string
+	// }`
+	wantDefTagNest := `type DynamicStruct struct {
+	ObjField struct { Id float64 ` + "`json:\"id\"`" + `; Name string ` + "`json:\"name\"`" + ` }
+	StringField string ` + "`json:\"string_field\"`" + `
 }`
 
 	t.Run("TestDynamicStructHasObj", func(t *testing.T) {
-		testCorrectCase(t, data, TypeJSON, false, false, 2, wantDef)
+		// testCorrectCase(t, data, TypeJSON, false, false, 2, wantDef)
+		// testCorrectCase(t, data, TypeJSON, false, true, 2, wantDefTag)
+		// testCorrectCase(t, data, TypeJSON, true, false, 2, wantDefNest)
+		testCorrectCase(t, data, TypeJSON, true, true, 2, wantDefTagNest)
 	})
 }
 
-func TestDynamicStructHasObjNest(t *testing.T) {
-	t.Parallel()
-
-	data := []byte(`
-{
-  "string_field":"あああ",
-  "obj_field":{
-    "id":123,
-    "name":"Test Tarou"
-  }
-}
-`)
-	wantDef := `type DynamicStruct struct {
-	ObjField *struct { Name string; Id float64 }
-	StringField string
-}`
-
-	t.Run("TestDynamicStructHasObj", func(t *testing.T) {
-		testCorrectCase(t, data, TypeJSON, true, false, 2, wantDef)
-	})
-}
-
-func TestDynamicStructHasObTwoNest(t *testing.T) {
+func TestDynamicStructHasObjTwoNest(t *testing.T) {
 	t.Parallel()
 
 	data := []byte(`
@@ -426,28 +427,6 @@ func TestDynamicStructHasArrayString(t *testing.T) {
 }`
 
 	t.Run("TestDynamicStructHasArrayString", func(t *testing.T) {
-		testCorrectCase(t, data, TypeJSON, false, false, 2, wantDef)
-	})
-}
-
-func TestDynamicStructHasArrayInt(t *testing.T) {
-	t.Parallel()
-
-	data := []byte(`
-{
-  "string_field":"あああ",
-  "int_array_field":[
-    3,
-    4
-  ]
-}
-`)
-	wantDef := `type DynamicStruct struct {
-	IntArrayField []float64
-	StringField string
-}`
-
-	t.Run("TestDynamicStructHasArrayInt", func(t *testing.T) {
 		testCorrectCase(t, data, TypeJSON, false, false, 2, wantDef)
 	})
 }

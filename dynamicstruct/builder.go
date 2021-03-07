@@ -42,20 +42,20 @@ var (
 	ErrSample = errors.New("SampleError")
 )
 
-// Builder is thi interface that builds a dynamic and runtime struct.
+// Builder is the interface that builds a dynamic and runtime struct.
 type Builder struct {
-	fields map[string]reflect.Type
-	tags   map[string]reflect.StructTag
 	name   string
+	fields map[string]reflect.Type
+	tags   map[string]reflect.StructTag // optional
 	err    error
 }
 
 // NewBuilder returns a concrete Builder
 func NewBuilder() *Builder {
 	return &Builder{
+		name:   defaultStructName,
 		fields: map[string]reflect.Type{},
 		tags:   map[string]reflect.StructTag{},
-		name:   defaultStructName,
 	}
 }
 
@@ -461,18 +461,6 @@ func (b *Builder) add(p *addParam) {
 	b.SetTag(p.name, p.tag)
 }
 
-// Remove returns a Builder that was removed a field named by name parameter.
-func (b *Builder) Remove(name string) *Builder {
-	delete(b.fields, name)
-	return b
-}
-
-// SetTag returns a Builder that was set the tag for the specific field.
-func (b *Builder) SetTag(name string, tag string) *Builder {
-	b.tags[name] = reflect.StructTag(tag)
-	return b
-}
-
 // SetStructName returns a Builder that was set the name of DynamicStruct.
 // Default name is "DynamicStruct"
 func (b *Builder) SetStructName(name string) *Builder {
@@ -485,15 +473,28 @@ func (b *Builder) GetStructName() string {
 	return b.name
 }
 
+// SetTag returns a Builder that was set the tag for the specific field.
+// Expected tag string is 'TYPE1:"FIELDNAME1" TYPEn:"FIELDNAMEn"' format (e.g. json:"id" etc)
+func (b *Builder) SetTag(name string, tag string) *Builder {
+	b.tags[name] = reflect.StructTag(tag)
+	return b
+}
+
+// NumField returns the number of built struct fields.
+func (b *Builder) NumField() int {
+	return len(b.fields)
+}
+
 // Exists returns true if the specified name field exists
 func (b *Builder) Exists(name string) bool {
 	_, ok := b.fields[name]
 	return ok
 }
 
-// NumField returns the number of built struct fields.
-func (b *Builder) NumField() int {
-	return len(b.fields)
+// Remove returns a Builder that was removed a field named by name parameter.
+func (b *Builder) Remove(name string) *Builder {
+	delete(b.fields, name)
+	return b
 }
 
 // Build returns a concrete struct pointer built by Builder.

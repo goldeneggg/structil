@@ -12,9 +12,10 @@ import (
 
 // DynamicStruct is the struct that built dynamic struct by Builder.Build().
 type DynamicStruct struct {
-	name  string
-	rt    reflect.Type
-	isPtr bool
+	name   string
+	fields []reflect.StructField
+	rt     reflect.Type
+	isPtr  bool
 	// sortedFields  string  // TODO: for performance tuning
 	def string
 }
@@ -28,9 +29,10 @@ func newDynamicStruct(fields []reflect.StructField, isPtr bool) *DynamicStruct {
 // Note: Create DynamicStruct via Builder.Build(), instead of calling this method directly.
 func newDynamicStructWithName(fields []reflect.StructField, isPtr bool, name string) *DynamicStruct {
 	return &DynamicStruct{
-		name:  name,
-		rt:    reflect.StructOf(fields),
-		isPtr: isPtr,
+		name:   name,
+		fields: fields,
+		rt:     reflect.StructOf(fields),
+		isPtr:  isPtr,
 	}
 }
 
@@ -47,6 +49,11 @@ func (ds *DynamicStruct) Type() reflect.Type {
 // NumField returns the number of built struct fields.
 func (ds *DynamicStruct) NumField() int {
 	return ds.rt.NumField()
+}
+
+// Fields returns the all fields of the built struct.
+func (ds *DynamicStruct) Fields() []reflect.StructField {
+	return ds.fields
 }
 
 // Field returns the i'th field of the built struct.
@@ -94,33 +101,47 @@ func (ds *DynamicStruct) Definition() string {
 		return ds.def
 	}
 
-	// TODO: performance optimization
-	// TODO: nested DynamicStruct fields are also sorted as same as high-level DynamicStruct
-	fields := make([]reflect.StructField, ds.NumField())
-	for i := 0; i < ds.NumField(); i++ {
-		fields[i] = ds.Field(i)
+	var stb strings.Builder
+	ds.def = definition(&stb, ds.fields, ds.name)
+	return ds.def
+}
+
+func definition(stbp *strings.Builder, flds []reflect.StructField, n string) string {
+
+	sortedFlds := sortFields(flds)
+
+	if stbp.Len() == 0 {
+		stbp.WriteString("type " + n + " struct {\n")
 	}
-	sort.Slice(fields, func(i, j int) bool {
-		return fields[i].Name < fields[j].Name
+
+	indent := "\t"
+	for _, sf := range sortedFlds {
+		// FIXME: DyanmicStructがネストしている事を検知して再帰処理したい
+		// これが出来ないとtagの出力が意図しないものになってしまう
+		stbp.WriteString(indent)
+		stbp.WriteString(sf.Name)
+		stbp.WriteString(" ")
+		stbp.WriteString(sf.Type.String())
+		if sf.Tag != "" {
+			stbp.WriteString(" ")
+			stbp.WriteString(fmt.Sprintf("`%s`", sf.Tag))
+		}
+		stbp.WriteString("\n")
+	}
+	stbp.WriteString("}")
+
+	return stbp.String()
+}
+
+func sortFields(fields []reflect.StructField) []reflect.StructField {
+	// TODO: performance optimization
+	sfs := make([]reflect.StructField, len(fields))
+	for i := 0; i < len(fields); i++ {
+		sfs[i] = fields[i]
+	}
+	sort.Slice(sfs, func(i, j int) bool {
+		return sfs[i].Name < sfs[j].Name
 	})
 
-	var stb strings.Builder
-	indent := "\t"
-
-	stb.WriteString("type " + ds.Name() + " struct {\n")
-	for _, field := range fields {
-		stb.WriteString(indent)
-		stb.WriteString(field.Name)
-		stb.WriteString(" ")
-		stb.WriteString(field.Type.String())
-		if field.Tag != "" {
-			stb.WriteString(" ")
-			stb.WriteString(fmt.Sprintf("`%s`", field.Tag))
-		}
-		stb.WriteString("\n")
-	}
-	stb.WriteString("}")
-
-	ds.def = stb.String()
-	return ds.def
+	return sfs
 }
