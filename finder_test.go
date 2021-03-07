@@ -497,7 +497,7 @@ func TestFromKeys(t *testing.T) {
 	fks := make([]*FinderKeys, 5)
 
 	for i := 0; i < len(fs); i++ {
-		fk, err = NewFinderKeys("examples/finder_from_conf", fmt.Sprintf("ex_test%s_yml", strconv.Itoa(i+1)))
+		fk, err = NewFinderKeys("testdata/finder_from_conf", fmt.Sprintf("ex_test%s_yml", strconv.Itoa(i+1)))
 		if err != nil {
 			t.Errorf("NewFinderKeys() error = %v", err)
 			return
@@ -651,7 +651,7 @@ func TestNewFinderKeys(t *testing.T) {
 	}{
 		{
 			name:      "with valid yaml file",
-			args:      args{d: "examples/finder_from_conf", n: "ex_test1_yml"},
+			args:      args{d: "testdata/finder_from_conf", n: "ex_test1_yml"},
 			wantError: false,
 			wantLen:   15,
 			wantKeys: []string{
@@ -674,7 +674,7 @@ func TestNewFinderKeys(t *testing.T) {
 		},
 		{
 			name:      "with valid json file",
-			args:      args{d: "examples/finder_from_conf", n: "ex_test1_json"},
+			args:      args{d: "testdata/finder_from_conf", n: "ex_test1_json"},
 			wantError: false,
 			wantLen:   15,
 			wantKeys: []string{
@@ -697,22 +697,22 @@ func TestNewFinderKeys(t *testing.T) {
 		},
 		{
 			name:      "with invalid conf file that Keys does not exist",
-			args:      args{d: "examples/finder_from_conf", n: "ex_test_nonkeys_yml"},
+			args:      args{d: "testdata/finder_from_conf", n: "ex_test_nonkeys_yml"},
 			wantError: true,
 		},
 		{
 			name:      "with invalid conf file that is empty",
-			args:      args{d: "examples/finder_from_conf", n: "ex_test_empty_yml"},
+			args:      args{d: "testdata/finder_from_conf", n: "ex_test_empty_yml"},
 			wantError: true,
 		},
 		{
 			name:      "with invalid conf file",
-			args:      args{d: "examples/finder_from_conf", n: "ex_test_invalid_yml"},
+			args:      args{d: "testdata/finder_from_conf", n: "ex_test_invalid_yml"},
 			wantError: true,
 		},
 		{
 			name:      "with conf file does not exist",
-			args:      args{d: "examples/finder_from_conf", n: "ex_test_notexist"},
+			args:      args{d: "testdata/finder_from_conf", n: "ex_test_notexist"},
 			wantError: true,
 		},
 	}

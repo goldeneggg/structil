@@ -403,7 +403,7 @@ func BenchmarkNewFinderKeys_yml(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		fks, err := NewFinderKeys("examples/finder_from_conf", "ex_test1_yml")
+		fks, err := NewFinderKeys("testdata/finder_from_conf", "ex_test1_yml")
 		if err == nil {
 			_ = f.FromKeys(fks)
 			f.Reset()
@@ -422,7 +422,7 @@ func BenchmarkNewFinderKeys_json(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		fks, err := NewFinderKeys("examples/finder_from_conf", "ex_test1_json")
+		fks, err := NewFinderKeys("testdata/finder_from_conf", "ex_test1_json")
 		if err == nil {
 			_ = f.FromKeys(fks)
 			f.Reset()
