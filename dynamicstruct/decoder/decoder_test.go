@@ -445,6 +445,37 @@ func TestDynamicStructHasArrayStringJSON(t *testing.T) {
 	})
 }
 
+func TestDynamicStructHasOnlyPrimitiveYAML(t *testing.T) {
+	t.Parallel()
+
+	data := []byte(`
+null_field: null
+string_field: かきくけこ
+int_field: 45678
+float32_field: 9.876
+bool_field: false
+`)
+	wantDef := `type DynamicStruct struct {
+	BoolField bool
+	Float32Field float64
+	IntField int
+	NullField interface {}
+	StringField string
+}`
+	wantDefTag := `type DynamicStruct struct {
+	BoolField bool ` + "`yaml:\"bool_field\"`" + `
+	Float32Field float64 ` + "`yaml:\"float32_field\"`" + `
+	IntField int ` + "`yaml:\"int_field\"`" + `
+	NullField interface {} ` + "`yaml:\"null_field\"`" + `
+	StringField string ` + "`yaml:\"string_field\"`" + `
+}`
+
+	t.Run("TestDynamicStructHasOnlyPrimitive", func(t *testing.T) {
+		testCorrectCase(t, data, TypeYAML, false, false, 5, wantDef)
+		testCorrectCase(t, data, TypeYAML, false, true, 5, wantDefTag)
+	})
+}
+
 func testCorrectCase(t *testing.T, data []byte, dt DataType, nest bool, useTag bool, wantNumF int, wantDef string) {
 	d, err := New(data, dt)
 	if err != nil {

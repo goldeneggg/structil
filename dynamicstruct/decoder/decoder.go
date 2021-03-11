@@ -51,13 +51,12 @@ func (d *Decoder) toDs(i interface{}, nest bool, useTag bool) (*dynamicstruct.Dy
 	switch t := i.(type) {
 	case map[string]interface{}:
 		return d.toDsFromStringMap(t, nest, useTag)
-	// FIXME: map[interface{}]interface{} support (for YAML)
-	// case map[interface{}]interface{}:
-	// 	m := make(map[string]interface{})
-	// 	for k, v := range t {
-	// 		m[fmt.Sprintf("%v", k)] = v
-	// 	}
-	// 	return decodeMap(m, dt, ds)
+	case map[interface{}]interface{}:
+		m := make(map[string]interface{})
+		for k, v := range t {
+			m[fmt.Sprintf("%v", k)] = v
+		}
+		return d.toDsFromStringMap(m, nest, useTag)
 	case []interface{}:
 		if len(t) > 0 {
 			if len(t) == 1 {
@@ -104,7 +103,6 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag 
 			// FIXME: fix nest mode support or not
 			b = b.AddSliceWithTag(name, interface{}(value[0]), tag)
 		case map[string]interface{}:
-			// TODO: nest mode support
 			if nest {
 				nds, err := d.toDsFromStringMap(value, nest, useTag)
 				if err != nil {
@@ -118,16 +116,16 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag 
 					break
 				}
 			}
-
+		case int:
+			b = b.AddIntWithTag(name, tag)
 		// case map[interface{}]interface{}:
 		// 	m := make(map[string]interface{})
 		// 	for k, v := range value {
 		// 		m[fmt.Sprintf("%v", k)] = v
 		// 	}
-
-		// 	for kk, vv := range m {
-		// 		b = b.AddMapWithTag(name, kk, interface{}(vv), tag)
-		// 		break
+		// 	_, err := d.toDsFromStringMap(m, nest, useTag)
+		// 	if err != nil {
+		// 		return nil, err
 		// 	}
 		case nil:
 			// Note: Is this ok?
