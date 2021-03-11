@@ -7,6 +7,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// DataType is implemented by any value that has String and Unmershal method,
 type DataType interface {
 	String() string
 	Unmarshal([]byte, interface{}) error

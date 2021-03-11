@@ -8,13 +8,7 @@ import (
 	"github.com/goldeneggg/structil/dynamicstruct"
 )
 
-// DecodedResult is the result of Decoder.Decode.
-// deprecated
-type DecodedResult struct {
-	*dynamicstruct.DynamicStruct
-	Interface interface{}
-}
-
+// Decoder is the struct that decodes some marshaled data like JSON and YAML.
 type Decoder struct {
 	data []byte
 	dt   DataType
@@ -22,14 +16,17 @@ type Decoder struct {
 	ds   dynamicstruct.DynamicStruct
 }
 
+// NewJSON returns a concrete Decoder for JSON.
 func NewJSON(data []byte) (*Decoder, error) {
 	return New(data, TypeJSON)
 }
 
+// NewYAML returns a concrete Decoder for YAML.
 func NewYAML(data []byte) (*Decoder, error) {
 	return New(data, TypeYAML)
 }
 
+// New returns a concrete Decoder for DataType dt.
 func New(data []byte, dt DataType) (d *Decoder, err error) {
 	var intf interface{}
 	err = dt.Unmarshal(data, &intf)
@@ -43,6 +40,7 @@ func New(data []byte, dt DataType) (d *Decoder, err error) {
 	return
 }
 
+// DynamicStruct returns a decoded DynamicStruct.
 func (d *Decoder) DynamicStruct(nest bool, useTag bool) (*dynamicstruct.DynamicStruct, error) {
 	return d.toDs(d.unm, nest, useTag)
 }
