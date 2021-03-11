@@ -118,17 +118,20 @@ func definition(stbp *strings.Builder, flds []reflect.StructField, name string, 
 	stbp.WriteString("struct {\n")
 
 	indent := strings.Repeat("\t", indentLevel)
-	//indent := "\t"
+	var nt reflect.Type
+	var k reflect.Kind
 	for _, sf := range sortedFlds {
 		stbp.WriteString(indent)
 		stbp.WriteString(sf.Name)
 		stbp.WriteString(" ")
 
-		nt := sf.Type
-		if nt.Kind() == reflect.Ptr {
+		nt = sf.Type
+		k = nt.Kind()
+		if k == reflect.Ptr {
 			nt = nt.Elem()
+			k = nt.Kind()
 		}
-		if nt.Kind() == reflect.Struct {
+		if k == reflect.Struct {
 			// recursively call if type is struct
 			nflds := make([]reflect.StructField, nt.NumField())
 			for i := 0; i < nt.NumField(); i++ {
@@ -138,10 +141,11 @@ func definition(stbp *strings.Builder, flds []reflect.StructField, name string, 
 			stbp.WriteString(definition(&nstb, nflds, "", indentLevel+1))
 		} else {
 			stbp.WriteString(sf.Type.String())
-			if sf.Tag != "" {
-				stbp.WriteString(" ")
-				stbp.WriteString(fmt.Sprintf("`%s`", sf.Tag))
-			}
+		}
+
+		if sf.Tag != "" {
+			stbp.WriteString(" ")
+			stbp.WriteString(fmt.Sprintf("`%s`", sf.Tag))
 		}
 
 		stbp.WriteString("\n")

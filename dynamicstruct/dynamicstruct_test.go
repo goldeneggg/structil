@@ -591,10 +591,134 @@ func TestBuilderBuild(t *testing.T) {
 	SliceFieldWithTag []*dynamicstruct_test.DynamicTestStruct ` + "`json:\"slice_field_with_tag\"`" + `
 	StringField string
 	StringFieldWithTag string ` + "`json:\"string_field_with_tag\"`" + `
-	StructField struct { Byte uint8; Bytes []uint8; Int int; Int64 int64; Uint uint; Uint64 uint64; Float32 float32; Float64 float64; String string; Stringptr *string; Stringslice []string; Bool bool; Map map[string]interface {}; Func func(string) interface {}; DynamicTestStruct2 dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct2Ptr *dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct4Slice []dynamicstruct_test.DynamicTestStruct4; DynamicTestStruct4PtrSlice []*dynamicstruct_test.DynamicTestStruct4 }
-	StructFieldWithTag struct { Byte uint8; Bytes []uint8; Int int; Int64 int64; Uint uint; Uint64 uint64; Float32 float32; Float64 float64; String string; Stringptr *string; Stringslice []string; Bool bool; Map map[string]interface {}; Func func(string) interface {}; DynamicTestStruct2 dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct2Ptr *dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct4Slice []dynamicstruct_test.DynamicTestStruct4; DynamicTestStruct4PtrSlice []*dynamicstruct_test.DynamicTestStruct4 } ` + "`json:\"struct_field_with_tag\"`" + `
-	StructPtrField *struct { Byte uint8; Bytes []uint8; Int int; Int64 int64; Uint uint; Uint64 uint64; Float32 float32; Float64 float64; String string; Stringptr *string; Stringslice []string; Bool bool; Map map[string]interface {}; Func func(string) interface {}; DynamicTestStruct2 dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct2Ptr *dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct4Slice []dynamicstruct_test.DynamicTestStruct4; DynamicTestStruct4PtrSlice []*dynamicstruct_test.DynamicTestStruct4 }
-	StructPtrFieldWithTag *struct { Byte uint8; Bytes []uint8; Int int; Int64 int64; Uint uint; Uint64 uint64; Float32 float32; Float64 float64; String string; Stringptr *string; Stringslice []string; Bool bool; Map map[string]interface {}; Func func(string) interface {}; DynamicTestStruct2 dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct2Ptr *dynamicstruct_test.DynamicTestStruct2; DynamicTestStruct4Slice []dynamicstruct_test.DynamicTestStruct4; DynamicTestStruct4PtrSlice []*dynamicstruct_test.DynamicTestStruct4 } ` + "`json:\"struct_ptr_field_with_tag\"`" + `
+	StructField struct {
+		Bool bool
+		Byte uint8
+		Bytes []uint8
+		DynamicTestStruct2 struct {
+			DynamicTestStruct3 struct {
+				Int int
+				String string
+			}
+			String string
+		}
+		DynamicTestStruct2Ptr struct {
+			DynamicTestStruct3 struct {
+				Int int
+				String string
+			}
+			String string
+		}
+		DynamicTestStruct4PtrSlice []*dynamicstruct_test.DynamicTestStruct4
+		DynamicTestStruct4Slice []dynamicstruct_test.DynamicTestStruct4
+		Float32 float32
+		Float64 float64
+		Func func(string) interface {}
+		Int int
+		Int64 int64
+		Map map[string]interface {}
+		String string
+		Stringptr *string
+		Stringslice []string
+		Uint uint
+		Uint64 uint64
+	}
+	StructFieldWithTag struct {
+		Bool bool
+		Byte uint8
+		Bytes []uint8
+		DynamicTestStruct2 struct {
+			DynamicTestStruct3 struct {
+				Int int
+				String string
+			}
+			String string
+		}
+		DynamicTestStruct2Ptr struct {
+			DynamicTestStruct3 struct {
+				Int int
+				String string
+			}
+			String string
+		}
+		DynamicTestStruct4PtrSlice []*dynamicstruct_test.DynamicTestStruct4
+		DynamicTestStruct4Slice []dynamicstruct_test.DynamicTestStruct4
+		Float32 float32
+		Float64 float64
+		Func func(string) interface {}
+		Int int
+		Int64 int64
+		Map map[string]interface {}
+		String string
+		Stringptr *string
+		Stringslice []string
+		Uint uint
+		Uint64 uint64
+	} ` + "`json:\"struct_field_with_tag\"`" + `
+	StructPtrField struct {
+		Bool bool
+		Byte uint8
+		Bytes []uint8
+		DynamicTestStruct2 struct {
+			DynamicTestStruct3 struct {
+				Int int
+				String string
+			}
+			String string
+		}
+		DynamicTestStruct2Ptr struct {
+			DynamicTestStruct3 struct {
+				Int int
+				String string
+			}
+			String string
+		}
+		DynamicTestStruct4PtrSlice []*dynamicstruct_test.DynamicTestStruct4
+		DynamicTestStruct4Slice []dynamicstruct_test.DynamicTestStruct4
+		Float32 float32
+		Float64 float64
+		Func func(string) interface {}
+		Int int
+		Int64 int64
+		Map map[string]interface {}
+		String string
+		Stringptr *string
+		Stringslice []string
+		Uint uint
+		Uint64 uint64
+	}
+	StructPtrFieldWithTag struct {
+		Bool bool
+		Byte uint8
+		Bytes []uint8
+		DynamicTestStruct2 struct {
+			DynamicTestStruct3 struct {
+				Int int
+				String string
+			}
+			String string
+		}
+		DynamicTestStruct2Ptr struct {
+			DynamicTestStruct3 struct {
+				Int int
+				String string
+			}
+			String string
+		}
+		DynamicTestStruct4PtrSlice []*dynamicstruct_test.DynamicTestStruct4
+		DynamicTestStruct4Slice []dynamicstruct_test.DynamicTestStruct4
+		Float32 float32
+		Float64 float64
+		Func func(string) interface {}
+		Int int
+		Int64 int64
+		Map map[string]interface {}
+		String string
+		Stringptr *string
+		Stringslice []string
+		Uint uint
+		Uint64 uint64
+	} ` + "`json:\"struct_ptr_field_with_tag\"`" + `
 }`,
 			testMap:             testMap,
 			tryAddDynamicStruct: true,

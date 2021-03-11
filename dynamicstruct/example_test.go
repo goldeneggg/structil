@@ -92,7 +92,10 @@ func Example() {
 	// 	SliceField []int
 	// 	SomeObjectField *interface {} `json:"some_object_field"`
 	// 	StringField string
-	// 	StructPtrField *struct { Key string; Value interface {} }
+	// 	StructPtrField struct {
+	// 		Key string
+	// 		Value interface {}
+	// 	}
 	// }
 	// num of fields=7
 	// 'StringField'=Abc Def
@@ -173,7 +176,10 @@ func Example_unmarshalJSON() {
 	// 	IntField int `json:"int_field"`
 	// 	SliceField []string `json:"slice_string_field"`
 	// 	StringField string `json:"string_field"`
-	// 	StructPtrField *struct { Key string "json:\"key\""; Value interface {} "json:\"value\"" } `json:"struct_ptr_field"`
+	// 	StructPtrField struct {
+	// 		Key string `json:"key"`
+	// 		Value interface {} `json:"value"`
+	// 	} `json:"struct_ptr_field"`
 	// }
 	// num of fields=6
 	// 'StringField'=あいうえお
