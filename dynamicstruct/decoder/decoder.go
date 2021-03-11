@@ -49,12 +49,6 @@ func (d *Decoder) toDs(i interface{}, nest bool, useTag bool) (*dynamicstruct.Dy
 	switch t := i.(type) {
 	case map[string]interface{}:
 		return d.toDsFromStringMap(t, nest, useTag)
-	case map[interface{}]interface{}:
-		m := make(map[string]interface{})
-		for k, v := range t {
-			m[fmt.Sprintf("%v", k)] = v
-		}
-		return d.toDsFromStringMap(m, nest, useTag)
 	case []interface{}:
 		if len(t) > 0 {
 			if len(t) == 1 {
@@ -65,6 +59,13 @@ func (d *Decoder) toDs(i interface{}, nest bool, useTag bool) (*dynamicstruct.Dy
 			// 配列内の構造が可変なケースを考慮して、最も大きい構造の要素を取り出してその要素に対してtoDsを呼ぶようにする
 			return d.toDs(t[0], nest, useTag)
 		}
+	// YAML support
+	case map[interface{}]interface{}:
+		m := make(map[string]interface{})
+		for k, v := range t {
+			m[fmt.Sprintf("%v", k)] = v
+		}
+		return d.toDsFromStringMap(m, nest, useTag)
 	}
 
 	return nil, fmt.Errorf("unexpected interface: %#v", i)
