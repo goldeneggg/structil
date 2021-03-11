@@ -476,6 +476,96 @@ bool_field: false
 	})
 }
 
+func TestDynamicStructHasObjYAML(t *testing.T) {
+	t.Parallel()
+
+	data := []byte(`
+string_field: かきくけこ
+obj_field:
+  id: 123
+  name: Test Tarou
+`)
+	wantDef := `type DynamicStruct struct {
+	ObjField map[string]interface {}
+	StringField string
+}`
+	wantDefTag := `type DynamicStruct struct {
+	ObjField map[string]interface {} ` + "`yaml:\"obj_field\"`" + `
+	StringField string ` + "`yaml:\"string_field\"`" + `
+}`
+	wantDefNest := `type DynamicStruct struct {
+	ObjField struct {
+		Id int
+		Name string
+	}
+	StringField string
+}`
+	wantDefTagNest := `type DynamicStruct struct {
+	ObjField struct {
+		Id int ` + "`yaml:\"id\"`" + `
+		Name string ` + "`yaml:\"name\"`" + `
+	}
+	StringField string ` + "`yaml:\"string_field\"`" + `
+}`
+
+	t.Run("TestDynamicStructHasObj", func(t *testing.T) {
+		testCorrectCase(t, data, TypeYAML, false, false, 2, wantDef)
+		testCorrectCase(t, data, TypeYAML, false, true, 2, wantDefTag)
+		testCorrectCase(t, data, TypeYAML, true, false, 2, wantDefNest)
+		testCorrectCase(t, data, TypeYAML, true, true, 2, wantDefTagNest)
+	})
+}
+
+func TestDynamicStructHasObjTwoNestYAML(t *testing.T) {
+	t.Parallel()
+
+	data := []byte(`
+string_field: あああ
+obj_field:
+  id: 45
+  name: Test Jiou
+  boss: true
+  objobj_field:
+    user_id: 678
+    status: progress
+`)
+	wantDef := `type DynamicStruct struct {
+	ObjField struct {
+		Boss bool
+		Id int
+		Name string
+		ObjobjField struct {
+			Status string
+			UserId int
+		}
+	}
+	StringField string
+}`
+
+	t.Run("TestDynamicStructHasObj", func(t *testing.T) {
+		testCorrectCase(t, data, TypeYAML, true, false, 2, wantDef)
+	})
+}
+
+func TestDynamicStructHasArrayStringYAML(t *testing.T) {
+	t.Parallel()
+
+	data := []byte(`
+string_field: あああ
+string_array_field:
+  - id1
+  - id2
+`)
+	wantDef := `type DynamicStruct struct {
+	StringArrayField []string
+	StringField string
+}`
+
+	t.Run("TestDynamicStructHasArrayString", func(t *testing.T) {
+		testCorrectCase(t, data, TypeYAML, false, false, 2, wantDef)
+	})
+}
+
 func testCorrectCase(t *testing.T, data []byte, dt DataType, nest bool, useTag bool, wantNumF int, wantDef string) {
 	d, err := New(data, dt)
 	if err != nil {

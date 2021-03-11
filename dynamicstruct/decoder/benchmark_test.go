@@ -21,3 +21,19 @@ func BenchmarkDynamicStructArrayJSON(b *testing.B) {
 		_, _ = d.DynamicStruct(false, false)
 	}
 }
+
+func BenchmarkDynamicStructSingleYAML(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		d, _ := New(singleYAML, TypeYAML)
+		_, _ = d.DynamicStruct(false, false)
+	}
+}
+
+func BenchmarkDynamicStructArrayYAML(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		d, _ := New(arrayYAML, TypeYAML)
+		_, _ = d.DynamicStruct(false, false)
+	}
+}

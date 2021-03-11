@@ -77,7 +77,6 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag 
 	b := dynamicstruct.NewBuilder()
 
 	for k, v := range m {
-		// TODO: "json" changes dynamic. e.g. "yaml", "xml" and others
 		// TODO: apply initialisms theories. See: https://github.com/golang/go/wiki/CodeReviewComments#initialisms
 		//   (and more golint theories validations)
 
@@ -116,19 +115,30 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag 
 					break
 				}
 			}
+		// YAML support
 		case int:
 			b = b.AddIntWithTag(name, tag)
-		// case map[interface{}]interface{}:
-		// 	m := make(map[string]interface{})
-		// 	for k, v := range value {
-		// 		m[fmt.Sprintf("%v", k)] = v
-		// 	}
-		// 	_, err := d.toDsFromStringMap(m, nest, useTag)
-		// 	if err != nil {
-		// 		return nil, err
-		// 	}
+		// YAML support
+		case map[interface{}]interface{}:
+			m := make(map[string]interface{})
+			for k, v := range value {
+				m[fmt.Sprintf("%v", k)] = v
+			}
+
+			if nest {
+				nds, err := d.toDsFromStringMap(m, nest, useTag)
+				if err != nil {
+					return nil, err
+				}
+				b = b.AddDynamicStruct(name, nds, false)
+			} else {
+				for kk := range m {
+					b = b.AddMapWithTag(name, kk, nil, tag)
+					// only one addition
+					break
+				}
+			}
 		case nil:
-			// Note: Is this ok?
 			b = b.AddInterfaceWithTag(name, false, tag)
 		default:
 			return nil, fmt.Errorf("value %#v has invalid type. m is %#v", value, m)
