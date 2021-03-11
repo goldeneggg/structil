@@ -13,7 +13,6 @@ type Decoder struct {
 	data []byte
 	dt   DataType
 	unm  interface{}
-	ds   dynamicstruct.DynamicStruct
 }
 
 // NewJSON returns a concrete Decoder for JSON.
