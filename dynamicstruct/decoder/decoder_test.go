@@ -312,7 +312,7 @@ array_string_field = ["array_str_1", "array_str_2"]
 `)
 )
 
-func TestDynamicStructHasOnlyPrimitive(t *testing.T) {
+func TestDynamicStructHasOnlyPrimitiveJSON(t *testing.T) {
 	t.Parallel()
 
 	data := []byte(`
@@ -345,7 +345,7 @@ func TestDynamicStructHasOnlyPrimitive(t *testing.T) {
 	})
 }
 
-func TestDynamicStructHasObj(t *testing.T) {
+func TestDynamicStructHasObjJSON(t *testing.T) {
 	t.Parallel()
 
 	data := []byte(`
@@ -388,7 +388,7 @@ func TestDynamicStructHasObj(t *testing.T) {
 	})
 }
 
-func TestDynamicStructHasObjTwoNest(t *testing.T) {
+func TestDynamicStructHasObjTwoNestJSON(t *testing.T) {
 	t.Parallel()
 
 	data := []byte(`
@@ -423,7 +423,7 @@ func TestDynamicStructHasObjTwoNest(t *testing.T) {
 	})
 }
 
-func TestDynamicStructHasArrayString(t *testing.T) {
+func TestDynamicStructHasArrayStringJSON(t *testing.T) {
 	t.Parallel()
 
 	data := []byte(`
@@ -473,199 +473,3 @@ func testCorrectCase(t *testing.T, data []byte, dt DataType, nest bool, useTag b
 		return
 	}
 }
-
-/*
-func TestDecode(t *testing.T) {
-	t.Parallel()
-
-	type args struct {
-		data     []byte
-		dataType DataType
-	}
-	tests := []struct {
-		name         string
-		args         args
-		wantError    bool
-		wantDsIsNull bool
-		numField     int
-	}{
-		{
-			name: "JSON does not have null field",
-			args: args{
-				data:     singleJSON,
-				dataType: TypeJSON,
-			},
-			wantError:    false,
-			wantDsIsNull: false,
-			numField:     8,
-		},
-		{
-			name: "JSON is valid array",
-			args: args{
-				data:     arrayJSON,
-				dataType: TypeJSON,
-			},
-			wantError:    false,
-			wantDsIsNull: false,
-			numField:     8,
-		},
-		{
-			name: "Only one null field",
-			args: args{
-				data:     []byte(`{"nullfield":null}`),
-				dataType: TypeJSON,
-			},
-			wantError:    false,
-			wantDsIsNull: false,
-			numField:     1,
-		},
-		{
-			name: "Empty JSON",
-			args: args{
-				data:     []byte(`{}`),
-				dataType: TypeJSON,
-			},
-			wantError:    false,
-			wantDsIsNull: false,
-			numField:     0,
-		},
-		{
-			name: "Empty array JSON",
-			args: args{
-				data:     []byte(`[]`),
-				dataType: TypeJSON,
-			},
-			wantError:    false,
-			wantDsIsNull: true,
-			numField:     0,
-		},
-		{
-			name: "empty with TypeJSON",
-			args: args{
-				data:     []byte(``),
-				dataType: TypeJSON,
-			},
-			wantError:    true,
-			wantDsIsNull: true,
-			numField:     0,
-		},
-		{
-			name: "null with TypeJSON",
-			args: args{
-				data:     []byte(`null`),
-				dataType: TypeJSON,
-			},
-			wantError:    true,
-			wantDsIsNull: true,
-			numField:     0,
-		},
-		{
-			name: "Invalid string with TypeJSON",
-			args: args{
-				data:     []byte(`invalid`),
-				dataType: TypeJSON,
-			},
-			wantError:    true,
-			wantDsIsNull: true,
-			numField:     0,
-		},
-		{
-			name: "Invalid DataType",
-			args: args{
-				data:     singleJSON,
-				dataType: -1,
-			},
-			wantError:    true,
-			wantDsIsNull: true,
-			numField:     0,
-		},
-		{
-			name: "YAML does not have null field",
-			args: args{
-				data:     singleYAML,
-				dataType: TypeYAML,
-			},
-			wantError:    false,
-			wantDsIsNull: false,
-			numField:     8,
-		},
-		{
-			name: "YAML is valid array",
-			args: args{
-				data:     arrayYAML,
-				dataType: TypeYAML,
-			},
-			wantError:    false,
-			wantDsIsNull: false,
-			numField:     8,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			dr, err := Decode(tt.args.data, tt.args.dataType)
-			if err == nil {
-				if tt.wantError {
-					t.Errorf("error did not occur. Interface: %#v", dr.Interface)
-					return
-				}
-
-				if dr.DynamicStruct != nil {
-					if tt.wantDsIsNull {
-						t.Errorf("unexpected DynamicStruct is null. got: is not null, want: is null, ds.Definition:\n%s", dr.DynamicStruct.Definition())
-						return
-					}
-					if dr.DynamicStruct.NumField() != tt.numField {
-						t.Errorf("unmatch numfield. got: %d, want: %d, ds.Definition:\n%s", dr.DynamicStruct.NumField(), tt.numField, dr.DynamicStruct.Definition())
-						return
-					}
-				} else {
-					if !tt.wantDsIsNull {
-						t.Errorf("unexpected DynamicStruct is null. got: is null, want: is not null, Interface:\n%#v", dr.Interface)
-						return
-					}
-				}
-
-			} else if !tt.wantError {
-				t.Errorf("unexpected error occurred. wantError %v, err: %v", tt.wantError, err)
-			}
-		})
-	}
-}
-
-func TestDecodeInvalidType(t *testing.T) {
-	t.Parallel()
-
-	type args struct {
-		data []byte
-	}
-	tests := []struct {
-		name string
-		args args
-	}{
-		{
-			name: "YAML",
-			args: args{
-				data: singleYAML,
-			},
-		},
-		{
-			name: "Invalid string",
-			args: args{
-				data: []byte(`invalid`),
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			dr, err := Decode(tt.args.data, -1)
-			if err == nil {
-				t.Errorf("error did not occur. Interface: %#v", dr.Interface)
-				return
-			}
-		})
-	}
-}
-*/
