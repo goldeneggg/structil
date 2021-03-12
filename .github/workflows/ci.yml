@@ -32,7 +32,7 @@ jobs:
     strategy:
       matrix:
         os: [ 'ubuntu-latest' ]
-        go: [ '1.15' ]
+        go: [ '1.16' ]
 
     steps:
     - id: setup-go
@@ -90,7 +90,7 @@ jobs:
     strategy:
       matrix:
         os: [ 'ubuntu-latest' ]
-        go: [ '1.15' ]
+        go: [ '1.16' ]
     env:
       BENCHSTAT_VS_LATEST: /tmp/benchstat-vs-latest
 
@@ -161,7 +161,7 @@ jobs:
     strategy:
       matrix:
         os: [ 'ubuntu-latest' ]
-        go: [ '1.15' ]
+        go: [ '1.16' ]
     env:
       BENCHMARK_LATEST: BENCHMARK_LATEST.txt
 
