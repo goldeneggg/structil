@@ -492,6 +492,8 @@ func TestDynamicStructJSON(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			testCorrectCase(t, tt.data, tt.dt, tt.nest, tt.useTag, tt.wantNumF, tt.wantDefinition)
 		})
 	}
@@ -646,6 +648,8 @@ string_array_field:
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			testCorrectCase(t, tt.data, tt.dt, tt.nest, tt.useTag, tt.wantNumF, tt.wantDefinition)
 		})
 	}
@@ -656,28 +660,23 @@ func testCorrectCase(t *testing.T, data []byte, dt DataType, nest bool, useTag b
 
 	d, err := New(data, dt)
 	if err != nil {
-		t.Errorf("unexpected error is returned from New: %v", err)
-		return
+		t.Fatalf("unexpected error is returned from New: %v", err)
 	}
 
 	ds, err := d.DynamicStruct(nest, useTag)
 	if err != nil {
-		t.Errorf("unexpected error is returned from Decode: %v", err)
-		return
+		t.Fatalf("unexpected error is returned from Decode: %v", err)
 	}
 
 	if ds == nil {
-		t.Errorf("unexpected DynamicStruct is null. got: is null, want: is not null")
-		return
+		t.Fatalf("unexpected DynamicStruct is null. got: is null, want: is not null")
 	}
 
 	if ds.NumField() != wantNumF {
-		t.Errorf("unmatch numfield. got: %d, want: %d, ds.Definition:\n%s", ds.NumField(), wantNumF, ds.Definition())
-		return
+		t.Fatalf("unmatch numfield. got: %d, want: %d, ds.Definition:\n%s", ds.NumField(), wantNumF, ds.Definition())
 	}
 
 	if d := cmp.Diff(ds.Definition(), wantDef); d != "" {
-		t.Errorf("mismatch Definition: (-got +want)\n%s", d)
-		return
+		t.Fatalf("mismatch Definition: (-got +want)\n%s", d)
 	}
 }

@@ -215,6 +215,8 @@ func TestBuilderAddRemoveExistsNumField(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			if tt.args.builder.Exists("IntField") != tt.wantExistsIntField {
 				t.Errorf("result Exists(IntField) is unexpected. got: %v, want: %v", tt.args.builder.Exists("IntField"), tt.wantExistsIntField)
 				return
@@ -251,6 +253,8 @@ func TestBuilderAddStringWithEmptyName(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			_, err := tt.args.builder.AddString("").Build()
 			if err == nil {
 				t.Errorf("expect to occur error but does not: args: %+v", tt.args)
@@ -277,6 +281,8 @@ func TestBuilderAddMapWithNilKey(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			_, err := tt.args.builder.AddMap("MapFieldWithNilKey", nil, SampleFloat32).Build()
 			if err == nil {
 				t.Errorf("expect to occur error but does not: args: %+v", tt.args)
@@ -303,6 +309,8 @@ func TestBuilderAddMapWithNilValue(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			_, err := tt.args.builder.AddMap("MapFieldWithNilKey", SampleString, nil).Build()
 			// nil map value does NOT cause error
 			if err != nil {
@@ -330,6 +338,8 @@ func TestBuilderAddFuncWithNilArgs(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			_, err := tt.args.builder.AddFunc("FuncFieldWithNilArgs", nil, []interface{}{SampleBool}).Build()
 			if err != nil {
 				t.Errorf("unexpected error occurred: args: %+v, %v", tt.args, err)
@@ -356,6 +366,8 @@ func TestBuilderAddFuncWithNilReturns(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			_, err := tt.args.builder.AddFunc("FuncFieldWithNilReturns", []interface{}{SampleInt}, nil).Build()
 			if err != nil {
 				t.Errorf("unexpected error occurred: args: %+v, %v", tt.args, err)
@@ -382,6 +394,8 @@ func TestBuilderAddChanBothWithNilElem(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			_, err := tt.args.builder.AddChanBoth("MapFieldWithNilKey", nil).Build()
 			if err == nil {
 				t.Errorf("expect to occur error but does not: args: %+v", tt.args)
@@ -410,6 +424,8 @@ func TestBuilderAddChanRecvWithNilElem(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			_, err := tt.args.builder.AddChanRecv("MapFieldWithNilKey", nil).Build()
 			if err == nil {
 				t.Errorf("expect to occur error but does not: args: %+v", tt.args)
@@ -436,6 +452,8 @@ func TestBuilderAddChanSendWithNilElem(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			_, err := tt.args.builder.AddChanSend("MapFieldWithNilKey", nil).Build()
 			if err == nil {
 				t.Errorf("expect to occur error but does not: args: %+v", tt.args)
@@ -462,6 +480,8 @@ func TestBuilderAddStructWithNil(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			_, err := tt.args.builder.AddStruct("StructFieldWithNil", nil, false).Build()
 			if err == nil {
 				t.Errorf("expect to occur error but does not: args: %+v", tt.args)
@@ -488,6 +508,8 @@ func TestBuilderAddStructPtrWithNil(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			_, err := tt.args.builder.AddStructPtr("StructPtrFieldWithNil", nil).Build()
 			if err == nil {
 				t.Errorf("expect to occur error but does not: args: %+v", tt.args)
@@ -514,6 +536,8 @@ func TestBuilderAddSliceWithNil(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			_, err := tt.args.builder.AddSlice("SliceFieldWithNil", nil).Build()
 			if err == nil {
 				t.Errorf("expect to occur error but does not: args: %+v", tt.args)
@@ -746,7 +770,12 @@ func TestBuilderBuild(t *testing.T) {
 	var err error
 
 	for _, tt := range tests {
+		tt := tt
+
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition in Build() method
+			// t.Parallel()
+
 			if tt.args.isPtr {
 				got, err = tt.args.builder.Build()
 			} else {

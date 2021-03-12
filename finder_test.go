@@ -150,6 +150,8 @@ func TestNewFinder(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := NewFinder(tt.args.i)
 
 			if err == nil {
@@ -194,6 +196,8 @@ func TestNewFinderWithGetterAndSep(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := NewFinderWithGetterAndSep(tt.args.g, tt.args.sep)
 
 			if err == nil {
@@ -444,6 +448,9 @@ func TestToMap(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			got, err := tt.args.chain.ToMap()
 
 			if err == nil {
@@ -593,6 +600,8 @@ func TestFromKeys(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// t.Parallel()
+
 			got, err := tt.args.chain.ToMap()
 
 			if err == nil {
@@ -721,6 +730,9 @@ func TestNewFinderKeys(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			got, err := NewFinderKeys(tt.args.d, tt.args.n)
 
 			if err == nil {

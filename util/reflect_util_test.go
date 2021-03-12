@@ -87,6 +87,8 @@ func TestToI(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := ToI(tt.args.i)
 
 			if tt.name == "func" {
@@ -173,6 +175,8 @@ func TestElemTypeOf(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := ElemTypeOf(tt.args.i)
 
 			if got == nil {
