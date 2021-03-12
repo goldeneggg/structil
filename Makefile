@@ -100,13 +100,15 @@ upgrade-latest-gocmp:
 ###
 # run tests
 ###
+run-test = $(LOCAL_GO) test -v -race -cover $1 $2
+
 .PHONY: test
 test:
-	@$(LOCAL_GO) test -v -race -cover -p 2 $(PKGS)
+	@$(call run-test,-p 4,$(PKGS))
 
 .PHONY: subtest
 subtest:
-	@$(LOCAL_GO) test -v -race -cover -run $(ST)
+	@$(call run-test,-run,$(ST))
 
 .PHONY: lint
 lint: mod-golint-install
@@ -228,7 +230,6 @@ clean-mod-cache:
 .PHONY: godoc
 godoc:
 	@godoc -http=:6060
-
 
 #####
 #
