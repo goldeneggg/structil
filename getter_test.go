@@ -327,6 +327,7 @@ func TestNewGetter(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -368,6 +369,7 @@ func TestNumField(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -441,6 +443,7 @@ func TestNames(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -722,6 +725,9 @@ func TestBytes(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Bytes":
 				tt.wantIntf = testStructPtr.Bytes

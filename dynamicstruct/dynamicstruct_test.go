@@ -214,6 +214,7 @@ func TestBuilderAddRemoveExistsNumField(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -252,6 +253,7 @@ func TestBuilderAddStringWithEmptyName(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -280,6 +282,7 @@ func TestBuilderAddMapWithNilKey(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -308,6 +311,7 @@ func TestBuilderAddMapWithNilValue(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -337,6 +341,7 @@ func TestBuilderAddFuncWithNilArgs(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -365,6 +370,7 @@ func TestBuilderAddFuncWithNilReturns(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -393,6 +399,7 @@ func TestBuilderAddChanBothWithNilElem(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -423,6 +430,7 @@ func TestBuilderAddChanRecvWithNilElem(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -451,6 +459,7 @@ func TestBuilderAddChanSendWithNilElem(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -479,6 +488,7 @@ func TestBuilderAddStructWithNil(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -507,6 +517,7 @@ func TestBuilderAddStructPtrWithNil(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -535,6 +546,7 @@ func TestBuilderAddSliceWithNil(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
