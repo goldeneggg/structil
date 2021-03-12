@@ -320,6 +320,8 @@ type decoderTest struct {
 	useTag         bool
 	wantNumF       int
 	wantDefinition string
+	wantErrorNew   bool
+	wantErrorDs    bool
 }
 
 func TestDynamicStructJSON(t *testing.T) {
@@ -469,7 +471,26 @@ func TestDynamicStructJSON(t *testing.T) {
 }`,
 		},
 		{
-			name: "HasArrayString",
+			name: "HasArrayString1",
+			data: []byte(`
+{
+	"string_field":"あああ",
+	"string_array_field":[
+		"id1"
+	]
+}
+`),
+			dt:       TypeJSON,
+			nest:     false,
+			useTag:   false,
+			wantNumF: 2,
+			wantDefinition: `type DynamicStruct struct {
+	StringArrayField []string
+	StringField string
+}`,
+		},
+		{
+			name: "HasArrayString2",
 			data: []byte(`
 {
 	"string_field":"あああ",
@@ -488,6 +509,47 @@ func TestDynamicStructJSON(t *testing.T) {
 	StringField string
 }`,
 		},
+		{
+			name:     "BracketOnly",
+			data:     []byte(`{}`),
+			dt:       TypeJSON,
+			nest:     false,
+			useTag:   false,
+			wantNumF: 0,
+			// FIXME: is this ok?
+			wantDefinition: `type DynamicStruct struct {
+}`,
+		},
+		{
+			name:           "ArrayBracketOnly",
+			data:           []byte(`[]`),
+			dt:             TypeJSON,
+			nest:           false,
+			useTag:         false,
+			wantNumF:       0,
+			wantDefinition: ``,
+			wantErrorDs:    true,
+		},
+		{
+			name:           "OnlyLiteral",
+			data:           []byte(`aiueo`),
+			dt:             TypeJSON,
+			nest:           false,
+			useTag:         false,
+			wantNumF:       0,
+			wantDefinition: ``,
+			wantErrorNew:   true,
+		},
+		{
+			name:           "Empty",
+			data:           []byte(``),
+			dt:             TypeJSON,
+			nest:           false,
+			useTag:         false,
+			wantNumF:       0,
+			wantDefinition: ``,
+			wantErrorNew:   true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -495,7 +557,7 @@ func TestDynamicStructJSON(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			testCorrectCase(t, tt.data, tt.dt, tt.nest, tt.useTag, tt.wantNumF, tt.wantDefinition)
+			testCorrectCase(t, tt.data, tt.dt, tt.nest, tt.useTag, tt.wantNumF, tt.wantDefinition, tt.wantErrorNew, tt.wantErrorDs)
 		})
 	}
 }
@@ -645,6 +707,26 @@ string_array_field:
 	StringField string
 }`,
 		},
+		{
+			name:           "OnlyLiteral",
+			data:           []byte(`aiueo`),
+			dt:             TypeYAML,
+			nest:           false,
+			useTag:         false,
+			wantNumF:       0,
+			wantDefinition: ``,
+			wantErrorDs:    true,
+		},
+		{
+			name:           "Empty",
+			data:           []byte(``),
+			dt:             TypeYAML,
+			nest:           false,
+			useTag:         false,
+			wantNumF:       0,
+			wantDefinition: ``,
+			wantErrorDs:    true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -652,22 +734,41 @@ string_array_field:
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			testCorrectCase(t, tt.data, tt.dt, tt.nest, tt.useTag, tt.wantNumF, tt.wantDefinition)
+			// FIXME: error cases
+			testCorrectCase(t, tt.data, tt.dt, tt.nest, tt.useTag, tt.wantNumF, tt.wantDefinition, tt.wantErrorNew, tt.wantErrorDs)
 		})
 	}
 }
 
-func testCorrectCase(t *testing.T, data []byte, dt DataType, nest bool, useTag bool, wantNumF int, wantDef string) {
+func testCorrectCase(t *testing.T, data []byte, dt DataType, nest bool, useTag bool, wantNumF int, wantDef string, wantErrorNew bool, wantErrorDs bool) {
 	t.Helper()
 
-	d, err := New(data, dt)
+	var d *Decoder
+	var err error
+
+	switch dt {
+	case TypeJSON:
+		d, err = NewJSON(data)
+	case TypeYAML:
+		d, err = NewYAML(data)
+	}
 	if err != nil {
-		t.Fatalf("unexpected error is returned from New: %v", err)
+		if !wantErrorNew {
+			t.Fatalf("unexpected error is returned from NewXXX: %v", err)
+		}
+		return
+	} else if wantErrorNew {
+		t.Fatalf("error is expected but it does not occur from NewXXX. data: %s", string(data))
 	}
 
 	ds, err := d.DynamicStruct(nest, useTag)
 	if err != nil {
-		t.Fatalf("unexpected error is returned from Decode: %v", err)
+		if !wantErrorDs {
+			t.Fatalf("unexpected error is returned from DynamicStruct: %v", err)
+		}
+		return
+	} else if wantErrorDs {
+		t.Fatalf("error is expected but it does not occur from DynamicStruct. data: %s", string(data))
 	}
 
 	if ds == nil {
