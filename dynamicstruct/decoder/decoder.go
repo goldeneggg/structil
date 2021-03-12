@@ -39,6 +39,11 @@ func New(data []byte, dt DataType) (d *Decoder, err error) {
 	return
 }
 
+// Interface returns a unmarshaled interface from original data.
+func (d *Decoder) Interface() interface{} {
+	return d.unm
+}
+
 // DynamicStruct returns a decoded DynamicStruct.
 func (d *Decoder) DynamicStruct(nest bool, useTag bool) (*dynamicstruct.DynamicStruct, error) {
 	return d.toDs(d.unm, nest, useTag)
