@@ -327,7 +327,10 @@ func TestNewGetter(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := NewGetter(tt.args.i)
 
 			if err == nil {
@@ -366,7 +369,10 @@ func TestNumField(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			g, err := NewGetter(tt.args.i)
 			if err != nil {
 				t.Errorf("NewGetter() unexpected error [%v] occurred", err)
@@ -399,6 +405,9 @@ func TestHas(t *testing.T) {
 		}
 
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			got := g.Has(tt.args.name)
 			if got != tt.wantBool {
 				t.Errorf("unexpected mismatch: got: %v, want: %v. args: %+v", got, tt.wantBool, tt.args)
@@ -434,7 +443,10 @@ func TestNames(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			g, err := NewGetter(tt.args.i)
 			if err != nil {
 				t.Errorf("NewGetter() unexpected error [%v] occurred", err)
@@ -452,18 +464,20 @@ func TestNames(t *testing.T) {
 }
 
 func testGetSeries(t *testing.T, wantNotOK bool, wantError bool, fn func(*testing.T, *getterTest, *Getter)) {
-	t.Parallel()
+	t.Helper()
 
 	testStructPtr := newGetterTestStructPtr()
 	g, err := NewGetter(testStructPtr)
 	if err != nil {
-		t.Errorf("NewGetter() unexpected error [%v] occurred.", err)
-		return
+		t.Fatalf("NewGetter() unexpected error [%v] occurred.", err)
 	}
 
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Byte":
 				tt.wantType = reflect.TypeOf(testStructPtr.Byte)
@@ -597,13 +611,13 @@ func TestGetType(t *testing.T) {
 
 		if ok {
 			if tt.wantNotOK {
-				t.Errorf("expected ok is false but true. args: %+v", tt.args)
+				t.Fatalf("expected ok is false but true. args: %+v", tt.args)
 			} else if d := cmp.Diff(got.String(), tt.wantType.String()); d != "" {
-				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
+				t.Fatalf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
 		} else {
 			if !tt.wantNotOK {
-				t.Errorf("expected ok is true but false. args: %+v", tt.args)
+				t.Fatalf("expected ok is true but false. args: %+v", tt.args)
 			}
 		}
 	}
@@ -617,13 +631,13 @@ func TestGetValue(t *testing.T) {
 
 		if ok {
 			if tt.wantNotOK {
-				t.Errorf("expected ok is false but true. args: %+v", tt.args)
+				t.Fatalf("expected ok is false but true. args: %+v", tt.args)
 			} else if d := cmp.Diff(got.String(), tt.wantValue.String()); d != "" {
-				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
+				t.Fatalf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
 		} else {
 			if !tt.wantNotOK {
-				t.Errorf("expected ok is true but false. args: %+v", tt.args)
+				t.Fatalf("expected ok is true but false. args: %+v", tt.args)
 			}
 		}
 	}
@@ -637,20 +651,20 @@ func TestGet(t *testing.T) {
 
 		if ok {
 			if tt.wantNotOK {
-				t.Errorf("expected ok is false but true. args: %+v", tt.args)
+				t.Fatalf("expected ok is false but true. args: %+v", tt.args)
 			} else if tt.args.name == "Func" {
 				// Note: cmp.Diff does not support comparing func and func
 				gp := reflect.ValueOf(got).Pointer()
 				wp := reflect.ValueOf(tt.wantIntf).Pointer()
 				if gp != wp {
-					t.Errorf("unexpected mismatch func type: gp: %v, wp: %v", gp, wp)
+					t.Fatalf("unexpected mismatch func type: gp: %v, wp: %v", gp, wp)
 				}
 			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
-				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
+				t.Fatalf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
 		} else {
 			if !tt.wantNotOK {
-				t.Errorf("expected ok is true but false. args: %+v", tt.args)
+				t.Fatalf("expected ok is true but false. args: %+v", tt.args)
 			}
 		}
 	}
@@ -670,6 +684,9 @@ func TestByte(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Byte":
 				tt.wantIntf = testStructPtr.Byte
@@ -708,6 +725,9 @@ func TestBytes(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Bytes":
 				tt.wantIntf = testStructPtr.Bytes
@@ -744,6 +764,9 @@ func TestString(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "String":
 				tt.wantIntf = testStructPtr.String
@@ -780,6 +803,9 @@ func TestInt(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Int":
 				tt.wantIntf = testStructPtr.Int
@@ -816,6 +842,9 @@ func TestInt8(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Int8":
 				tt.wantIntf = testStructPtr.Int8
@@ -852,6 +881,9 @@ func TestInt16(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Int16":
 				tt.wantIntf = testStructPtr.Int16
@@ -888,6 +920,9 @@ func TestInt32(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Int32":
 				tt.wantIntf = testStructPtr.Int32
@@ -924,6 +959,9 @@ func TestInt64(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Int64":
 				tt.wantIntf = testStructPtr.Int64
@@ -960,6 +998,9 @@ func TestUint(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Uint":
 				tt.wantIntf = testStructPtr.Uint
@@ -996,6 +1037,9 @@ func TestUint8(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Byte":
 				tt.wantIntf = testStructPtr.Byte
@@ -1034,6 +1078,9 @@ func TestUint16(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Uint16":
 				tt.wantIntf = testStructPtr.Uint16
@@ -1070,6 +1117,9 @@ func TestUint32(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Uint32":
 				tt.wantIntf = testStructPtr.Uint32
@@ -1106,6 +1156,9 @@ func TestUint64(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Uint64":
 				tt.wantIntf = testStructPtr.Uint64
@@ -1142,6 +1195,9 @@ func TestUintptr(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Uintptr":
 				tt.wantIntf = testStructPtr.Uintptr
@@ -1178,6 +1234,9 @@ func TestFloat32(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Float32":
 				tt.wantIntf = testStructPtr.Float32
@@ -1214,6 +1273,9 @@ func TestFloat64(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Float64":
 				tt.wantIntf = testStructPtr.Float64
@@ -1250,6 +1312,9 @@ func TestBool(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Bool":
 				tt.wantIntf = testStructPtr.Bool
@@ -1286,6 +1351,9 @@ func TestComplex64(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Complex64":
 				tt.wantIntf = testStructPtr.Complex64
@@ -1322,6 +1390,9 @@ func TestComplex128(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Complex128":
 				tt.wantIntf = testStructPtr.Complex128
@@ -1358,6 +1429,9 @@ func TestUnsafePointer(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Unsafeptr":
 				tt.wantIntf = testStructPtr.Unsafeptr
@@ -1393,6 +1467,9 @@ func TestIsByte(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Byte":
 				tt.wantBool = true
@@ -1419,6 +1496,9 @@ func TestIsBytes(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Bytes":
 				tt.wantBool = true
@@ -1443,6 +1523,9 @@ func TestIsString(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "String", "privateString": // Note: IsString can work for private string field
 				tt.wantBool = true
@@ -1467,6 +1550,9 @@ func TestIsInt(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Int":
 				tt.wantBool = true
@@ -1491,6 +1577,9 @@ func TestIsInt8(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Int8":
 				tt.wantBool = true
@@ -1515,6 +1604,9 @@ func TestIsInt16(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Int16":
 				tt.wantBool = true
@@ -1539,6 +1631,9 @@ func TestIsInt32(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Int32":
 				tt.wantBool = true
@@ -1563,6 +1658,9 @@ func TestIsInt64(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Int64":
 				tt.wantBool = true
@@ -1587,6 +1685,9 @@ func TestIsUint(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Uint":
 				tt.wantBool = true
@@ -1611,6 +1712,9 @@ func TestIsUint8(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Byte":
 				tt.wantBool = true
@@ -1637,6 +1741,9 @@ func TestIsUint16(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Uint16":
 				tt.wantBool = true
@@ -1661,6 +1768,9 @@ func TestIsUint32(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Uint32":
 				tt.wantBool = true
@@ -1685,6 +1795,9 @@ func TestIsUint64(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Uint64":
 				tt.wantBool = true
@@ -1709,6 +1822,9 @@ func TestIsUintptr(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Uintptr":
 				tt.wantBool = true
@@ -1733,6 +1849,9 @@ func TestIsFloat32(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Float32":
 				tt.wantBool = true
@@ -1757,6 +1876,9 @@ func TestIsFloat64(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Float64":
 				tt.wantBool = true
@@ -1781,6 +1903,9 @@ func TestIsBool(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Bool":
 				tt.wantBool = true
@@ -1805,6 +1930,9 @@ func TestIsComplex64(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Complex64":
 				tt.wantBool = true
@@ -1829,6 +1957,9 @@ func TestIsComplex128(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Complex128":
 				tt.wantBool = true
@@ -1853,6 +1984,9 @@ func TestIsUnsafePointer(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Unsafeptr":
 				tt.wantBool = true
@@ -1877,6 +2011,9 @@ func TestIsMap(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Map":
 				tt.wantBool = true
@@ -1901,6 +2038,9 @@ func TestIsFunc(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Func":
 				tt.wantBool = true
@@ -1925,6 +2065,9 @@ func TestIsChan(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "ChInt":
 				tt.wantBool = true
@@ -1949,6 +2092,9 @@ func TestIsStruct(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "GetterTestStruct2", "GetterTestStruct2Ptr":
 				tt.wantBool = true
@@ -1973,6 +2119,9 @@ func TestIsSlice(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Bytes", "GetterTestStruct4Slice", "GetterTestStruct4PtrSlice":
 				tt.wantBool = true
@@ -1997,6 +2146,9 @@ func TestIsArray(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "Stringarray":
 				tt.wantBool = true
@@ -2021,6 +2173,9 @@ func TestMapGet(t *testing.T) {
 	tests := newGetterTests()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			switch tt.name {
 			case "GetterTestStruct4Slice":
 				tt.args.mapfn = func(i int, g *Getter) (interface{}, error) {
@@ -2054,240 +2209,5 @@ func TestMapGet(t *testing.T) {
 				t.Errorf("MapGet() unexpected error %v occurred. wantErr %v", err, tt.wantError)
 			}
 		})
-	}
-}
-
-// benchmark tests
-
-func BenchmarkNewGetter_Val(b *testing.B) {
-	var g *Getter
-	var e error
-
-	testStructVal := newGetterTestStruct()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		g, e = NewGetter(testStructVal)
-		if e == nil {
-			_ = g
-		} else {
-			b.Fatalf("abort benchmark because error %v occurd.", e)
-		}
-	}
-}
-
-func BenchmarkNewGetter_Ptr(b *testing.B) {
-	var g *Getter
-	var e error
-
-	testStructPtr := newGetterTestStructPtr()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		g, e = NewGetter(testStructPtr)
-		if e == nil {
-			_ = g
-		} else {
-			b.Fatalf("abort benchmark because error %v occurd.", e)
-		}
-	}
-}
-
-func BenchmarkGetterGetType_String(b *testing.B) {
-	var t reflect.Type
-
-	g, err := newTestGetter()
-	if err != nil {
-		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
-		return
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		t, _ = g.GetType("String")
-		_ = t
-	}
-}
-
-func BenchmarkGetterGetValue_String(b *testing.B) {
-	var v reflect.Value
-
-	g, err := newTestGetter()
-	if err != nil {
-		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
-		return
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		v, _ = g.GetValue("String")
-		_ = v
-	}
-}
-
-func BenchmarkGetterHas_String(b *testing.B) {
-	var bl bool
-
-	g, err := newTestGetter()
-	if err != nil {
-		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
-		return
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		bl = g.Has("String")
-		_ = bl
-	}
-}
-
-func BenchmarkGetterGet_String(b *testing.B) {
-	var it interface{}
-
-	g, err := newTestGetter()
-	if err != nil {
-		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
-		return
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		it, _ = g.Get("String")
-		_ = it
-	}
-}
-
-func BenchmarkGetterString(b *testing.B) {
-	var str string
-
-	g, err := newTestGetter()
-	if err != nil {
-		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
-		return
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		str, _ = g.String("String")
-		_ = str
-	}
-}
-
-func BenchmarkGetterUintptr(b *testing.B) {
-	var up uintptr
-
-	g, err := newTestGetter()
-	if err != nil {
-		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
-		return
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		up, _ = g.Uintptr("Uintptr")
-		_ = up
-	}
-}
-
-func BenchmarkGetterUnsafePointer(b *testing.B) {
-	var up unsafe.Pointer
-
-	g, err := newTestGetter()
-	if err != nil {
-		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
-		return
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		up, _ = g.UnsafePointer("Unsafeptr")
-		_ = up
-	}
-}
-
-func BenchmarkGetterIsStruct(b *testing.B) {
-	var is bool
-
-	g, err := newTestGetter()
-	if err != nil {
-		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
-		return
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		is = g.IsStruct("GetterTestStruct2")
-		_ = is
-	}
-}
-
-func BenchmarkGetterIsSlice_Bytes(b *testing.B) {
-	var is bool
-
-	g, err := newTestGetter()
-	if err != nil {
-		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
-		return
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		is = g.IsSlice("Bytes")
-		_ = is
-	}
-}
-
-func BenchmarkGetterIsSlice_StructSlice(b *testing.B) {
-	var is bool
-
-	g, err := newTestGetter()
-	if err != nil {
-		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
-		return
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		is = g.IsSlice("GetterTestStruct4Slice")
-		_ = is
-	}
-}
-
-func BenchmarkGetterIsSlice_StructPtrSlice(b *testing.B) {
-	var is bool
-
-	g, err := newTestGetter()
-	if err != nil {
-		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
-		return
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		is = g.IsSlice("GetterTestStruct4PtrSlice")
-		_ = is
-	}
-}
-
-func BenchmarkGetterMapGet(b *testing.B) {
-	var ia []interface{}
-
-	g, err := newTestGetter()
-	if err != nil {
-		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
-		return
-	}
-	fn := func(i int, g *Getter) (interface{}, error) {
-		str, _ := g.String("String")
-		str2, _ := g.String("String")
-		return fmt.Sprintf("%s:%s", str, str2), nil
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		ia, err = g.MapGet("GetterTestStruct4PtrSlice", fn)
-		if err == nil {
-			_ = ia
-		} else {
-			b.Fatalf("abort benchmark because error %v occurd.", err)
-		}
 	}
 }

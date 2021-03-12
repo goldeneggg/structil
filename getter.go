@@ -8,7 +8,7 @@ import (
 	"github.com/goldeneggg/structil/util"
 )
 
-// Getter is the struct that wraps the basic Getter method..
+// Getter is the struct that wraps the basic Getter method.
 type Getter struct {
 	rv     reflect.Value            // Value of input interface
 	numf   int                      // Field nums

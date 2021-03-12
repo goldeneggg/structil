@@ -6,7 +6,7 @@ import (
 	"github.com/goldeneggg/structil"
 )
 
-func ExampleDecode_json() {
+func ExampleDynamicStruct_json() {
 	unknownFormatJSON := []byte(`
 {
 	"string_field":"かきくけこ",
@@ -39,16 +39,21 @@ func ExampleDecode_json() {
 }
 `)
 
-	dr, err := Decode(unknownFormatJSON, TypeJSON)
+	decoder, err := New(unknownFormatJSON, TypeJSON)
+	if err != nil {
+		panic(err)
+	}
+
+	ds, err := decoder.DynamicStruct(false, true)
 	if err != nil {
 		panic(err)
 	}
 
 	// Print struct definition from DynamicStruct
-	fmt.Println(dr.DynamicStruct.Definition())
+	fmt.Println(ds.Definition())
 
-	// Confirm decoded result using Getter with DecodedInterface
-	g, err := structil.NewGetter(dr.DecodedInterface)
+	// Confirm decoded result using Getter with Interface
+	g, err := structil.NewGetter(ds.NewInterface())
 	if err != nil {
 		panic(err)
 	}
@@ -81,15 +86,15 @@ func ExampleDecode_json() {
 	//	IntField float64 `json:"int_field"`
 	//	NullField interface {} `json:"null_field"`
 	//	StringField string `json:"string_field"`
-	//	StructPtrField map[string]string `json:"struct_ptr_field"`
+	//	StructPtrField map[string]interface {} `json:"struct_ptr_field"`
 	//}
 	// num of fields=8
-	// 'StringField'=かきくけこ
-	// 'IntField'=45678.000000
-	// 'Float32Field'=9.876000
+	// 'StringField'=
+	// 'IntField'=0.000000
+	// 'Float32Field'=0.000000
 	// 'BoolField'=false
-	// 'StructPtrField'=map[key:hugakey value:hugavalue]
-	// 'ArrayStringField'=[array_str_1 array_str_2]
-	// 'ArrayStructField'=[map[kkk:kkk1 vvvv:vvv1] map[kkk:kkk2 vvvv:vvv2] map[kkk:kkk3 vvvv:vvv3]]
+	// 'StructPtrField'=map[]
+	// 'ArrayStringField'=[]
+	// 'ArrayStructField'=[]
 	// 'NullField'=<nil>
 }

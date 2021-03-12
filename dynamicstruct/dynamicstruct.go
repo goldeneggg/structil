@@ -12,11 +12,12 @@ import (
 
 // DynamicStruct is the struct that built dynamic struct by Builder.Build().
 type DynamicStruct struct {
-	name       string
-	structType reflect.Type
-	isPtr      bool
+	name   string
+	fields []reflect.StructField
+	rt     reflect.Type
+	isPtr  bool
 	// sortedFields  string  // TODO: for performance tuning
-	definition string
+	def string
 }
 
 // TODO: add "sortedFields" slice string argument
@@ -28,9 +29,10 @@ func newDynamicStruct(fields []reflect.StructField, isPtr bool) *DynamicStruct {
 // Note: Create DynamicStruct via Builder.Build(), instead of calling this method directly.
 func newDynamicStructWithName(fields []reflect.StructField, isPtr bool, name string) *DynamicStruct {
 	return &DynamicStruct{
-		name:       name,
-		structType: reflect.StructOf(fields),
-		isPtr:      isPtr,
+		name:   name,
+		fields: fields,
+		rt:     reflect.StructOf(fields),
+		isPtr:  isPtr,
 	}
 }
 
@@ -39,20 +41,30 @@ func (ds *DynamicStruct) Name() string {
 	return ds.name
 }
 
+// Type returns the reflect.Type for struct type of this.
+func (ds *DynamicStruct) Type() reflect.Type {
+	return ds.rt
+}
+
 // NumField returns the number of built struct fields.
 func (ds *DynamicStruct) NumField() int {
-	return ds.structType.NumField()
+	return ds.rt.NumField()
+}
+
+// Fields returns the all fields of the built struct.
+func (ds *DynamicStruct) Fields() []reflect.StructField {
+	return ds.fields
 }
 
 // Field returns the i'th field of the built struct.
 func (ds *DynamicStruct) Field(i int) reflect.StructField {
-	return ds.structType.Field(i)
+	return ds.rt.Field(i)
 }
 
 // FieldByName returns the struct field with the given name
 // and a boolean indicating if the field was found.
 func (ds *DynamicStruct) FieldByName(name string) (reflect.StructField, bool) {
-	return ds.structType.FieldByName(name)
+	return ds.rt.FieldByName(name)
 }
 
 // IsPtr reports whether the built struct type is pointer.
@@ -62,7 +74,7 @@ func (ds *DynamicStruct) IsPtr() bool {
 
 // NewInterface returns the new interface value of built struct.
 func (ds *DynamicStruct) NewInterface() interface{} {
-	rv := reflect.New(ds.structType)
+	rv := reflect.New(ds.rt)
 	if ds.isPtr {
 		return rv.Interface()
 	}
@@ -84,37 +96,95 @@ func (ds *DynamicStruct) DecodeMap(m map[string]interface{}) (interface{}, error
 // Definition returns the struct definition string with field indention by TAB.
 // Fields are sorted by field name.
 func (ds *DynamicStruct) Definition() string {
-	// TODO: build definition only once
-	if ds.definition != "" {
-		return ds.definition
+	// build definition only once
+	if ds.def != "" {
+		return ds.def
 	}
 
-	// TODO: performance optimization
-	sortedFields := make([]reflect.StructField, ds.NumField())
-	for i := 0; i < ds.NumField(); i++ {
-		sortedFields[i] = ds.Field(i)
+	var stb strings.Builder
+	ds.def = definition(&stb, ds.fields, ds.name, 1, "")
+	return ds.def
+}
+
+func definition(stbp *strings.Builder, flds []reflect.StructField, name string, indentLevel int, slicePrefix string) string {
+	sortedFlds := sortFields(flds)
+	sp := slicePrefix
+
+	if indentLevel == 1 {
+		stbp.WriteString("type ")
 	}
-	sort.Slice(sortedFields, func(i, j int) bool {
-		return sortedFields[i].Name < sortedFields[j].Name
+
+	if name != "" {
+		stbp.WriteString(name + " ")
+	}
+
+	// add "[]" if slice
+	if sp != "" {
+		stbp.WriteString(sp)
+	}
+
+	stbp.WriteString("struct {\n")
+
+	var nt reflect.Type
+	var k reflect.Kind
+
+	indent := strings.Repeat("\t", indentLevel)
+	for _, sf := range sortedFlds {
+		stbp.WriteString(indent)
+		stbp.WriteString(sf.Name)
+		stbp.WriteString(" ")
+
+		nt = sf.Type
+		k = nt.Kind()
+		if k == reflect.Slice {
+			nt = nt.Elem()
+			k = nt.Kind()
+			sp = "[]"
+		} else {
+			sp = ""
+		}
+		if k == reflect.Ptr {
+			nt = nt.Elem()
+			k = nt.Kind()
+		}
+
+		if k == reflect.Struct {
+			// recursively call if type is struct
+			nflds := make([]reflect.StructField, nt.NumField())
+			for i := 0; i < nt.NumField(); i++ {
+				nflds[i] = nt.Field(i)
+			}
+			var nstb strings.Builder
+			stbp.WriteString(definition(&nstb, nflds, "", indentLevel+1, sp))
+		} else {
+			stbp.WriteString(sf.Type.String())
+		}
+
+		if sf.Tag != "" {
+			stbp.WriteString(" ")
+			stbp.WriteString(fmt.Sprintf("`%s`", sf.Tag))
+		}
+
+		stbp.WriteString("\n")
+	}
+
+	if indentLevel > 1 {
+		stbp.WriteString(strings.Repeat("\t", indentLevel-1))
+	}
+	stbp.WriteString("}")
+
+	return stbp.String()
+}
+
+func sortFields(fields []reflect.StructField) []reflect.StructField {
+	// TODO: performance optimization
+	sfs := make([]reflect.StructField, len(fields))
+	for i := 0; i < len(fields); i++ {
+		sfs[i] = fields[i]
+	}
+	sort.Slice(sfs, func(i, j int) bool {
+		return sfs[i].Name < sfs[j].Name
 	})
 
-	var strbuilder strings.Builder
-	indent := "\t"
-
-	strbuilder.WriteString("type " + ds.Name() + " struct {\n")
-	for _, field := range sortedFields {
-		strbuilder.WriteString(indent)
-		strbuilder.WriteString(field.Name)
-		strbuilder.WriteString(" ")
-		strbuilder.WriteString(field.Type.String())
-		if field.Tag != "" {
-			strbuilder.WriteString(" ")
-			strbuilder.WriteString(fmt.Sprintf("`%s`", field.Tag))
-		}
-		strbuilder.WriteString("\n")
-	}
-	strbuilder.WriteString("}")
-
-	ds.definition = strbuilder.String()
-	return ds.definition
+	return sfs
 }

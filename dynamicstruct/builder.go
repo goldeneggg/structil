@@ -34,6 +34,7 @@ const (
 	patternSlice
 	patternPrmtv
 	patternInterface
+	patternDynamicStruct
 )
 
 var (
@@ -41,20 +42,20 @@ var (
 	ErrSample = errors.New("SampleError")
 )
 
-// Builder is thi interface that builds a dynamic and runtime struct.
+// Builder is the interface that builds a dynamic and runtime struct.
 type Builder struct {
-	fields map[string]reflect.Type
-	tags   map[string]reflect.StructTag
 	name   string
+	fields map[string]reflect.Type
+	tags   map[string]reflect.StructTag // optional
 	err    error
 }
 
 // NewBuilder returns a concrete Builder
 func NewBuilder() *Builder {
 	return &Builder{
+		name:   defaultStructName,
 		fields: map[string]reflect.Type{},
 		tags:   map[string]reflect.StructTag{},
-		name:   defaultStructName,
 	}
 }
 
@@ -294,7 +295,6 @@ func (b *Builder) AddChanSendWithTag(name string, i interface{}, tag string) *Bu
 
 // AddStruct returns a Builder that was added a struct field named by name parameter.
 // Type of struct is type of i.
-// TODO: add test if i is a DynamicStruct
 func (b *Builder) AddStruct(name string, i interface{}, isPtr bool) *Builder {
 	b.AddStructWithTag(name, i, isPtr, "")
 	return b
@@ -316,7 +316,6 @@ func (b *Builder) AddStructWithTag(name string, i interface{}, isPtr bool, tag s
 
 // AddStructPtr returns a Builder that was added a struct pointer field named by name parameter.
 // Type of struct is type of i.
-// TODO: add test if i is a DynamicStruct pointer
 func (b *Builder) AddStructPtr(name string, i interface{}) *Builder {
 	return b.AddStruct(name, i, true)
 }
@@ -367,6 +366,53 @@ func (b *Builder) AddInterfaceWithTag(name string, isPtr bool, tag string) *Buil
 	return b
 }
 
+// AddDynamicStruct returns a Builder that was added a DynamicStruct field named by name parameter.
+func (b *Builder) AddDynamicStruct(name string, ds *DynamicStruct, isPtr bool) *Builder {
+	b.AddDynamicStructWithTag(name, ds, isPtr, "")
+	return b
+}
+
+// AddDynamicStructWithTag returns a Builder that was added a DynamicStruct field with tag named by name parameter.
+func (b *Builder) AddDynamicStructWithTag(name string, ds *DynamicStruct, isPtr bool, tag string) *Builder {
+	p := &addParam{
+		name:    name,
+		intfs:   []interface{}{ds.NewInterface()}, // use ds.NewInterface() for building concrete fields of ds
+		pattern: patternStruct,                    // use patternStruct for building concrete fields of ds
+		isPtr:   isPtr,
+		tag:     tag,
+	}
+	b.add(p)
+	return b
+}
+
+// AddDynamicStructPtr returns a Builder that was added a DynamicStruct pointer field named by name parameter.
+func (b *Builder) AddDynamicStructPtr(name string, ds *DynamicStruct) *Builder {
+	return b.AddDynamicStruct(name, ds, true)
+}
+
+// AddDynamicStructPtrWithTag returns a Builder that was added a DynamicStruct pointer field with tag named by name parameter.
+func (b *Builder) AddDynamicStructPtrWithTag(name string, ds *DynamicStruct, tag string) *Builder {
+	return b.AddDynamicStructWithTag(name, ds, true, tag)
+}
+
+// AddDynamicStructSlice returns a Builder that was added a DynamicStruct slice field named by name parameter.
+func (b *Builder) AddDynamicStructSlice(name string, ds *DynamicStruct, isPtr bool) *Builder {
+	return b.AddDynamicStructSliceWithTag(name, ds, isPtr, "")
+}
+
+// AddDynamicStructSliceWithTag returns a Builder that was added a DynamicStruct slice field with tag named by name parameter.
+func (b *Builder) AddDynamicStructSliceWithTag(name string, ds *DynamicStruct, isPtr bool, tag string) *Builder {
+	p := &addParam{
+		name:    name,
+		intfs:   []interface{}{ds.NewInterface()}, // use ds.NewInterface() for building concrete fields of ds
+		pattern: patternSlice,
+		isPtr:   isPtr,
+		tag:     tag,
+	}
+	b.add(p)
+	return b
+}
+
 func (b *Builder) add(p *addParam) {
 	defer func() {
 		err := util.RecoverToError(recover())
@@ -381,7 +427,13 @@ func (b *Builder) add(p *addParam) {
 
 	switch p.pattern {
 	case patternMap:
-		typeOf = reflect.MapOf(reflect.TypeOf(p.keyIntfs[0]), reflect.TypeOf(p.intfs[0]))
+		var vt reflect.Type
+		if p.intfs[0] == nil {
+			vt = reflect.TypeOf((*interface{})(nil)).Elem()
+		} else {
+			vt = reflect.TypeOf(p.intfs[0])
+		}
+		typeOf = reflect.MapOf(reflect.TypeOf(p.keyIntfs[0]), vt)
 	case patternFunc:
 		inTypes := make([]reflect.Type, len(p.keyIntfs))
 		for i := 0; i < len(p.keyIntfs); i++ {
@@ -424,13 +476,31 @@ func (b *Builder) add(p *addParam) {
 	}
 
 	b.fields[p.name] = typeOf
-	b.tags[p.name] = reflect.StructTag(p.tag)
+	b.SetTag(p.name, p.tag)
 }
 
-// Remove returns a Builder that was removed a field named by name parameter.
-func (b *Builder) Remove(name string) *Builder {
-	delete(b.fields, name)
+// SetStructName returns a Builder that was set the name of DynamicStruct.
+// Default name is "DynamicStruct"
+func (b *Builder) SetStructName(name string) *Builder {
+	b.name = name
 	return b
+}
+
+// GetStructName returns the name of this DynamicStruct.
+func (b *Builder) GetStructName() string {
+	return b.name
+}
+
+// SetTag returns a Builder that was set the tag for the specific field.
+// Expected tag string is 'TYPE1:"FIELDNAME1" TYPEn:"FIELDNAMEn"' format (e.g. json:"id" etc)
+func (b *Builder) SetTag(name string, tag string) *Builder {
+	b.tags[name] = reflect.StructTag(tag)
+	return b
+}
+
+// NumField returns the number of built struct fields.
+func (b *Builder) NumField() int {
+	return len(b.fields)
 }
 
 // Exists returns true if the specified name field exists
@@ -439,20 +509,10 @@ func (b *Builder) Exists(name string) bool {
 	return ok
 }
 
-// NumField returns the number of built struct fields.
-func (b *Builder) NumField() int {
-	return len(b.fields)
-}
-
-// GetStructName returns the name of this DynamicStruct.
-func (b *Builder) GetStructName() string {
-	return b.name
-}
-
-// SetStructName sets the name of DynamicStruct.
-// Default is "DynamicStruct"
-func (b *Builder) SetStructName(name string) {
-	b.name = name
+// Remove returns a Builder that was removed a field named by name parameter.
+func (b *Builder) Remove(name string) *Builder {
+	delete(b.fields, name)
+	return b
 }
 
 // Build returns a concrete struct pointer built by Builder.

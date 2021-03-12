@@ -149,7 +149,10 @@ func TestNewFinder(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := NewFinder(tt.args.i)
 
 			if err == nil {
@@ -193,7 +196,10 @@ func TestNewFinderWithGetterAndSep(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := NewFinderWithGetterAndSep(tt.args.g, tt.args.sep)
 
 			if err == nil {
@@ -444,6 +450,9 @@ func TestToMap(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			got, err := tt.args.chain.ToMap()
 
 			if err == nil {
@@ -488,8 +497,10 @@ func TestToMap(t *testing.T) {
 	}
 }
 
-// This test should *NOT* be parallel
 func TestFromKeys(t *testing.T) {
+	// Note: This test should *NOT* be parallel because of race condition in NewFinderKeys func
+	// t.Parallel()
+
 	var f *Finder
 	var fk *FinderKeys
 	var err error
@@ -497,7 +508,7 @@ func TestFromKeys(t *testing.T) {
 	fks := make([]*FinderKeys, 5)
 
 	for i := 0; i < len(fs); i++ {
-		fk, err = NewFinderKeys("examples/finder_from_conf", fmt.Sprintf("ex_test%s_yml", strconv.Itoa(i+1)))
+		fk, err = NewFinderKeys("testdata/finder_from_conf", fmt.Sprintf("ex_test%s_yml", strconv.Itoa(i+1)))
 		if err != nil {
 			t.Errorf("NewFinderKeys() error = %v", err)
 			return
@@ -591,6 +602,9 @@ func TestFromKeys(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			got, err := tt.args.chain.ToMap()
 
 			if err == nil {
@@ -651,7 +665,7 @@ func TestNewFinderKeys(t *testing.T) {
 	}{
 		{
 			name:      "with valid yaml file",
-			args:      args{d: "examples/finder_from_conf", n: "ex_test1_yml"},
+			args:      args{d: "testdata/finder_from_conf", n: "ex_test1_yml"},
 			wantError: false,
 			wantLen:   15,
 			wantKeys: []string{
@@ -674,7 +688,7 @@ func TestNewFinderKeys(t *testing.T) {
 		},
 		{
 			name:      "with valid json file",
-			args:      args{d: "examples/finder_from_conf", n: "ex_test1_json"},
+			args:      args{d: "testdata/finder_from_conf", n: "ex_test1_json"},
 			wantError: false,
 			wantLen:   15,
 			wantKeys: []string{
@@ -697,28 +711,32 @@ func TestNewFinderKeys(t *testing.T) {
 		},
 		{
 			name:      "with invalid conf file that Keys does not exist",
-			args:      args{d: "examples/finder_from_conf", n: "ex_test_nonkeys_yml"},
+			args:      args{d: "testdata/finder_from_conf", n: "ex_test_nonkeys_yml"},
 			wantError: true,
 		},
 		{
 			name:      "with invalid conf file that is empty",
-			args:      args{d: "examples/finder_from_conf", n: "ex_test_empty_yml"},
+			args:      args{d: "testdata/finder_from_conf", n: "ex_test_empty_yml"},
 			wantError: true,
 		},
 		{
 			name:      "with invalid conf file",
-			args:      args{d: "examples/finder_from_conf", n: "ex_test_invalid_yml"},
+			args:      args{d: "testdata/finder_from_conf", n: "ex_test_invalid_yml"},
 			wantError: true,
 		},
 		{
 			name:      "with conf file does not exist",
-			args:      args{d: "examples/finder_from_conf", n: "ex_test_notexist"},
+			args:      args{d: "testdata/finder_from_conf", n: "ex_test_notexist"},
 			wantError: true,
 		},
 	}
 
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
 			got, err := NewFinderKeys(tt.args.d, tt.args.n)
 
 			if err == nil {
@@ -739,197 +757,5 @@ func TestNewFinderKeys(t *testing.T) {
 				t.Errorf("NewFinderKeys() unexpected error [%v] occurred. wantError: %v", err, tt.wantError)
 			}
 		})
-	}
-}
-
-// benchmark tests
-
-func BenchmarkNewFinder_Val(b *testing.B) {
-	var f *Finder
-	var e error
-
-	testStructVal := newFinderTestStruct()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		f, e = NewFinder(testStructVal)
-		if e == nil {
-			_ = f
-		} else {
-			b.Fatalf("abort benchmark because error %v occurd.", e)
-		}
-	}
-}
-
-func BenchmarkNewFinder_Ptr(b *testing.B) {
-	var f *Finder
-	var e error
-
-	testStructPtr := newFinderTestStructPtr()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		f, e = NewFinder(testStructPtr)
-		if e == nil {
-			_ = f
-		} else {
-			b.Fatalf("abort benchmark because error %v occurd.", e)
-		}
-	}
-}
-
-func BenchmarkToMap_1FindOnly(b *testing.B) {
-	var m map[string]interface{}
-
-	f, err := NewFinder(newFinderTestStructPtr())
-	if err != nil {
-		b.Fatalf("NewFinder() occurs unexpected error: %v", err)
-		return
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		m, err = f.Find("String").ToMap()
-		if err == nil {
-			_ = m
-		} else {
-			b.Fatalf("abort benchmark because error %v occurd.", err)
-		}
-	}
-}
-
-func BenchmarkToMap_2FindOnly(b *testing.B) {
-	var m map[string]interface{}
-
-	f, err := NewFinder(newFinderTestStructPtr())
-	if err != nil {
-		b.Fatalf("NewFinder() occurs unexpected error: %v", err)
-		return
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		m, err = f.Find("String", "Int64").ToMap()
-		if err == nil {
-			_ = m
-		} else {
-			b.Fatalf("abort benchmark because error %v occurd.", err)
-		}
-	}
-}
-
-func BenchmarkToMap_1Struct_1Find(b *testing.B) {
-	var m map[string]interface{}
-
-	f, err := NewFinder(newFinderTestStructPtr())
-	if err != nil {
-		b.Fatalf("NewFinder() occurs unexpected error: %v", err)
-		return
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		m, err = f.Into("FinderTestStruct2").Find("String").ToMap()
-		if err == nil {
-			_ = m
-		} else {
-			b.Fatalf("abort benchmark because error %v occurd.", err)
-		}
-	}
-}
-
-func BenchmarkToMap_1Struct_1Find_2Pair(b *testing.B) {
-	var m map[string]interface{}
-
-	f, err := NewFinder(newFinderTestStructPtr())
-	if err != nil {
-		b.Fatalf("NewFinder() occurs unexpected error: %v", err)
-		return
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		m, err = f.Into("FinderTestStruct2").Find("String").Into("FinderTestStruct2Ptr").Find("String").ToMap()
-		if err == nil {
-			_ = m
-		} else {
-			b.Fatalf("abort benchmark because error %v occurd.", err)
-		}
-	}
-}
-
-func BenchmarkToMap_2Struct_1Find(b *testing.B) {
-	var m map[string]interface{}
-
-	f, err := NewFinder(newFinderTestStructPtr())
-	if err != nil {
-		b.Fatalf("NewFinder() occurs unexpected error: %v", err)
-		return
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		m, err = f.Into("FinderTestStruct2", "FinderTestStruct3").Find("String").ToMap()
-		if err == nil {
-			_ = m
-		} else {
-			b.Fatalf("abort benchmark because error %v occurd.", err)
-		}
-	}
-}
-
-func BenchmarkToMap_2Struct_2Find(b *testing.B) {
-	var m map[string]interface{}
-
-	f, err := NewFinder(newFinderTestStructPtr())
-	if err != nil {
-		b.Fatalf("NewFinder() occurs unexpected error: %v", err)
-		return
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		m, err = f.Into("FinderTestStruct2", "FinderTestStruct3").Find("String", "Int").ToMap()
-		if err == nil {
-			_ = m
-		} else {
-			b.Fatalf("abort benchmark because error %v occurd.", err)
-		}
-	}
-}
-
-func BenchmarkNewFinderKeys_yml(b *testing.B) {
-	f, err := NewFinder(newFinderTestStructPtr())
-	if err != nil {
-		b.Fatalf("NewFinder() occurs unexpected error: %v", err)
-		return
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		fks, err := NewFinderKeys("examples/finder_from_conf", "ex_test1_yml")
-		if err == nil {
-			_ = f.FromKeys(fks)
-			f.Reset()
-		} else {
-			b.Fatalf("abort benchmark because error %v occurd.", err)
-		}
-	}
-}
-
-func BenchmarkNewFinderKeys_json(b *testing.B) {
-	f, err := NewFinder(newFinderTestStructPtr())
-	if err != nil {
-		b.Fatalf("NewFinder() occurs unexpected error: %v", err)
-		return
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		fks, err := NewFinderKeys("examples/finder_from_conf", "ex_test1_json")
-		if err == nil {
-			_ = f.FromKeys(fks)
-			f.Reset()
-		} else {
-			b.Fatalf("abort benchmark because error %v occurd.", err)
-		}
 	}
 }
