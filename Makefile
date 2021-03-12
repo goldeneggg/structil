@@ -112,7 +112,7 @@ subtest:
 	@$(call run-test,-run $(ST))
 
 .PHONY: lint
-lint: mod-golint-install
+lint: mod-tools-install
 	@golint -set_exit_status $(PKGS)
 
 .PHONY: vet
@@ -144,11 +144,11 @@ bench: -mk-testdir -mv-bench-result
 	@$(call benchmark,,$(PKGS))
 
 .PHONY: benchstat
-benchstat: mod-benchstat-install $(BENCH_OLD) $(BENCH_NEW)
+benchstat: mod-tools-install $(BENCH_OLD) $(BENCH_NEW)
 	@benchstat $(BENCH_OLD) $(BENCH_NEW)
 
 .PHONY: benchstat-ci
-benchstat-ci: mod-benchstat-install
+benchstat-ci: mod-tools-install
 	@bash -c "benchstat <(curl -sSL $(BENCH_LATEST_URL)) $(BENCH_NEW)"
 
 benchmark-pprof = $(call benchmark,-cpuprofile $(TESTDIR)/$1.cpu.out -memprofile $(TESTDIR)/$1.mem.out -o $(TESTDIR)/$1.test,$2)
