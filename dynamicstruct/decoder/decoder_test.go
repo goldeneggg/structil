@@ -446,8 +446,8 @@ func TestDynamicStructJSON(t *testing.T) {
 		ObjArrayField []struct {
 			K1 string ` + "`json:\"k1\"`" + `
 			K2 string ` + "`json:\"k2\"`" + `
-		}
-	}
+		} ` + "`json:\"obj_array_field\"`" + `
+	} ` + "`json:\"obj_field\"`" + `
 	StringField string ` + "`json:\"string_field\"`" + `
 }`,
 		},
