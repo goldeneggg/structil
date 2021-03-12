@@ -8,8 +8,6 @@ PKG_VIPER := github.com/spf13/viper
 PKG_GOCMP := github.com/google/go-cmp
 
 TESTDIR := ./.test
-TESTBIN_STRUCTIL := $(TESTDIR)/structil.test
-TESTBIN_DYNAMICSTRUCT := $(TESTDIR)/dynamicstruct.test
 BENCH_OLD := $(TESTDIR)/bench.old
 BENCH_NEW := $(TESTDIR)/bench.new
 BENCH_LATEST_URL := https://raw.githubusercontent.com/goldeneggg/structil/bench-latest/BENCHMARK_LATEST.txt
@@ -19,7 +17,11 @@ SRCS = $(shell find . -type f -name '*.go' | \grep -v 'vendor')
 PKGS = $(shell ./scripts/packages.sh)
 TOOL_PKGS = $(shell cat ./tools/tools.go | grep _ | awk -F'"' '{print $$2}')
 
+assert-command = $(if $(shell which $1),,$(error '$1' command is missing))
+
+
 .DEFAULT_GOAL := test
+
 
 ###
 # show informations
@@ -39,35 +41,29 @@ tool-pkgs:
 ###
 # manage modules
 ###
+go-mod = GO111MODULE=on $(LOCAL_GO) mod $1 $2
+go-install = GO111MODULE=on $(LOCAL_GO) install $1
+chk_latest = go list -u -m $1
+
 .PHONY: mod-dl
 mod-dl:
-	@GO111MODULE=on $(LOCAL_GO) mod download
+	@$(call go-mod,download,)
 
 .PHONY: mod-tidy
 mod-tidy:
-	@GO111MODULE=on $(LOCAL_GO) mod tidy
-
-# Note: tools additional process as follows
-#  - Add pacakge into tools.go
-#  - Run "make mod-tidy"
-#  - Run "make mod-tools-install"
-.PHONY: mod-tools-install
-mod-tools-install: mod-tidy
-	@GO111MODULE=on $(LOCAL_GO) install $(TOOL_PKGS)
-
-.PHONY: mod-golint-install
-mod-golint-install: mod-tidy
-	@GO111MODULE=on $(LOCAL_GO) install golang.org/x/lint/golint
-
-.PHONY: mod-benchstat-install
-mod-benchstat-install: mod-tidy
-	@GO111MODULE=on $(LOCAL_GO) install golang.org/x/perf/cmd/benchstat
+	@$(call go-mod,tidy,)
 
 .PHONY: vendor
 vendor:
-	@GO111MODULE=on $(LOCAL_GO) mod vendor
+	@$(call go-mod,vendor,)
 
-chk_latest = go list -u -m $1
+# Note: tools additional process as follows
+#  1. Add pacakge into tools.go
+#  2. Run "make mod-tidy"
+#  3. Run "make mod-tools-install"
+.PHONY: mod-tools-install
+mod-tools-install: mod-tidy
+	@$(call go-install,$(TOOL_PKGS))
 
 .PHONY: chk-latest-mapstructure
 chk-latest-mapstructure:
@@ -106,7 +102,7 @@ upgrade-latest-gocmp:
 ###
 .PHONY: test
 test:
-	@$(LOCAL_GO) test -race -cover -parallel 2 $(PKGS)
+	@$(LOCAL_GO) test -v -race -cover -p 2 $(PKGS)
 
 .PHONY: lint
 lint: mod-golint-install
