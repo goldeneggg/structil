@@ -510,6 +510,41 @@ func TestDynamicStructJSON(t *testing.T) {
 }`,
 		},
 		{
+			name: "TopLevelIsArray",
+			data: []byte(`
+[
+	{
+		"string_field":"あああ",
+		"objobj_field":{
+			"user_id":678,
+			"status":"progress"
+		},
+		"string_array_field":[
+			"id1",
+			"id2"
+		]
+	},
+	{
+		"string_field":"いいいい",
+		"string_array_field":[
+			"id4",
+			"id5",
+			"id6"
+		]
+	}	
+]
+`),
+			dt:       TypeJSON,
+			nest:     false,
+			useTag:   false,
+			wantNumF: 3,
+			wantDefinition: `type DynamicStruct struct {
+	ObjobjField map[string]interface {}
+	StringArrayField []string
+	StringField string
+}`,
+		},
+		{
 			name:     "BracketOnly",
 			data:     []byte(`{}`),
 			dt:       TypeJSON,
