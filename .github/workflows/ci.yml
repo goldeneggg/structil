@@ -80,8 +80,12 @@ jobs:
         name: codecov
         fail_ci_if_error: false
 
+  ###
+  # only on push to master
+  ###
   benchmark:
     name: Benchmark with Go version ${{ matrix.go }}
+    if: github.event_name == 'push'
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
