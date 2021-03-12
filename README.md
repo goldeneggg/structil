@@ -127,6 +127,7 @@ type DynamicStruct struct {
 - If `nest` is true, nested object attributes will be also decoded to struct recursively
 - If `useTag` is true, JSON Struct tags are defined
 
+And see [example code](/dynamicstruct/decoder/example_test.go#L9).
 
 ## More Examples
 
@@ -135,7 +136,7 @@ type DynamicStruct struct {
 
 We can create the dynamic and runtime struct.
 
-See [example code](/dynamicstruct/examples_test.go#L10)
+See [example code](/dynamicstruct/example_test.go#L10)
 
 
 #### JSON unmershal with `DynamicStruct`
@@ -143,34 +144,34 @@ See [example code](/dynamicstruct/examples_test.go#L10)
 A decoding example from JSON to `DynamicStruct` with `StructTag` using `json.Unmarshal([]byte)` as follows.
 This example works correctly not only JSON but also YAML, TOML and more.
 
-See [example code](/dynamicstruct/examples_test.go#L107)
+See [example code](/dynamicstruct/example_test.go#L110)
 
 ### `Getter`
 
 We can access a struct using field name string, like (typed) map.
 
-See [example code](/examples_test.go#L7)
+See [example code](/example_test.go#L7)
 
 
 #### `MapGet` method
 
 `MapGet` method provides the __Map__ collection function for slice of struct
 
-See [example code](/examples_test.go#L56)
+See [example code](/example_test.go#L56)
 
 
 ### `Finder`
 
 We can access usefully nested struct fields using field name string.
 
-See [example code](/examples_test.go#L115)
+See [example code](/example_test.go#L115)
 
 
 #### With config file? use `FinderKeys`
 
 We can create a Finder from the configuration file that have some finding target keys. We support some file formats of configuration file such as `yaml`, `json`, `toml` and more.
 
-See [example code](/examples_test.go#L189)
+See [example code](/example_test.go#L189)
 
 ___Thanks for the awesome configuration management library [spf13/viper](https://github.com/spf13/viper).___
 
