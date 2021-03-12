@@ -80,6 +80,30 @@ jobs:
         name: codecov
         fail_ci_if_error: false
 
+    - id: dump-contexts-after
+      name: Dump contexts After
+      if: ${{ always() }}
+      env:
+        GITHUB_CONTEXT: ${{ toJson(github) }}
+        JOB_CONTEXT: ${{ toJson(job) }}
+        STEPS_CONTEXT: ${{ toJson(steps) }}
+        RUNNER_CONTEXT: ${{ toJson(runner) }}
+        STRATEGY_CONTEXT: ${{ toJson(strategy) }}
+        MATRIX_CONTEXT: ${{ toJson(matrix) }}
+      run: |
+        echo ">>>>>>>>>> show GITHUB_CONTEXT"
+        echo "$GITHUB_CONTEXT"
+        echo ">>>>>>>>>> show JOB_CONTEXT"
+        echo "$JOB_CONTEXT"
+        echo ">>>>>>>>>> show STEPS_CONTEXT"
+        echo "$STEPS_CONTEXT"
+        echo ">>>>>>>>>> show RUNNER_CONTEXT"
+        echo "$RUNNER_CONTEXT"
+        echo ">>>>>>>>>> show STRATEGY_CONTEXT"
+        echo "$STRATEGY_CONTEXT"
+        echo ">>>>>>>>>> show MATRIX_CONTEXT"
+        echo "$MATRIX_CONTEXT"
+
   ###
   # only on push to master
   ###
@@ -155,6 +179,7 @@ jobs:
   ###
   draft-release:
     name: Draft release with Go version ${{ matrix.go }}
+    if: github.event_name == 'push'
     needs: [ test, benchmark ]
     #if: github.event_name == 'push'
     runs-on: ${{ matrix.os }}
@@ -199,8 +224,6 @@ jobs:
     - id: commit-push-benchmark-latest
       name: Commit and push BENCHMARK_LATEST.txt to bench-latest branch (only on push)
       continue-on-error: true
-      # This step is executed only on-push to master
-      if: github.event_name == 'push'
       run: |
         pwd
         ls -l
@@ -212,8 +235,6 @@ jobs:
 
     - id: create-draft-release
       name: Create draft release (only on push)
-      # This step is executed only on-push to master
-      if: github.event_name == 'push'
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -224,27 +245,3 @@ jobs:
           TODO
         draft: true
         prerelease: false
-
-    - id: dump-contexts-after
-      name: Dump contexts After
-      if: ${{ always() }}
-      env:
-        GITHUB_CONTEXT: ${{ toJson(github) }}
-        JOB_CONTEXT: ${{ toJson(job) }}
-        STEPS_CONTEXT: ${{ toJson(steps) }}
-        RUNNER_CONTEXT: ${{ toJson(runner) }}
-        STRATEGY_CONTEXT: ${{ toJson(strategy) }}
-        MATRIX_CONTEXT: ${{ toJson(matrix) }}
-      run: |
-        echo ">>>>>>>>>> show GITHUB_CONTEXT"
-        echo "$GITHUB_CONTEXT"
-        echo ">>>>>>>>>> show JOB_CONTEXT"
-        echo "$JOB_CONTEXT"
-        echo ">>>>>>>>>> show STEPS_CONTEXT"
-        echo "$STEPS_CONTEXT"
-        echo ">>>>>>>>>> show RUNNER_CONTEXT"
-        echo "$RUNNER_CONTEXT"
-        echo ">>>>>>>>>> show STRATEGY_CONTEXT"
-        echo "$STRATEGY_CONTEXT"
-        echo ">>>>>>>>>> show MATRIX_CONTEXT"
-        echo "$MATRIX_CONTEXT"
