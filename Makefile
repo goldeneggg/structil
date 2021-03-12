@@ -100,15 +100,16 @@ upgrade-latest-gocmp:
 ###
 # run tests
 ###
-run-test = $(LOCAL_GO) test -v -race -cover $1 $2
+run-test = $(LOCAL_GO) test -v -race -cover -p 4 $1 $(PKGS)
 
 .PHONY: test
 test:
-	@$(call run-test,-p 4,$(PKGS))
+	@$(call run-test,)
 
+# assign ST variable for your subtest name
 .PHONY: subtest
 subtest:
-	@$(call run-test,-run,$(ST))
+	@$(call run-test,-run $(ST))
 
 .PHONY: lint
 lint: mod-golint-install
