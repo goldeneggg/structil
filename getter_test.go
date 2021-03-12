@@ -452,13 +452,12 @@ func TestNames(t *testing.T) {
 }
 
 func testGetSeries(t *testing.T, wantNotOK bool, wantError bool, fn func(*testing.T, *getterTest, *Getter)) {
-	t.Parallel()
+	t.Helper()
 
 	testStructPtr := newGetterTestStructPtr()
 	g, err := NewGetter(testStructPtr)
 	if err != nil {
-		t.Errorf("NewGetter() unexpected error [%v] occurred.", err)
-		return
+		t.Fatalf("NewGetter() unexpected error [%v] occurred.", err)
 	}
 
 	tests := newGetterTests()
@@ -597,13 +596,13 @@ func TestGetType(t *testing.T) {
 
 		if ok {
 			if tt.wantNotOK {
-				t.Errorf("expected ok is false but true. args: %+v", tt.args)
+				t.Fatalf("expected ok is false but true. args: %+v", tt.args)
 			} else if d := cmp.Diff(got.String(), tt.wantType.String()); d != "" {
-				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
+				t.Fatalf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
 		} else {
 			if !tt.wantNotOK {
-				t.Errorf("expected ok is true but false. args: %+v", tt.args)
+				t.Fatalf("expected ok is true but false. args: %+v", tt.args)
 			}
 		}
 	}
@@ -617,13 +616,13 @@ func TestGetValue(t *testing.T) {
 
 		if ok {
 			if tt.wantNotOK {
-				t.Errorf("expected ok is false but true. args: %+v", tt.args)
+				t.Fatalf("expected ok is false but true. args: %+v", tt.args)
 			} else if d := cmp.Diff(got.String(), tt.wantValue.String()); d != "" {
-				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
+				t.Fatalf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
 		} else {
 			if !tt.wantNotOK {
-				t.Errorf("expected ok is true but false. args: %+v", tt.args)
+				t.Fatalf("expected ok is true but false. args: %+v", tt.args)
 			}
 		}
 	}
@@ -637,20 +636,20 @@ func TestGet(t *testing.T) {
 
 		if ok {
 			if tt.wantNotOK {
-				t.Errorf("expected ok is false but true. args: %+v", tt.args)
+				t.Fatalf("expected ok is false but true. args: %+v", tt.args)
 			} else if tt.args.name == "Func" {
 				// Note: cmp.Diff does not support comparing func and func
 				gp := reflect.ValueOf(got).Pointer()
 				wp := reflect.ValueOf(tt.wantIntf).Pointer()
 				if gp != wp {
-					t.Errorf("unexpected mismatch func type: gp: %v, wp: %v", gp, wp)
+					t.Fatalf("unexpected mismatch func type: gp: %v, wp: %v", gp, wp)
 				}
 			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
-				t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
+				t.Fatalf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
 			}
 		} else {
 			if !tt.wantNotOK {
-				t.Errorf("expected ok is true but false. args: %+v", tt.args)
+				t.Fatalf("expected ok is true but false. args: %+v", tt.args)
 			}
 		}
 	}

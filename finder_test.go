@@ -488,8 +488,10 @@ func TestToMap(t *testing.T) {
 	}
 }
 
-// This test should *NOT* be parallel
 func TestFromKeys(t *testing.T) {
+	// Note: This test should *NOT* be parallel because of race condition in NewFinderKeys func
+	// t.Parallel()
+
 	var f *Finder
 	var fk *FinderKeys
 	var err error

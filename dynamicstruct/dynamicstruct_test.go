@@ -780,26 +780,23 @@ func TestBuilderBuild(t *testing.T) {
 }
 
 func testBuilderBuildWant(t *testing.T, got *DynamicStruct, tt buildTest) bool {
+	t.Helper()
+
 	if got.IsPtr() != tt.wantIsPtr {
-		t.Errorf("unexpected pointer or not result. got: %v, want: %v", got.IsPtr(), tt.wantIsPtr)
-		return false
+		t.Fatalf("unexpected pointer or not result. got: %v, want: %v", got.IsPtr(), tt.wantIsPtr)
 	}
 
 	if got.Name() != tt.wantStructName {
-		t.Errorf("result struct name is unexpected. got: %s, want: %s", got.Name(), tt.wantStructName)
-		return false
+		t.Fatalf("result struct name is unexpected. got: %s, want: %s", got.Name(), tt.wantStructName)
 	}
 
 	if got.NumField() != tt.wantNumField {
-		t.Errorf("result numfield is unexpected. got: %d, want: %d", got.NumField(), tt.wantNumField)
-		return false
+		t.Fatalf("result numfield is unexpected. got: %d, want: %d", got.NumField(), tt.wantNumField)
 	}
 
 	if tt.wantDefinition != "" {
 		if d := cmp.Diff(got.Definition(), tt.wantDefinition); d != "" {
-			//t.Errorf("unexpected mismatch Definition. got:\n%s\n, want:\n%s\n", got.Definition(), tt.wantDefinition)
-			t.Errorf("unexpected mismatch Definition: (-got +want)\n%s", d)
-			return false
+			t.Fatalf("unexpected mismatch Definition: (-got +want)\n%s", d)
 		}
 	}
 
@@ -807,6 +804,8 @@ func testBuilderBuildWant(t *testing.T, got *DynamicStruct, tt buildTest) bool {
 }
 
 func testBuilderBuildTag(t *testing.T, got *DynamicStruct, tt buildTest) bool {
+	t.Helper()
+
 	prefixes := map[string]string{
 		"String":    stringFieldTag,
 		"Int":       intFieldTag,
@@ -831,12 +830,10 @@ func testBuilderBuildTag(t *testing.T, got *DynamicStruct, tt buildTest) bool {
 		st, ok := got.FieldByName(fName)
 		if ok {
 			if d := cmp.Diff(st.Tag, reflect.StructTag("")); d != "" {
-				t.Errorf("unexpected mismatch Tag: fName: %s, (-got +want)\n%s", fName, d)
-				return false
+				t.Fatalf("unexpected mismatch Tag: fName: %s, (-got +want)\n%s", fName, d)
 			}
 		} else {
-			t.Errorf("Field %s does not exist.", fName)
-			return false
+			t.Fatalf("Field %s does not exist.", fName)
 		}
 
 		// test with tag fields
@@ -844,12 +841,10 @@ func testBuilderBuildTag(t *testing.T, got *DynamicStruct, tt buildTest) bool {
 		sft, ok := got.FieldByName(fName)
 		if ok {
 			if d := cmp.Diff(sft.Tag, reflect.StructTag(tagWithTag)); d != "" {
-				t.Errorf("unexpected mismatch WithTag.Tag: fName: %s, (-got +want)\n%s", fName, d)
-				return false
+				t.Fatalf("unexpected mismatch WithTag.Tag: fName: %s, (-got +want)\n%s", fName, d)
 			}
 		} else {
-			t.Errorf("Field %s does not exist.", fName)
-			return false
+			t.Fatalf("Field %s does not exist.", fName)
 		}
 	}
 
@@ -857,48 +852,45 @@ func testBuilderBuildTag(t *testing.T, got *DynamicStruct, tt buildTest) bool {
 }
 
 func testBuilderBuildDecodeMap(t *testing.T, got *DynamicStruct, tt buildTest) bool {
+	t.Helper()
+
 	dec, err := got.DecodeMap(tt.testMap)
 	if err != nil {
 		if !tt.wantErrorDecodeMap {
-			t.Errorf("unexpected error occurred from DecodeMap: %v", err)
+			t.Fatalf("unexpected error occurred from DecodeMap: %v", err)
 		}
-		return false
+		return true
+
 	} else if tt.wantErrorDecodeMap {
-		t.Errorf("expected error did not occur from DecodeMap. dec: %+v", dec)
-		return false
+		t.Fatalf("expected error did not occur from DecodeMap. dec: %+v", dec)
 	}
 
 	getter, err := structil.NewGetter(dec)
 	if err != nil {
-		t.Errorf("unexpected error occurred from NewGetter: %v", err)
-		return false
+		t.Fatalf("unexpected error occurred from NewGetter: %v", err)
 	}
 
 	for k, v := range tt.testMap {
 		gotValue, ok := getter.Get(k)
 		if !ok {
-			t.Errorf("key does not exist. It's unexpected. name: %s", k)
-			return false
+			t.Fatalf("key does not exist. It's unexpected. name: %s", k)
 		}
 
 		switch k {
 		case "StructField":
 			getter, err := structil.NewGetter(gotValue)
 			if err != nil {
-				t.Errorf("unexpected error occurred from NewGetter for StructField: %v", err)
-				return false
+				t.Fatalf("unexpected error occurred from NewGetter for StructField: %v", err)
 			}
 
 			ds, _ := v.(DynamicTestStruct)
 			gotString, _ := getter.Get("String")
 			if gotString != ds.String {
-				t.Errorf("unexpected mismatch Struct String field: got: %v, want: %v", gotString, ds.String)
-				return false
+				t.Fatalf("unexpected mismatch Struct String field: got: %v, want: %v", gotString, ds.String)
 			}
 		default:
 			if d := cmp.Diff(gotValue, v); d != "" {
-				t.Errorf("unexpected mismatch: name: %s, (-got +want)\n%s", k, d)
-				return false
+				t.Fatalf("unexpected mismatch: name: %s, (-got +want)\n%s", k, d)
 			}
 		}
 	}
@@ -907,29 +899,27 @@ func testBuilderBuildDecodeMap(t *testing.T, got *DynamicStruct, tt buildTest) b
 }
 
 func testBuilderBuildAddDynamicStruct(t *testing.T, got *DynamicStruct, tt buildTest) bool {
+	t.Helper()
+
 	builder := newDynamicTestBuilder()
 	builder.AddDynamicStructWithTag("AdditionalDynamicStruct", got, false, "json")
 	builder.AddDynamicStructPtrWithTag("AdditionalDynamicStructPtr", got, "json")
 	newds, err := builder.Build()
 	if err != nil {
-		t.Errorf("unexpected error occurred from Build: %v", err)
-		return false
+		t.Fatalf("unexpected error occurred from Build: %v", err)
 	}
 
 	if newds.NumField() != tt.wantNumField+2 {
-		t.Errorf("result numfield is unexpected. got: %d, want: %d", newds.NumField(), tt.wantNumField+2)
-		return false
+		t.Fatalf("result numfield is unexpected. got: %d, want: %d", newds.NumField(), tt.wantNumField+2)
 	}
 
 	_, ok := newds.FieldByName("AdditionalDynamicStruct")
 	if !ok {
-		t.Errorf("additional DynamicStruct field does not exist")
-		return false
+		t.Fatalf("additional DynamicStruct field does not exist")
 	}
 	_, ok = newds.FieldByName("AdditionalDynamicStructPtr")
 	if !ok {
-		t.Errorf("additional DynamicStructPtr field does not exist")
-		return false
+		t.Fatalf("additional DynamicStructPtr field does not exist")
 	}
 
 	// TODO:

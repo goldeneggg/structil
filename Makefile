@@ -104,6 +104,10 @@ upgrade-latest-gocmp:
 test:
 	@$(LOCAL_GO) test -v -race -cover -p 2 $(PKGS)
 
+.PHONY: subtest
+subtest:
+	@$(LOCAL_GO) test -v -race -cover -run $(ST)
+
 .PHONY: lint
 lint: mod-golint-install
 	@golint -set_exit_status $(PKGS)
