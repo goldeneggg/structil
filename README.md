@@ -102,7 +102,10 @@ This program will print a Go struct definition string as follows.
 ```
 type DynamicStruct struct {
         ArrayStringField []string `json:"array_string_field"`
-        ArrayStructField []map[string]interface {} `json:"array_struct_field"`
+        ArrayStructField []struct {
+                Kkk string `json:"kkk"`
+                Vvvv string `json:"vvvv"`
+        }
         BoolField bool `json:"bool_field"`
         IntField float64 `json:"int_field"`
         NullField interface {} `json:"null_field"`

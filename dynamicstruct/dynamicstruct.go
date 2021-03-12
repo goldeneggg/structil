@@ -102,24 +102,33 @@ func (ds *DynamicStruct) Definition() string {
 	}
 
 	var stb strings.Builder
-	ds.def = definition(&stb, ds.fields, ds.name, 1)
+	ds.def = definition(&stb, ds.fields, ds.name, 1, "")
 	return ds.def
 }
 
-func definition(stbp *strings.Builder, flds []reflect.StructField, name string, indentLevel int) string {
+func definition(stbp *strings.Builder, flds []reflect.StructField, name string, indentLevel int, slicePrefix string) string {
 	sortedFlds := sortFields(flds)
+	sp := slicePrefix
 
 	if indentLevel == 1 {
 		stbp.WriteString("type ")
 	}
+
 	if name != "" {
 		stbp.WriteString(name + " ")
 	}
+
+	// add "[]" if slice
+	if sp != "" {
+		stbp.WriteString(sp)
+	}
+
 	stbp.WriteString("struct {\n")
 
-	indent := strings.Repeat("\t", indentLevel)
 	var nt reflect.Type
 	var k reflect.Kind
+
+	indent := strings.Repeat("\t", indentLevel)
 	for _, sf := range sortedFlds {
 		stbp.WriteString(indent)
 		stbp.WriteString(sf.Name)
@@ -127,10 +136,18 @@ func definition(stbp *strings.Builder, flds []reflect.StructField, name string, 
 
 		nt = sf.Type
 		k = nt.Kind()
+		if k == reflect.Slice {
+			nt = nt.Elem()
+			k = nt.Kind()
+			sp = "[]"
+		} else {
+			sp = ""
+		}
 		if k == reflect.Ptr {
 			nt = nt.Elem()
 			k = nt.Kind()
 		}
+
 		if k == reflect.Struct {
 			// recursively call if type is struct
 			nflds := make([]reflect.StructField, nt.NumField())
@@ -138,7 +155,7 @@ func definition(stbp *strings.Builder, flds []reflect.StructField, name string, 
 				nflds[i] = nt.Field(i)
 			}
 			var nstb strings.Builder
-			stbp.WriteString(definition(&nstb, nflds, "", indentLevel+1))
+			stbp.WriteString(definition(&nstb, nflds, "", indentLevel+1, sp))
 		} else {
 			stbp.WriteString(sf.Type.String())
 		}

@@ -395,6 +395,24 @@ func (b *Builder) AddDynamicStructPtrWithTag(name string, ds *DynamicStruct, tag
 	return b.AddDynamicStructWithTag(name, ds, true, tag)
 }
 
+// AddDynamicStructSlice returns a Builder that was added a DynamicStruct slice field named by name parameter.
+func (b *Builder) AddDynamicStructSlice(name string, ds *DynamicStruct, isPtr bool) *Builder {
+	return b.AddDynamicStructSliceWithTag(name, ds, isPtr, "")
+}
+
+// AddDynamicStructSliceWithTag returns a Builder that was added a DynamicStruct slice field with tag named by name parameter.
+func (b *Builder) AddDynamicStructSliceWithTag(name string, ds *DynamicStruct, isPtr bool, tag string) *Builder {
+	p := &addParam{
+		name:    name,
+		intfs:   []interface{}{ds.NewInterface()}, // use ds.NewInterface() for building concrete fields of ds
+		pattern: patternSlice,
+		isPtr:   isPtr,
+		tag:     tag,
+	}
+	b.add(p)
+	return b
+}
+
 func (b *Builder) add(p *addParam) {
 	defer func() {
 		err := util.RecoverToError(recover())

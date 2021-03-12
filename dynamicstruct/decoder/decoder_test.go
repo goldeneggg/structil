@@ -421,7 +421,17 @@ func TestDynamicStructJSON(t *testing.T) {
 	"string_field":"あああ",
 	"obj_field":{
 		"id":123,
-		"name":"Test Tarou"
+		"name":"Test Tarou",
+		"obj_array_field": [
+			{
+				"k1":"v1",
+				"k2":"v2"
+			},
+			{
+				"k1":"v111",
+				"k2":"v222"
+			}
+		]
 	}
 }
 `),
@@ -433,6 +443,10 @@ func TestDynamicStructJSON(t *testing.T) {
 	ObjField struct {
 		Id float64 ` + "`json:\"id\"`" + `
 		Name string ` + "`json:\"name\"`" + `
+		ObjArrayField []struct {
+			K1 string ` + "`json:\"k1\"`" + `
+			K2 string ` + "`json:\"k2\"`" + `
+		}
 	}
 	StringField string ` + "`json:\"string_field\"`" + `
 }`,

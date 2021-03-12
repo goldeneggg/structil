@@ -623,8 +623,82 @@ func TestBuilderBuild(t *testing.T) {
 	InterfacePtrFieldWithTag *interface {} ` + "`json:\"interface_field_with_tag\"`" + `
 	MapField map[string]float32
 	MapFieldWithTag map[string]float32 ` + "`json:\"map_field_with_tag\"`" + `
-	SliceField []*dynamicstruct_test.DynamicTestStruct
-	SliceFieldWithTag []*dynamicstruct_test.DynamicTestStruct ` + "`json:\"slice_field_with_tag\"`" + `
+	SliceField []struct {
+		Bool bool
+		Byte uint8
+		Bytes []uint8
+		DynamicTestStruct2 struct {
+			DynamicTestStruct3 struct {
+				Int int
+				String string
+			}
+			String string
+		}
+		DynamicTestStruct2Ptr struct {
+			DynamicTestStruct3 struct {
+				Int int
+				String string
+			}
+			String string
+		}
+		DynamicTestStruct4PtrSlice []struct {
+			String string
+			String2 string
+		}
+		DynamicTestStruct4Slice []struct {
+			String string
+			String2 string
+		}
+		Float32 float32
+		Float64 float64
+		Func func(string) interface {}
+		Int int
+		Int64 int64
+		Map map[string]interface {}
+		String string
+		Stringptr *string
+		Stringslice []string
+		Uint uint
+		Uint64 uint64
+	}
+	SliceFieldWithTag []struct {
+		Bool bool
+		Byte uint8
+		Bytes []uint8
+		DynamicTestStruct2 struct {
+			DynamicTestStruct3 struct {
+				Int int
+				String string
+			}
+			String string
+		}
+		DynamicTestStruct2Ptr struct {
+			DynamicTestStruct3 struct {
+				Int int
+				String string
+			}
+			String string
+		}
+		DynamicTestStruct4PtrSlice []struct {
+			String string
+			String2 string
+		}
+		DynamicTestStruct4Slice []struct {
+			String string
+			String2 string
+		}
+		Float32 float32
+		Float64 float64
+		Func func(string) interface {}
+		Int int
+		Int64 int64
+		Map map[string]interface {}
+		String string
+		Stringptr *string
+		Stringslice []string
+		Uint uint
+		Uint64 uint64
+	} ` + "`json:\"slice_field_with_tag\"`" + `
 	StringField string
 	StringFieldWithTag string ` + "`json:\"string_field_with_tag\"`" + `
 	StructField struct {
@@ -645,8 +719,14 @@ func TestBuilderBuild(t *testing.T) {
 			}
 			String string
 		}
-		DynamicTestStruct4PtrSlice []*dynamicstruct_test.DynamicTestStruct4
-		DynamicTestStruct4Slice []dynamicstruct_test.DynamicTestStruct4
+		DynamicTestStruct4PtrSlice []struct {
+			String string
+			String2 string
+		}
+		DynamicTestStruct4Slice []struct {
+			String string
+			String2 string
+		}
 		Float32 float32
 		Float64 float64
 		Func func(string) interface {}
@@ -677,8 +757,14 @@ func TestBuilderBuild(t *testing.T) {
 			}
 			String string
 		}
-		DynamicTestStruct4PtrSlice []*dynamicstruct_test.DynamicTestStruct4
-		DynamicTestStruct4Slice []dynamicstruct_test.DynamicTestStruct4
+		DynamicTestStruct4PtrSlice []struct {
+			String string
+			String2 string
+		}
+		DynamicTestStruct4Slice []struct {
+			String string
+			String2 string
+		}
 		Float32 float32
 		Float64 float64
 		Func func(string) interface {}
@@ -709,8 +795,14 @@ func TestBuilderBuild(t *testing.T) {
 			}
 			String string
 		}
-		DynamicTestStruct4PtrSlice []*dynamicstruct_test.DynamicTestStruct4
-		DynamicTestStruct4Slice []dynamicstruct_test.DynamicTestStruct4
+		DynamicTestStruct4PtrSlice []struct {
+			String string
+			String2 string
+		}
+		DynamicTestStruct4Slice []struct {
+			String string
+			String2 string
+		}
 		Float32 float32
 		Float64 float64
 		Func func(string) interface {}
@@ -741,8 +833,14 @@ func TestBuilderBuild(t *testing.T) {
 			}
 			String string
 		}
-		DynamicTestStruct4PtrSlice []*dynamicstruct_test.DynamicTestStruct4
-		DynamicTestStruct4Slice []dynamicstruct_test.DynamicTestStruct4
+		DynamicTestStruct4PtrSlice []struct {
+			String string
+			String2 string
+		}
+		DynamicTestStruct4Slice []struct {
+			String string
+			String2 string
+		}
 		Float32 float32
 		Float64 float64
 		Func func(string) interface {}
