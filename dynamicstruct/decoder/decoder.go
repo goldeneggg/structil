@@ -105,8 +105,7 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag 
 					if err != nil {
 						return nil, err
 					}
-					// b = b.AddDynamicStruct(name, nds, false)
-					b = b.AddDynamicStructSlice(name, nds, false)
+					b = b.AddDynamicStructSliceWithTag(name, nds, false, tag)
 				} else {
 					b = b.AddSliceWithTag(name, interface{}(vv), tag)
 				}
@@ -119,7 +118,7 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag 
 				if err != nil {
 					return nil, err
 				}
-				b = b.AddDynamicStruct(name, nds, false)
+				b = b.AddDynamicStructWithTag(name, nds, false, tag)
 			} else {
 				for kk := range value {
 					b = b.AddMapWithTag(name, kk, nil, tag)

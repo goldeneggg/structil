@@ -105,9 +105,9 @@ type DynamicStruct struct {
         ArrayStructField []struct {
                 Kkk string `json:"kkk"`
                 Vvvv string `json:"vvvv"`
-        }
+        } `json:"array_struct_field"`
         BoolField bool `json:"bool_field"`
-        IntField float64 `json:"int_field"`
+        IntField float64 `json:"int_field"` 
         NullField interface {} `json:"null_field"`
         ObjectField struct {
                 Id float64 `json:"id"`
@@ -115,8 +115,8 @@ type DynamicStruct struct {
                 NestedObjectField struct {
                         Address string `json:"address"`
                         IsManager bool `json:"is_manager"`
-                }
-        }
+                } `json:"nested_object_field"`
+        } `json:"object_field"`
         StringField string `json:"string_field"`
 }
 ```
