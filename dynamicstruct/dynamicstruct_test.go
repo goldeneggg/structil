@@ -823,21 +823,43 @@ func TestBuilderBuild(t *testing.T) {
 func testBuilderBuildWant(t *testing.T, got *DynamicStruct, tt buildTest) bool {
 	t.Helper()
 
-	if got.IsPtr() != tt.wantIsPtr {
-		t.Fatalf("unexpected pointer or not result. got: %v, want: %v", got.IsPtr(), tt.wantIsPtr)
-	}
-
 	if got.Name() != tt.wantStructName {
 		t.Fatalf("result struct name is unexpected. got: %s, want: %s", got.Name(), tt.wantStructName)
+	}
+
+	k := got.Type().Kind()
+	if k != reflect.Struct {
+		t.Fatalf("result struct Type.Kind is unexpected. got: %s, want: Struct", k)
+	}
+
+	flds := got.Fields()
+	if len(flds) != tt.wantNumField {
+		t.Fatalf("result Fields's length is unexpected. got: %d, want: %d", len(flds), tt.wantNumField)
+	}
+
+	if len(flds) > 0 {
+		f := got.Field(0)
+		if flds[0].Name != f.Name {
+			t.Fatalf("result Field(0) '%s' is unmatch with flds[0] '%s'", flds[0].Name, f.Name)
+		}
 	}
 
 	if got.NumField() != tt.wantNumField {
 		t.Fatalf("result numfield is unexpected. got: %d, want: %d", got.NumField(), tt.wantNumField)
 	}
 
+	if got.IsPtr() != tt.wantIsPtr {
+		t.Fatalf("unexpected pointer or not result. got: %v, want: %v", got.IsPtr(), tt.wantIsPtr)
+	}
+
 	if tt.wantDefinition != "" {
 		if d := cmp.Diff(got.Definition(), tt.wantDefinition); d != "" {
 			t.Fatalf("unexpected mismatch Definition: (-got +want)\n%s", d)
+		}
+
+		// 2nd call
+		if d := cmp.Diff(got.Definition(), tt.wantDefinition); d != "" {
+			t.Fatalf("unexpected mismatch Definition(2nd call): (-got +want)\n%s", d)
 		}
 	}
 
