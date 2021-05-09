@@ -53,7 +53,16 @@ func ExampleDynamicStruct_json() {
 	fmt.Println(ds.Definition())
 
 	// Confirm decoded result using Getter with Interface
-	g, err := structil.NewGetter(ds.NewInterface())
+	// *When input map keys are NOT camelized*
+	m, ok := decoder.Interface().(map[string]interface{})
+	if !ok {
+		panic(fmt.Sprintf("decoder.Interface() does not return map: %#v", decoder.Interface()))
+	}
+	intf, err := ds.DecodeMapWithKeyCamelize(m)
+	if err != nil {
+		panic(err)
+	}
+	g, err := structil.NewGetter(intf)
 	if err != nil {
 		panic(err)
 	}
@@ -89,12 +98,12 @@ func ExampleDynamicStruct_json() {
 	//	StructPtrField map[string]interface {} `json:"struct_ptr_field"`
 	//}
 	// num of fields=8
-	// 'StringField'=
-	// 'IntField'=0.000000
-	// 'Float32Field'=0.000000
+	// 'StringField'=かきくけこ
+	// 'IntField'=45678.000000
+	// 'Float32Field'=9.876000
 	// 'BoolField'=false
-	// 'StructPtrField'=map[]
-	// 'ArrayStringField'=[]
-	// 'ArrayStructField'=[]
+	// 'StructPtrField'=map[key:hugakey value:hugavalue]
+	// 'ArrayStringField'=[array_str_1 array_str_2]
+	// 'ArrayStructField'=[map[kkk:kkk1 vvvv:vvv1] map[kkk:kkk2 vvvv:vvv2] map[kkk:kkk3 vvvv:vvv3]]
 	// 'NullField'=<nil>
 }

@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/iancoleman/strcase"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -84,12 +85,29 @@ func (ds *DynamicStruct) NewInterface() interface{} {
 
 // DecodeMap returns the interface that was decoded from input map.
 func (ds *DynamicStruct) DecodeMap(m map[string]interface{}) (interface{}, error) {
+	return ds.decodeMap(m, false)
+}
+
+func (ds *DynamicStruct) DecodeMapWithKeyCamelize(m map[string]interface{}) (interface{}, error) {
+	return ds.decodeMap(m, true)
+}
+
+func (ds *DynamicStruct) decodeMap(m map[string]interface{}, camelizeKey bool) (interface{}, error) {
 	if !ds.IsPtr() {
 		return nil, errors.New("DecodeMap can execute only if dynamic struct is pointer. But this is false")
 	}
 
+	tm := make(map[string]interface{}, len(m))
+	if camelizeKey {
+		for k, v := range m {
+			tm[strcase.ToCamel(k)] = v
+		}
+	} else {
+		tm = m
+	}
+
 	i := ds.NewInterface()
-	err := mapstructure.Decode(m, &i)
+	err := mapstructure.Decode(tm, &i)
 	return i, err
 }
 
