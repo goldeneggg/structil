@@ -88,6 +88,7 @@ func (ds *DynamicStruct) DecodeMap(m map[string]interface{}) (interface{}, error
 	return ds.decodeMap(m, false)
 }
 
+// DecodeMapWithKeyCamelize returns the interface that was decoded from input map with keys camelization.
 func (ds *DynamicStruct) DecodeMapWithKeyCamelize(m map[string]interface{}) (interface{}, error) {
 	return ds.decodeMap(m, true)
 }
