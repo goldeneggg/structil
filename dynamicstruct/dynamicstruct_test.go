@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/iancoleman/strcase"
 
 	"github.com/goldeneggg/structil"
 
@@ -69,6 +70,263 @@ const (
 	sliceFieldTag     = `json:"slice_field_with_tag"`
 	interfaceFieldTag = `json:"interface_field_with_tag"`
 )
+
+const expectedDefinition = `type DynamicStruct struct {
+	BoolField bool
+	BoolFieldWithTag bool ` + "`json:\"bool_field_with_tag\"`" + `
+	ByteField uint8
+	ByteFieldWithTag uint8 ` + "`json:\"byte_field_with_tag\"`" + `
+	ChanBothField chan int
+	ChanBothFieldWithTag chan int ` + "`json:\"chan_both_field_with_tag\"`" + `
+	ChanRecvField <-chan int
+	ChanRecvFieldWithTag <-chan int ` + "`json:\"chan_recv_field_with_tag\"`" + `
+	ChanSendField chan<- int
+	ChanSendFieldWithTag chan<- int ` + "`json:\"chan_send_field_with_tag\"`" + `
+	Float32Field float32
+	Float32FieldWithTag float32 ` + "`json:\"float32_field_with_tag\"`" + `
+	Float64Field float64
+	Float64FieldWithTag float64 ` + "`json:\"float64_field_with_tag\"`" + `
+	FuncField func(int, int) (bool, *errors.errorString)
+	FuncFieldWithTag func(int, int) (bool, *errors.errorString) ` + "`json:\"func_field_with_tag\"`" + `
+	IntField int
+	IntFieldWithTag int ` + "`json:\"int_field_with_tag\"`" + `
+	InterfaceField interface {}
+	InterfaceFieldWithTag interface {} ` + "`json:\"interface_field_with_tag\"`" + `
+	InterfacePtrField *interface {}
+	InterfacePtrFieldWithTag *interface {} ` + "`json:\"interface_field_with_tag\"`" + `
+	MapField map[string]float32
+	MapFieldWithTag map[string]float32 ` + "`json:\"map_field_with_tag\"`" + `
+	SliceField []struct {
+		Bool bool
+		Byte uint8
+		Bytes []uint8
+		DynamicTestStruct2 struct {
+			DynamicTestStruct3 struct {
+				Int int
+				String string
+			}
+			String string
+		}
+		DynamicTestStruct2Ptr struct {
+			DynamicTestStruct3 struct {
+				Int int
+				String string
+			}
+			String string
+		}
+		DynamicTestStruct4PtrSlice []struct {
+			String string
+			String2 string
+		}
+		DynamicTestStruct4Slice []struct {
+			String string
+			String2 string
+		}
+		Float32 float32
+		Float64 float64
+		Func func(string) interface {}
+		Int int
+		Int64 int64
+		Map map[string]interface {}
+		String string
+		Stringptr *string
+		Stringslice []string
+		Uint uint
+		Uint64 uint64
+	}
+	SliceFieldWithTag []struct {
+		Bool bool
+		Byte uint8
+		Bytes []uint8
+		DynamicTestStruct2 struct {
+			DynamicTestStruct3 struct {
+				Int int
+				String string
+			}
+			String string
+		}
+		DynamicTestStruct2Ptr struct {
+			DynamicTestStruct3 struct {
+				Int int
+				String string
+			}
+			String string
+		}
+		DynamicTestStruct4PtrSlice []struct {
+			String string
+			String2 string
+		}
+		DynamicTestStruct4Slice []struct {
+			String string
+			String2 string
+		}
+		Float32 float32
+		Float64 float64
+		Func func(string) interface {}
+		Int int
+		Int64 int64
+		Map map[string]interface {}
+		String string
+		Stringptr *string
+		Stringslice []string
+		Uint uint
+		Uint64 uint64
+	} ` + "`json:\"slice_field_with_tag\"`" + `
+	StringField string
+	StringFieldWithTag string ` + "`json:\"string_field_with_tag\"`" + `
+	StructField struct {
+		Bool bool
+		Byte uint8
+		Bytes []uint8
+		DynamicTestStruct2 struct {
+			DynamicTestStruct3 struct {
+				Int int
+				String string
+			}
+			String string
+		}
+		DynamicTestStruct2Ptr struct {
+			DynamicTestStruct3 struct {
+				Int int
+				String string
+			}
+			String string
+		}
+		DynamicTestStruct4PtrSlice []struct {
+			String string
+			String2 string
+		}
+		DynamicTestStruct4Slice []struct {
+			String string
+			String2 string
+		}
+		Float32 float32
+		Float64 float64
+		Func func(string) interface {}
+		Int int
+		Int64 int64
+		Map map[string]interface {}
+		String string
+		Stringptr *string
+		Stringslice []string
+		Uint uint
+		Uint64 uint64
+	}
+	StructFieldWithTag struct {
+		Bool bool
+		Byte uint8
+		Bytes []uint8
+		DynamicTestStruct2 struct {
+			DynamicTestStruct3 struct {
+				Int int
+				String string
+			}
+			String string
+		}
+		DynamicTestStruct2Ptr struct {
+			DynamicTestStruct3 struct {
+				Int int
+				String string
+			}
+			String string
+		}
+		DynamicTestStruct4PtrSlice []struct {
+			String string
+			String2 string
+		}
+		DynamicTestStruct4Slice []struct {
+			String string
+			String2 string
+		}
+		Float32 float32
+		Float64 float64
+		Func func(string) interface {}
+		Int int
+		Int64 int64
+		Map map[string]interface {}
+		String string
+		Stringptr *string
+		Stringslice []string
+		Uint uint
+		Uint64 uint64
+	} ` + "`json:\"struct_field_with_tag\"`" + `
+	StructPtrField struct {
+		Bool bool
+		Byte uint8
+		Bytes []uint8
+		DynamicTestStruct2 struct {
+			DynamicTestStruct3 struct {
+				Int int
+				String string
+			}
+			String string
+		}
+		DynamicTestStruct2Ptr struct {
+			DynamicTestStruct3 struct {
+				Int int
+				String string
+			}
+			String string
+		}
+		DynamicTestStruct4PtrSlice []struct {
+			String string
+			String2 string
+		}
+		DynamicTestStruct4Slice []struct {
+			String string
+			String2 string
+		}
+		Float32 float32
+		Float64 float64
+		Func func(string) interface {}
+		Int int
+		Int64 int64
+		Map map[string]interface {}
+		String string
+		Stringptr *string
+		Stringslice []string
+		Uint uint
+		Uint64 uint64
+	}
+	StructPtrFieldWithTag struct {
+		Bool bool
+		Byte uint8
+		Bytes []uint8
+		DynamicTestStruct2 struct {
+			DynamicTestStruct3 struct {
+				Int int
+				String string
+			}
+			String string
+		}
+		DynamicTestStruct2Ptr struct {
+			DynamicTestStruct3 struct {
+				Int int
+				String string
+			}
+			String string
+		}
+		DynamicTestStruct4PtrSlice []struct {
+			String string
+			String2 string
+		}
+		DynamicTestStruct4Slice []struct {
+			String string
+			String2 string
+		}
+		Float32 float32
+		Float64 float64
+		Func func(string) interface {}
+		Int int
+		Int64 int64
+		Map map[string]interface {}
+		String string
+		Stringptr *string
+		Stringslice []string
+		Uint uint
+		Uint64 uint64
+	} ` + "`json:\"struct_ptr_field_with_tag\"`" + `
+}`
 
 var (
 	dynamicTestString2 = "test name2"
@@ -135,6 +393,7 @@ func newDynamicTestStructPtr() *DynamicTestStruct {
 	return &ts
 }
 
+// See: "expectedDefinition" constant (this is the Definition of the Builder as follows)
 func newDynamicTestBuilder() *Builder {
 	return NewBuilder().
 		AddString("StringField").
@@ -570,7 +829,8 @@ type buildTest struct {
 	wantStructName      string
 	wantNumField        int
 	wantDefinition      string
-	testMap             map[string]interface{}
+	decodedMap          map[string]interface{}
+	camelizeKeys        bool
 	wantErrorDecodeMap  bool
 	tryAddDynamicStruct bool
 }
@@ -579,6 +839,19 @@ func TestBuilderBuild(t *testing.T) {
 	t.Parallel()
 
 	testMap := map[string]interface{}{
+		"string_field":  "XXXyyy",
+		"int_field":     3456,
+		"byte_field":    byte(2),
+		"float32_field": float32(0.98),
+		"float64_field": float64(9.012),
+		"bool_field":    true,
+		"map_field":     map[string]float32{"map_field_key": float32(1.2)},
+		//"func_field":   func(i1 int, i2 int) (bool, error) { return true, nil },  // FIXME: func support
+		"struct_field": DynamicTestStruct{String: "Xyz"},
+		"slice_field":  []*DynamicTestStruct{{String: "Abc1"}, {String: "Abc2"}},
+	}
+
+	testCamelizedMap := map[string]interface{}{
 		"StringField":  "ABCDEFGH",
 		"IntField":     987,
 		"ByteField":    byte(1),
@@ -593,268 +866,24 @@ func TestBuilderBuild(t *testing.T) {
 
 	tests := []buildTest{
 		{
-			name:           "Build() with valid Builder",
-			args:           buildArgs{builder: newDynamicTestBuilder(), isPtr: true},
-			wantIsPtr:      true,
-			wantStructName: "DynamicStruct",
-			wantNumField:   32, // See: newDynamicTestBuilder()
-			wantDefinition: `type DynamicStruct struct {
-	BoolField bool
-	BoolFieldWithTag bool ` + "`json:\"bool_field_with_tag\"`" + `
-	ByteField uint8
-	ByteFieldWithTag uint8 ` + "`json:\"byte_field_with_tag\"`" + `
-	ChanBothField chan int
-	ChanBothFieldWithTag chan int ` + "`json:\"chan_both_field_with_tag\"`" + `
-	ChanRecvField <-chan int
-	ChanRecvFieldWithTag <-chan int ` + "`json:\"chan_recv_field_with_tag\"`" + `
-	ChanSendField chan<- int
-	ChanSendFieldWithTag chan<- int ` + "`json:\"chan_send_field_with_tag\"`" + `
-	Float32Field float32
-	Float32FieldWithTag float32 ` + "`json:\"float32_field_with_tag\"`" + `
-	Float64Field float64
-	Float64FieldWithTag float64 ` + "`json:\"float64_field_with_tag\"`" + `
-	FuncField func(int, int) (bool, *errors.errorString)
-	FuncFieldWithTag func(int, int) (bool, *errors.errorString) ` + "`json:\"func_field_with_tag\"`" + `
-	IntField int
-	IntFieldWithTag int ` + "`json:\"int_field_with_tag\"`" + `
-	InterfaceField interface {}
-	InterfaceFieldWithTag interface {} ` + "`json:\"interface_field_with_tag\"`" + `
-	InterfacePtrField *interface {}
-	InterfacePtrFieldWithTag *interface {} ` + "`json:\"interface_field_with_tag\"`" + `
-	MapField map[string]float32
-	MapFieldWithTag map[string]float32 ` + "`json:\"map_field_with_tag\"`" + `
-	SliceField []struct {
-		Bool bool
-		Byte uint8
-		Bytes []uint8
-		DynamicTestStruct2 struct {
-			DynamicTestStruct3 struct {
-				Int int
-				String string
-			}
-			String string
-		}
-		DynamicTestStruct2Ptr struct {
-			DynamicTestStruct3 struct {
-				Int int
-				String string
-			}
-			String string
-		}
-		DynamicTestStruct4PtrSlice []struct {
-			String string
-			String2 string
-		}
-		DynamicTestStruct4Slice []struct {
-			String string
-			String2 string
-		}
-		Float32 float32
-		Float64 float64
-		Func func(string) interface {}
-		Int int
-		Int64 int64
-		Map map[string]interface {}
-		String string
-		Stringptr *string
-		Stringslice []string
-		Uint uint
-		Uint64 uint64
-	}
-	SliceFieldWithTag []struct {
-		Bool bool
-		Byte uint8
-		Bytes []uint8
-		DynamicTestStruct2 struct {
-			DynamicTestStruct3 struct {
-				Int int
-				String string
-			}
-			String string
-		}
-		DynamicTestStruct2Ptr struct {
-			DynamicTestStruct3 struct {
-				Int int
-				String string
-			}
-			String string
-		}
-		DynamicTestStruct4PtrSlice []struct {
-			String string
-			String2 string
-		}
-		DynamicTestStruct4Slice []struct {
-			String string
-			String2 string
-		}
-		Float32 float32
-		Float64 float64
-		Func func(string) interface {}
-		Int int
-		Int64 int64
-		Map map[string]interface {}
-		String string
-		Stringptr *string
-		Stringslice []string
-		Uint uint
-		Uint64 uint64
-	} ` + "`json:\"slice_field_with_tag\"`" + `
-	StringField string
-	StringFieldWithTag string ` + "`json:\"string_field_with_tag\"`" + `
-	StructField struct {
-		Bool bool
-		Byte uint8
-		Bytes []uint8
-		DynamicTestStruct2 struct {
-			DynamicTestStruct3 struct {
-				Int int
-				String string
-			}
-			String string
-		}
-		DynamicTestStruct2Ptr struct {
-			DynamicTestStruct3 struct {
-				Int int
-				String string
-			}
-			String string
-		}
-		DynamicTestStruct4PtrSlice []struct {
-			String string
-			String2 string
-		}
-		DynamicTestStruct4Slice []struct {
-			String string
-			String2 string
-		}
-		Float32 float32
-		Float64 float64
-		Func func(string) interface {}
-		Int int
-		Int64 int64
-		Map map[string]interface {}
-		String string
-		Stringptr *string
-		Stringslice []string
-		Uint uint
-		Uint64 uint64
-	}
-	StructFieldWithTag struct {
-		Bool bool
-		Byte uint8
-		Bytes []uint8
-		DynamicTestStruct2 struct {
-			DynamicTestStruct3 struct {
-				Int int
-				String string
-			}
-			String string
-		}
-		DynamicTestStruct2Ptr struct {
-			DynamicTestStruct3 struct {
-				Int int
-				String string
-			}
-			String string
-		}
-		DynamicTestStruct4PtrSlice []struct {
-			String string
-			String2 string
-		}
-		DynamicTestStruct4Slice []struct {
-			String string
-			String2 string
-		}
-		Float32 float32
-		Float64 float64
-		Func func(string) interface {}
-		Int int
-		Int64 int64
-		Map map[string]interface {}
-		String string
-		Stringptr *string
-		Stringslice []string
-		Uint uint
-		Uint64 uint64
-	} ` + "`json:\"struct_field_with_tag\"`" + `
-	StructPtrField struct {
-		Bool bool
-		Byte uint8
-		Bytes []uint8
-		DynamicTestStruct2 struct {
-			DynamicTestStruct3 struct {
-				Int int
-				String string
-			}
-			String string
-		}
-		DynamicTestStruct2Ptr struct {
-			DynamicTestStruct3 struct {
-				Int int
-				String string
-			}
-			String string
-		}
-		DynamicTestStruct4PtrSlice []struct {
-			String string
-			String2 string
-		}
-		DynamicTestStruct4Slice []struct {
-			String string
-			String2 string
-		}
-		Float32 float32
-		Float64 float64
-		Func func(string) interface {}
-		Int int
-		Int64 int64
-		Map map[string]interface {}
-		String string
-		Stringptr *string
-		Stringslice []string
-		Uint uint
-		Uint64 uint64
-	}
-	StructPtrFieldWithTag struct {
-		Bool bool
-		Byte uint8
-		Bytes []uint8
-		DynamicTestStruct2 struct {
-			DynamicTestStruct3 struct {
-				Int int
-				String string
-			}
-			String string
-		}
-		DynamicTestStruct2Ptr struct {
-			DynamicTestStruct3 struct {
-				Int int
-				String string
-			}
-			String string
-		}
-		DynamicTestStruct4PtrSlice []struct {
-			String string
-			String2 string
-		}
-		DynamicTestStruct4Slice []struct {
-			String string
-			String2 string
-		}
-		Float32 float32
-		Float64 float64
-		Func func(string) interface {}
-		Int int
-		Int64 int64
-		Map map[string]interface {}
-		String string
-		Stringptr *string
-		Stringslice []string
-		Uint uint
-		Uint64 uint64
-	} ` + "`json:\"struct_ptr_field_with_tag\"`" + `
-}`,
-			testMap:             testMap,
+			name:                "Build() with valid Builder",
+			args:                buildArgs{builder: newDynamicTestBuilder(), isPtr: true},
+			wantIsPtr:           true,
+			wantStructName:      "DynamicStruct",
+			wantNumField:        32, // See: newDynamicTestBuilder()
+			wantDefinition:      expectedDefinition,
+			decodedMap:          testMap,
+			camelizeKeys:        true,
+			tryAddDynamicStruct: true,
+		},
+		{
+			name:                "Build() with valid Builder",
+			args:                buildArgs{builder: newDynamicTestBuilder(), isPtr: true},
+			wantIsPtr:           true,
+			wantStructName:      "DynamicStruct",
+			wantNumField:        32, // See: newDynamicTestBuilder()
+			wantDefinition:      expectedDefinition,
+			decodedMap:          testCamelizedMap,
 			tryAddDynamicStruct: true,
 		},
 		{
@@ -863,7 +892,7 @@ func TestBuilderBuild(t *testing.T) {
 			wantIsPtr:          false,
 			wantStructName:     "DynamicStruct",
 			wantNumField:       32,
-			testMap:            testMap,
+			decodedMap:         testCamelizedMap,
 			wantErrorDecodeMap: true, // Note: can't execute DecodeMap if dynamic struct is NOT pointer.
 		},
 		{
@@ -872,11 +901,12 @@ func TestBuilderBuild(t *testing.T) {
 			wantIsPtr:      true,
 			wantStructName: "HogeHuga",
 			wantNumField:   32, // See: newDynamicTestBuilder()
-			testMap:        testMap,
+			decodedMap:     testCamelizedMap,
+			camelizeKeys:   true,
 		},
 	}
 
-	var got *DynamicStruct
+	var ds *DynamicStruct
 	var err error
 
 	for _, tt := range tests {
@@ -887,30 +917,30 @@ func TestBuilderBuild(t *testing.T) {
 			// t.Parallel()
 
 			if tt.args.isPtr {
-				got, err = tt.args.builder.Build()
+				ds, err = tt.args.builder.Build()
 			} else {
-				got, err = tt.args.builder.BuildNonPtr()
+				ds, err = tt.args.builder.BuildNonPtr()
 			}
 			if err != nil {
 				t.Errorf("unexpected error caused by DynamicStruct Build: %v", err)
 			}
 
-			if !testBuilderBuildWant(t, got, tt) {
+			if !testBuilderBuildWant(t, ds, tt) {
 				return
 			}
 
-			if !testBuilderBuildTag(t, got, tt) {
+			if !testBuilderBuildTag(t, ds, tt) {
 				return
 			}
 
-			if tt.testMap != nil {
-				if !testBuilderBuildDecodeMap(t, got, tt) {
+			if tt.decodedMap != nil {
+				if !testBuilderBuildDecodeMap(t, ds, tt) {
 					return
 				}
 			}
 
 			if tt.tryAddDynamicStruct {
-				if !testBuilderBuildAddDynamicStruct(t, got, tt) {
+				if !testBuilderBuildAddDynamicStruct(t, ds, tt) {
 					return
 				}
 			}
@@ -918,45 +948,45 @@ func TestBuilderBuild(t *testing.T) {
 	}
 }
 
-func testBuilderBuildWant(t *testing.T, got *DynamicStruct, tt buildTest) bool {
+func testBuilderBuildWant(t *testing.T, ds *DynamicStruct, tt buildTest) bool {
 	t.Helper()
 
-	if got.Name() != tt.wantStructName {
-		t.Fatalf("result struct name is unexpected. got: %s, want: %s", got.Name(), tt.wantStructName)
+	if ds.Name() != tt.wantStructName {
+		t.Fatalf("result struct name is unexpected. got: %s, want: %s", ds.Name(), tt.wantStructName)
 	}
 
-	k := got.Type().Kind()
+	k := ds.Type().Kind()
 	if k != reflect.Struct {
 		t.Fatalf("result struct Type.Kind is unexpected. got: %s, want: Struct", k)
 	}
 
-	flds := got.Fields()
+	flds := ds.Fields()
 	if len(flds) != tt.wantNumField {
 		t.Fatalf("result Fields's length is unexpected. got: %d, want: %d", len(flds), tt.wantNumField)
 	}
 
 	if len(flds) > 0 {
-		f := got.Field(0)
+		f := ds.Field(0)
 		if flds[0].Name != f.Name {
 			t.Fatalf("result Field(0) '%s' is unmatch with flds[0] '%s'", flds[0].Name, f.Name)
 		}
 	}
 
-	if got.NumField() != tt.wantNumField {
-		t.Fatalf("result numfield is unexpected. got: %d, want: %d", got.NumField(), tt.wantNumField)
+	if ds.NumField() != tt.wantNumField {
+		t.Fatalf("result numfield is unexpected. got: %d, want: %d", ds.NumField(), tt.wantNumField)
 	}
 
-	if got.IsPtr() != tt.wantIsPtr {
-		t.Fatalf("unexpected pointer or not result. got: %v, want: %v", got.IsPtr(), tt.wantIsPtr)
+	if ds.IsPtr() != tt.wantIsPtr {
+		t.Fatalf("unexpected pointer or not result. got: %v, want: %v", ds.IsPtr(), tt.wantIsPtr)
 	}
 
 	if tt.wantDefinition != "" {
-		if d := cmp.Diff(got.Definition(), tt.wantDefinition); d != "" {
+		if d := cmp.Diff(ds.Definition(), tt.wantDefinition); d != "" {
 			t.Fatalf("unexpected mismatch Definition: (-got +want)\n%s", d)
 		}
 
 		// 2nd call
-		if d := cmp.Diff(got.Definition(), tt.wantDefinition); d != "" {
+		if d := cmp.Diff(ds.Definition(), tt.wantDefinition); d != "" {
 			t.Fatalf("unexpected mismatch Definition(2nd call): (-got +want)\n%s", d)
 		}
 	}
@@ -964,7 +994,7 @@ func testBuilderBuildWant(t *testing.T, got *DynamicStruct, tt buildTest) bool {
 	return true
 }
 
-func testBuilderBuildTag(t *testing.T, got *DynamicStruct, tt buildTest) bool {
+func testBuilderBuildTag(t *testing.T, ds *DynamicStruct, tt buildTest) bool {
 	t.Helper()
 
 	prefixes := map[string]string{
@@ -988,7 +1018,7 @@ func testBuilderBuildTag(t *testing.T, got *DynamicStruct, tt buildTest) bool {
 	for prefix, tagWithTag := range prefixes {
 		// test without tag fields
 		fName = prefix + "Field"
-		st, ok := got.FieldByName(fName)
+		st, ok := ds.FieldByName(fName)
 		if ok {
 			if d := cmp.Diff(st.Tag, reflect.StructTag("")); d != "" {
 				t.Fatalf("unexpected mismatch Tag: fName: %s, (-got +want)\n%s", fName, d)
@@ -999,7 +1029,7 @@ func testBuilderBuildTag(t *testing.T, got *DynamicStruct, tt buildTest) bool {
 
 		// test with tag fields
 		fName = prefix + "FieldWithTag"
-		sft, ok := got.FieldByName(fName)
+		sft, ok := ds.FieldByName(fName)
 		if ok {
 			if d := cmp.Diff(sft.Tag, reflect.StructTag(tagWithTag)); d != "" {
 				t.Fatalf("unexpected mismatch WithTag.Tag: fName: %s, (-got +want)\n%s", fName, d)
@@ -1012,10 +1042,17 @@ func testBuilderBuildTag(t *testing.T, got *DynamicStruct, tt buildTest) bool {
 	return true
 }
 
-func testBuilderBuildDecodeMap(t *testing.T, got *DynamicStruct, tt buildTest) bool {
+func testBuilderBuildDecodeMap(t *testing.T, ds *DynamicStruct, tt buildTest) bool {
 	t.Helper()
 
-	dec, err := got.DecodeMap(tt.testMap)
+	var dec interface{}
+	var err error
+	if tt.camelizeKeys {
+		dec, err = ds.DecodeMapWithKeyCamelize(tt.decodedMap)
+	} else {
+		dec, err = ds.DecodeMap(tt.decodedMap)
+	}
+
 	if err != nil {
 		if !tt.wantErrorDecodeMap {
 			t.Fatalf("unexpected error occurred from DecodeMap: %v", err)
@@ -1031,13 +1068,20 @@ func testBuilderBuildDecodeMap(t *testing.T, got *DynamicStruct, tt buildTest) b
 		t.Fatalf("unexpected error occurred from NewGetter: %v", err)
 	}
 
-	for k, v := range tt.testMap {
-		gotValue, ok := getter.Get(k)
-		if !ok {
-			t.Fatalf("key does not exist. It's unexpected. name: %s", k)
+	var name string
+	for k, v := range tt.decodedMap {
+		if tt.camelizeKeys {
+			name = strcase.ToCamel(k)
+		} else {
+			name = k
 		}
 
-		switch k {
+		gotValue, ok := getter.Get(name)
+		if !ok {
+			t.Fatalf("key does not exist. It's unexpected. name: %s", name)
+		}
+
+		switch name {
 		case "StructField":
 			getter, err := structil.NewGetter(gotValue)
 			if err != nil {
@@ -1051,7 +1095,7 @@ func testBuilderBuildDecodeMap(t *testing.T, got *DynamicStruct, tt buildTest) b
 			}
 		default:
 			if d := cmp.Diff(gotValue, v); d != "" {
-				t.Fatalf("unexpected mismatch: name: %s, (-got +want)\n%s", k, d)
+				t.Fatalf("unexpected mismatch: name: %s, (-got +want)\n%s", name, d)
 			}
 		}
 	}
@@ -1059,12 +1103,12 @@ func testBuilderBuildDecodeMap(t *testing.T, got *DynamicStruct, tt buildTest) b
 	return true
 }
 
-func testBuilderBuildAddDynamicStruct(t *testing.T, got *DynamicStruct, tt buildTest) bool {
+func testBuilderBuildAddDynamicStruct(t *testing.T, ds *DynamicStruct, tt buildTest) bool {
 	t.Helper()
 
 	builder := newDynamicTestBuilder()
-	builder.AddDynamicStructWithTag("AdditionalDynamicStruct", got, false, "json")
-	builder.AddDynamicStructPtrWithTag("AdditionalDynamicStructPtr", got, "json")
+	builder.AddDynamicStructWithTag("AdditionalDynamicStruct", ds, false, "json")
+	builder.AddDynamicStructPtrWithTag("AdditionalDynamicStructPtr", ds, "json")
 	newds, err := builder.Build()
 	if err != nil {
 		t.Fatalf("unexpected error occurred from Build: %v", err)

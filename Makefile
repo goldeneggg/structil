@@ -100,7 +100,7 @@ upgrade-latest-gocmp:
 ###
 # run tests
 ###
-run-test = $(LOCAL_GO) test -v -race -cover -p 4 $1 $(PKGS)
+run-test = $(LOCAL_GO) test -race -cover -p 4 $1 $(PKGS)
 
 .PHONY: test
 test:

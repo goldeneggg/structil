@@ -39,6 +39,11 @@ func New(data []byte, dt DataType) (d *Decoder, err error) {
 	return
 }
 
+// Interface returns a unmarshaled interface from original data.
+func (d *Decoder) Interface() interface{} {
+	return d.unm
+}
+
 // DynamicStruct returns a decoded DynamicStruct.
 func (d *Decoder) DynamicStruct(nest bool, useTag bool) (*dynamicstruct.DynamicStruct, error) {
 	return d.toDs(d.unm, nest, useTag)
@@ -97,20 +102,22 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag 
 		case string:
 			b = b.AddStringWithTag(name, tag)
 		case []interface{}:
-			// FIXME: fix nest mode support or not
-			switch vv := value[0].(type) {
-			case map[string]interface{}:
-				if nest {
-					nds, err := d.toDsFromStringMap(vv, nest, useTag)
-					if err != nil {
-						return nil, err
+			if len(value) > 0 {
+				// FIXME: fix nest mode support or not
+				switch vv := value[0].(type) {
+				case map[string]interface{}:
+					if nest {
+						nds, err := d.toDsFromStringMap(vv, nest, useTag)
+						if err != nil {
+							return nil, err
+						}
+						b = b.AddDynamicStructSliceWithTag(name, nds, false, tag)
+					} else {
+						b = b.AddSliceWithTag(name, interface{}(vv), tag)
 					}
-					b = b.AddDynamicStructSliceWithTag(name, nds, false, tag)
-				} else {
+				default:
 					b = b.AddSliceWithTag(name, interface{}(vv), tag)
 				}
-			default:
-				b = b.AddSliceWithTag(name, interface{}(vv), tag)
 			}
 		case map[string]interface{}:
 			if nest {
