@@ -1,6 +1,6 @@
 module github.com/goldeneggg/structil
 
-go 1.16
+go 1.17
 
 require (
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
@@ -21,4 +21,9 @@ require (
 	golang.org/x/tools v0.0.0-20200809012840-6f4f008689da // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
+)
+
+require (
+	github.com/hashicorp/hcl v1.0.0 // indirect
+	github.com/subosito/gotenv v1.2.0 // indirect
 )
