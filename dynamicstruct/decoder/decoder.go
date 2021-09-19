@@ -5,6 +5,7 @@ import (
 
 	"github.com/iancoleman/strcase"
 
+	"github.com/goldeneggg/structil"
 	"github.com/goldeneggg/structil/dynamicstruct"
 )
 
@@ -37,6 +38,41 @@ func New(data []byte, dt DataType) (d *Decoder, err error) {
 	}
 
 	return
+}
+
+// DecodeJSONToGetter returns a getter with decoded JSON via DynamicStruct.
+// FIXME:
+// この実装でも未知のJSON→Getter の変換が意図通り機能している事は確認できているが、
+// DynamicStructのSetter対応と両睨みで対応方針を決める
+func DecodeJSONToGetter(data []byte) (*structil.Getter, error) {
+	decoder, err := NewJSON(data)
+	if err != nil {
+		return nil, err
+	}
+
+	m, ok := decoder.Interface().(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("decoder.Interface() does not return map: %#v", decoder.Interface())
+	}
+
+	// FIXME: tagはtrue固定で良いか？
+	ds, err := decoder.DynamicStruct(true, true)
+	if err != nil {
+		return nil, err
+	}
+
+	// FIXME: mapのkeyはcamelizeされてない、という前提にしてしまって良いか？
+	intf, err := ds.DecodeMapWithKeyCamelize(m)
+	if err != nil {
+		return nil, err
+	}
+
+	g, err := structil.NewGetter(intf)
+	if err != nil {
+		return g, err
+	}
+
+	return g, nil
 }
 
 // Interface returns a unmarshaled interface from original data.
