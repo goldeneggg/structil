@@ -30,7 +30,7 @@ func New(data []byte, dt DataType) (d *Decoder, err error) {
 	return
 }
 
-func (d *Decoder) toDynamisStructI() (interface{}, error) {
+func (d *Decoder) toDynamicStructI() (interface{}, error) {
 	if d.ds == nil {
 		_, err := d.DynamicStruct(true, true)
 		if err != nil {

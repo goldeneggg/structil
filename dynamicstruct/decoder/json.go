@@ -16,7 +16,7 @@ func JSONToI(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	return d.toDynamisStructI()
+	return d.toDynamicStructI()
 }
 
 // JSONToGetter returns a structil.Getter with a decoded JSON via DynamicStruct.

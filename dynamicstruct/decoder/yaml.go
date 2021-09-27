@@ -19,7 +19,7 @@ func YAMLToI(data []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	return d.toDynamisStructI()
+	return d.toDynamicStructI()
 }
 
 // YAMLToGetter returns a structil.Getter with a decoded YAML via DynamicStruct.
