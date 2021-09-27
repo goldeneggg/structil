@@ -58,6 +58,7 @@ func (ds *DynamicStruct) Fields() []reflect.StructField {
 }
 
 // Field returns the i'th field of the built struct.
+// It panics if i is not in the range [0, NumField()).  // FIXME:
 func (ds *DynamicStruct) Field(i int) reflect.StructField {
 	return ds.rt.Field(i)
 }
@@ -75,7 +76,7 @@ func (ds *DynamicStruct) IsPtr() bool {
 
 // NewInterface returns the new interface value of built struct.
 func (ds *DynamicStruct) NewInterface() interface{} {
-	rv := reflect.New(ds.rt)
+	rv := ds.newValue()
 	if ds.isPtr {
 		return rv.Interface()
 	}
@@ -83,16 +84,23 @@ func (ds *DynamicStruct) NewInterface() interface{} {
 	return reflect.Indirect(rv).Interface()
 }
 
-// DecodeMap returns the interface that was decoded from input map.
+func (ds *DynamicStruct) newValue() reflect.Value {
+	return reflect.New(ds.rt)
+}
+
+// Deprecated: use decoder.XXXToI() instead.
+// FIXME: delete candidates of the future
 func (ds *DynamicStruct) DecodeMap(m map[string]interface{}) (interface{}, error) {
 	return ds.decodeMap(m, false)
 }
 
-// DecodeMapWithKeyCamelize returns the interface that was decoded from input map with keys camelization.
+// Deprecated: use decoder.XXXToI() instead.
+// FIXME: delete candidates of the future
 func (ds *DynamicStruct) DecodeMapWithKeyCamelize(m map[string]interface{}) (interface{}, error) {
 	return ds.decodeMap(m, true)
 }
 
+// FIXME: delete candidates of the future
 func (ds *DynamicStruct) decodeMap(m map[string]interface{}, camelizeKey bool) (interface{}, error) {
 	if !ds.IsPtr() {
 		return nil, errors.New("DecodeMap can execute only if dynamic struct is pointer. But this is false")
@@ -108,6 +116,7 @@ func (ds *DynamicStruct) decodeMap(m map[string]interface{}, camelizeKey bool) (
 	}
 
 	i := ds.NewInterface()
+	// FIXME: nestしたstruct(map)内の項目値がここで欠落している
 	err := mapstructure.Decode(tm, &i)
 	return i, err
 }

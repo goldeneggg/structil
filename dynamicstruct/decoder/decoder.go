@@ -5,7 +5,6 @@ import (
 
 	"github.com/iancoleman/strcase"
 
-	"github.com/goldeneggg/structil"
 	"github.com/goldeneggg/structil/dynamicstruct"
 )
 
@@ -14,16 +13,7 @@ type Decoder struct {
 	data []byte
 	dt   DataType
 	unm  interface{}
-}
-
-// NewJSON returns a concrete Decoder for JSON.
-func NewJSON(data []byte) (*Decoder, error) {
-	return New(data, TypeJSON)
-}
-
-// NewYAML returns a concrete Decoder for YAML.
-func NewYAML(data []byte) (*Decoder, error) {
-	return New(data, TypeYAML)
+	ds   *dynamicstruct.DynamicStruct
 }
 
 // New returns a concrete Decoder for DataType dt.
@@ -40,39 +30,25 @@ func New(data []byte, dt DataType) (d *Decoder, err error) {
 	return
 }
 
-// DecodeJSONToGetter returns a getter with decoded JSON via DynamicStruct.
-// FIXME:
-// この実装でも未知のJSON→Getter の変換が意図通り機能している事は確認できているが、
-// DynamicStructのSetter対応と両睨みで対応方針を決める
-func DecodeJSONToGetter(data []byte) (*structil.Getter, error) {
-	decoder, err := NewJSON(data)
-	if err != nil {
+func (d *Decoder) toDynamisStructI() (interface{}, error) {
+	if d.ds == nil {
+		_, err := d.DynamicStruct(true, true)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	intf := d.ds.NewInterface()
+	if err := d.dt.Unmarshal(d.data, &intf); err != nil {
 		return nil, err
 	}
 
-	m, ok := decoder.Interface().(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("decoder.Interface() does not return map: %#v", decoder.Interface())
-	}
+	return intf, nil
+}
 
-	// FIXME: tagはtrue固定で良いか？
-	ds, err := decoder.DynamicStruct(true, true)
-	if err != nil {
-		return nil, err
-	}
-
-	// FIXME: mapのkeyはcamelizeされてない、という前提にしてしまって良いか？
-	intf, err := ds.DecodeMapWithKeyCamelize(m)
-	if err != nil {
-		return nil, err
-	}
-
-	g, err := structil.NewGetter(intf)
-	if err != nil {
-		return g, err
-	}
-
-	return g, nil
+// RawData returns an original data as []byte.
+func (d *Decoder) RawData() []byte {
+	return d.data
 }
 
 // Interface returns a unmarshaled interface from original data.
@@ -80,9 +56,16 @@ func (d *Decoder) Interface() interface{} {
 	return d.unm
 }
 
+// Map returns a map of unmarshaled interface from original data.
+func (d *Decoder) Map() (map[string]interface{}, error) {
+	return d.dt.IntfToStringMap(d.Interface())
+}
+
 // DynamicStruct returns a decoded DynamicStruct.
 func (d *Decoder) DynamicStruct(nest bool, useTag bool) (*dynamicstruct.DynamicStruct, error) {
-	return d.toDs(d.unm, nest, useTag)
+	ds, err := d.toDs(d.unm, nest, useTag)
+	d.ds = ds
+	return ds, err
 }
 
 func (d *Decoder) toDs(i interface{}, nest bool, useTag bool) (*dynamicstruct.DynamicStruct, error) {
@@ -97,6 +80,8 @@ func (d *Decoder) toDs(i interface{}, nest bool, useTag bool) (*dynamicstruct.Dy
 
 			// TODO: seek an element that have max size of t. And call d.toDs with this element
 			// 配列内の構造が可変なケースを考慮して、最も大きい構造の要素を取り出してその要素に対してtoDsを呼ぶようにする
+			// See: https://stackoverflow.com/questions/44257522/how-to-get-memory-size-of-variable-in-go
+			//   should use "unsafe.Sizeof(var)"?
 			return d.toDs(t[0], nest, useTag)
 		}
 	// YAML support

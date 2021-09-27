@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
+	"github.com/goldeneggg/structil"
 	. "github.com/goldeneggg/structil/dynamicstruct/decoder"
 )
 
@@ -313,15 +314,17 @@ array_string_field = ["array_str_1", "array_str_2"]
 )
 
 type decoderTest struct {
-	name           string
-	data           []byte
-	dt             DataType
-	nest           bool
-	useTag         bool
-	wantNumF       int
-	wantDefinition string
-	wantErrorNew   bool
-	wantErrorDs    bool
+	name            string
+	data            []byte
+	dt              DataType
+	nest            bool
+	useTag          bool
+	wantNumF        int
+	wantErrorMap    bool
+	wantDefinition  string
+	namesTestGetter map[string][]string
+	wantErrorNew    bool
+	wantErrorDs     bool
 }
 
 func TestDynamicStructJSON(t *testing.T) {
@@ -350,6 +353,13 @@ func TestDynamicStructJSON(t *testing.T) {
 	NullField interface {}
 	StringField string
 }`,
+			namesTestGetter: map[string][]string{
+				"BoolField":    nil,
+				"Float32Field": nil,
+				"IntField":     nil,
+				"NullField":    nil,
+				"StringField":  nil,
+			},
 		},
 		{
 			name: "HasObj",
@@ -370,6 +380,10 @@ func TestDynamicStructJSON(t *testing.T) {
 	ObjField map[string]interface {}
 	StringField string
 }`,
+			namesTestGetter: map[string][]string{
+				"StringField": nil,
+				"ObjField":    nil,
+			},
 		},
 		{
 			name: "HasObjWithTag",
@@ -390,6 +404,10 @@ func TestDynamicStructJSON(t *testing.T) {
 	ObjField map[string]interface {} ` + "`json:\"obj_field\"`" + `
 	StringField string ` + "`json:\"string_field\"`" + `
 }`,
+			namesTestGetter: map[string][]string{
+				"StringField": nil,
+				"ObjField":    nil,
+			},
 		},
 		{
 			name: "HasObjWithNest",
@@ -413,6 +431,10 @@ func TestDynamicStructJSON(t *testing.T) {
 	}
 	StringField string
 }`,
+			namesTestGetter: map[string][]string{
+				"StringField": nil,
+				"ObjField":    {"Id", "Name"},
+			},
 		},
 		{
 			name: "HasObjWithTagNest",
@@ -450,6 +472,10 @@ func TestDynamicStructJSON(t *testing.T) {
 	} ` + "`json:\"obj_field\"`" + `
 	StringField string ` + "`json:\"string_field\"`" + `
 }`,
+			namesTestGetter: map[string][]string{
+				"StringField": nil,
+				"ObjField":    {"Id", "Name", "ObjArrayField"},
+			},
 		},
 		{
 			name: "HasObjTwoNest",
@@ -483,6 +509,10 @@ func TestDynamicStructJSON(t *testing.T) {
 	}
 	StringField string
 }`,
+			namesTestGetter: map[string][]string{
+				"StringField": nil,
+				"ObjField":    {"Boss", "Id", "Name", "ObjobjField"},
+			},
 		},
 		{
 			name: "HasArrayString1",
@@ -502,6 +532,10 @@ func TestDynamicStructJSON(t *testing.T) {
 	StringArrayField []string
 	StringField string
 }`,
+			namesTestGetter: map[string][]string{
+				"StringArrayField": nil,
+				"StringField":      nil,
+			},
 		},
 		{
 			name: "HasArrayString2",
@@ -522,6 +556,10 @@ func TestDynamicStructJSON(t *testing.T) {
 	StringArrayField []string
 	StringField string
 }`,
+			namesTestGetter: map[string][]string{
+				"StringArrayField": nil,
+				"StringField":      nil,
+			},
 		},
 		{
 			name: "TopLevelIsArray",
@@ -548,15 +586,22 @@ func TestDynamicStructJSON(t *testing.T) {
 	}	
 ]
 `),
-			dt:       TypeJSON,
-			nest:     false,
-			useTag:   false,
-			wantNumF: 3,
+			dt:           TypeJSON,
+			nest:         false,
+			useTag:       false,
+			wantNumF:     3,    // FIXME: Is 3 really OK? (TopLevelIsArray JSON works flaky)
+			wantErrorMap: true, // FIXME: TopLevelIsArray JSON does not work correctly for Map() method
 			wantDefinition: `type DynamicStruct struct {
 	ObjobjField map[string]interface {}
 	StringArrayField []string
 	StringField string
 }`,
+			// FIXME: Failed to test for top level is array pattern
+			// namesTestGetter: map[string][]string{
+			// 	"ObjobjField":      nil,
+			// 	"StringArrayField": nil,
+			// 	"StringField":      nil,
+			// },
 		},
 		{
 			name:     "BracketOnly",
@@ -576,6 +621,7 @@ func TestDynamicStructJSON(t *testing.T) {
 			nest:           false,
 			useTag:         false,
 			wantNumF:       0,
+			wantErrorMap:   true,
 			wantDefinition: ``,
 			wantErrorDs:    true,
 		},
@@ -606,7 +652,7 @@ func TestDynamicStructJSON(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			testCorrectCase(t, tt.data, tt.dt, tt.nest, tt.useTag, tt.wantNumF, tt.wantDefinition, tt.wantErrorNew, tt.wantErrorDs)
+			testCorrectCase(t, tt)
 		})
 	}
 }
@@ -635,6 +681,14 @@ bool_field: false
 	NullField interface {}
 	StringField string
 }`,
+			// FIXME: need to fix "unsupported type: map[interface {}]interface {}" error
+			// namesTestGetter: map[string][]string{
+			// 	"BoolField":    nil,
+			// 	"Float32Field": nil,
+			// 	"IntField":     nil,
+			// 	"NullField":    nil,
+			// 	"StringField":  nil,
+			// },
 		},
 		{
 			name: "HasObj",
@@ -652,6 +706,11 @@ obj_field:
 	ObjField map[string]interface {}
 	StringField string
 }`,
+			// FIXME: need to fix "unsupported type: map[interface {}]interface {}" error
+			// namesTestGetter: map[string][]string{
+			// 	"ObjField":    nil,
+			// 	"StringField": nil,
+			// },
 		},
 		{
 			name: "HasObjWithTag",
@@ -669,6 +728,11 @@ obj_field:
 	ObjField map[string]interface {} ` + "`yaml:\"obj_field\"`" + `
 	StringField string ` + "`yaml:\"string_field\"`" + `
 }`,
+			// FIXME: need to fix "unsupported type: map[interface {}]interface {}" error
+			// namesTestGetter: map[string][]string{
+			// 	"ObjField":    nil,
+			// 	"StringField": nil,
+			// },
 		},
 		{
 			name: "HasObjWithNest",
@@ -689,6 +753,11 @@ obj_field:
 	}
 	StringField string
 }`,
+			// FIXME: need to fix "unsupported type: map[interface {}]interface {}" error
+			// namesTestGetter: map[string][]string{
+			// 	"ObjField":    {"Id", "Name"},
+			// 	"StringField": nil,
+			// },
 		},
 		{
 			name: "HasObjWithTagNest",
@@ -709,6 +778,11 @@ obj_field:
 	}
 	StringField string ` + "`yaml:\"string_field\"`" + `
 }`,
+			// FIXME: need to fix "unsupported type: map[interface {}]interface {}" error
+			// namesTestGetter: map[string][]string{
+			// 	"ObjField":    {"Id", "Name"},
+			// 	"StringField": nil,
+			// },
 		},
 		{
 			name: "HasObjTwoNest",
@@ -738,6 +812,11 @@ obj_field:
 	}
 	StringField string
 }`,
+			// FIXME: need to fix "unsupported type: map[interface {}]interface {}" error
+			// namesTestGetter: map[string][]string{
+			// 	"ObjField":    {"Boss", "Id", "Name", "ObjobjField"},
+			// 	"StringField": nil,
+			// },
 		},
 		{
 			name: "HasArrayString",
@@ -755,6 +834,11 @@ string_array_field:
 	StringArrayField []string
 	StringField string
 }`,
+			// FIXME: need to fix "unsupported type: map[interface {}]interface {}" error
+			// namesTestGetter: map[string][]string{
+			// 	"StringArrayField": nil,
+			// 	"StringField":      nil,
+			// },
 		},
 		{
 			name:           "OnlyLiteral",
@@ -763,6 +847,7 @@ string_array_field:
 			nest:           false,
 			useTag:         false,
 			wantNumF:       0,
+			wantErrorMap:   true,
 			wantDefinition: ``,
 			wantErrorDs:    true,
 		},
@@ -784,51 +869,108 @@ string_array_field:
 			t.Parallel()
 
 			// FIXME: error cases
-			testCorrectCase(t, tt.data, tt.dt, tt.nest, tt.useTag, tt.wantNumF, tt.wantDefinition, tt.wantErrorNew, tt.wantErrorDs)
+			testCorrectCase(t, tt)
 		})
 	}
 }
 
-func testCorrectCase(t *testing.T, data []byte, dt DataType, nest bool, useTag bool, wantNumF int, wantDef string, wantErrorNew bool, wantErrorDs bool) {
+func testCorrectCase(t *testing.T, tt decoderTest) {
 	t.Helper()
 
-	var d *Decoder
+	var dec *Decoder
 	var err error
 
-	switch dt {
+	switch tt.dt {
 	case TypeJSON:
-		d, err = NewJSON(data)
+		dec, err = NewJSON(tt.data)
 	case TypeYAML:
-		d, err = NewYAML(data)
+		dec, err = NewYAML(tt.data)
 	}
 	if err != nil {
-		if !wantErrorNew {
+		if !tt.wantErrorNew {
 			t.Fatalf("unexpected error is returned from NewXXX: %v", err)
 		}
 		return
-	} else if wantErrorNew {
-		t.Fatalf("error is expected but it does not occur from NewXXX. data: %s", string(data))
+	} else if tt.wantErrorNew {
+		t.Fatalf("error is expected but it does not occur from NewXXX. data: %s", string(tt.data))
 	}
 
-	ds, err := d.DynamicStruct(nest, useTag)
+	if d := cmp.Diff(dec.RawData(), tt.data); d != "" {
+		t.Fatalf("mismatch RawData: (-got +want)\n%s", d)
+	}
+
+	m, err := dec.Map()
 	if err != nil {
-		if !wantErrorDs {
+		if !tt.wantErrorMap {
+			t.Fatalf("unexpected error is returned from dec.Map(): %v", err)
+		}
+	} else if tt.wantErrorMap {
+		t.Fatalf("error is expected but it does not occur from dec.Map(). m: %#v", m)
+	} else {
+		if d := cmp.Diff(len(m), tt.wantNumF); d != "" {
+			t.Fatalf("mismatch len(dec.Map()): (-got +want)\n%s", d)
+		}
+	}
+
+	ds, err := dec.DynamicStruct(tt.nest, tt.useTag)
+	if err != nil {
+		if !tt.wantErrorDs {
 			t.Fatalf("unexpected error is returned from DynamicStruct: %v", err)
 		}
 		return
-	} else if wantErrorDs {
-		t.Fatalf("error is expected but it does not occur from DynamicStruct. data: %s", string(data))
+	} else if tt.wantErrorDs {
+		t.Fatalf("error is expected but it does not occur from DynamicStruct. data: %s", string(tt.data))
 	}
 
 	if ds == nil {
 		t.Fatalf("unexpected DynamicStruct is null. got: is null, want: is not null")
 	}
 
-	if ds.NumField() != wantNumF {
-		t.Fatalf("unmatch numfield. got: %d, want: %d, ds.Definition:\n%s", ds.NumField(), wantNumF, ds.Definition())
+	if ds.NumField() != tt.wantNumF {
+		t.Fatalf("unmatch numfield. got: %d, want: %d, ds.Definition:\n%s", ds.NumField(), tt.wantNumF, ds.Definition())
 	}
 
-	if d := cmp.Diff(ds.Definition(), wantDef); d != "" {
+	if d := cmp.Diff(ds.Definition(), tt.wantDefinition); d != "" {
 		t.Fatalf("mismatch Definition: (-got +want)\n%s", d)
+	}
+
+	if len(tt.namesTestGetter) > 0 {
+		var g *structil.Getter
+
+		switch tt.dt {
+		case TypeJSON:
+			g, err = JSONToGetter(tt.data)
+			if err != nil {
+				t.Fatalf("unexpected error is returned from JSONToGetter: %v", err)
+			}
+		case TypeYAML:
+			g, err = YAMLToGetter(tt.data)
+			if err != nil {
+				t.Fatalf("unexpected error is returned from YAMLToGetter: %v", err)
+			}
+		}
+
+		for n, nests := range tt.namesTestGetter {
+			testToGetter(t, n, nests, g)
+		}
+	}
+}
+
+func testToGetter(t *testing.T, n string, nests []string, g *structil.Getter) {
+	t.Helper()
+
+	if !g.Has(n) {
+		t.Fatalf("Getter does not have %s field", n)
+	}
+	if len(nests) > 0 {
+		ni, _ := g.Get(n)
+		gg, err := structil.NewGetter(ni)
+		if err != nil {
+			t.Fatalf("unexpected error is returned from structil.NewGetter(ni). ni = %+v: %v", ni, err)
+		}
+
+		for _, nn := range nests {
+			testToGetter(t, nn, nil, gg)
+		}
 	}
 }
