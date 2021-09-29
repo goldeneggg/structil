@@ -7,17 +7,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// DataType is implemented by any value that has String and Unmershal method,
-/*
-type DataType interface {
-	String() string
-	Unmarshal([]byte, interface{}) error
-	Marshal(interface{}) ([]byte, error)
-	IntfToStringMap(interface{}) (map[string]interface{}, error)
-}
-*/
-
-// DefaultDataType is the type of original data format
+// dataType is the type of original data format
+// This type provides an unified interface for marshal and unmarshal functions per data formats.
 type dataType int
 
 const (
