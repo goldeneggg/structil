@@ -11,15 +11,14 @@ import (
 // Decoder is the struct that decodes some marshaled data like JSON and YAML.
 type Decoder struct {
 	data []byte
-	dt   DataType
+	dt   dataType
 	unm  interface{}
 	ds   *dynamicstruct.DynamicStruct
 }
 
-// New returns a concrete Decoder for DataType dt.
-func New(data []byte, dt DataType) (d *Decoder, err error) {
+func newDecoder(data []byte, dt dataType) (d *Decoder, err error) {
 	var intf interface{}
-	err = dt.Unmarshal(data, &intf)
+	err = dt.unmarshal(data, &intf)
 
 	d = &Decoder{
 		data: data,
@@ -39,7 +38,7 @@ func (d *Decoder) toDynamicStructI() (interface{}, error) {
 	}
 
 	intf := d.ds.NewInterface()
-	if err := d.dt.Unmarshal(d.data, &intf); err != nil {
+	if err := d.dt.unmarshal(d.data, &intf); err != nil {
 		return nil, err
 	}
 
@@ -58,7 +57,7 @@ func (d *Decoder) Interface() interface{} {
 
 // Map returns a map of unmarshaled interface from original data.
 func (d *Decoder) Map() (map[string]interface{}, error) {
-	return d.dt.IntfToStringMap(d.Interface())
+	return d.dt.intfToStringMap(d.Interface())
 }
 
 // DynamicStruct returns a decoded DynamicStruct.
@@ -109,7 +108,7 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag 
 		// See: https://golang.org/pkg/encoding/json/#Marshal
 		// See: https://m-zajac.github.io/json2go/
 		if useTag {
-			tag = fmt.Sprintf(`%s:"%s"`, d.dt.String(), k)
+			tag = fmt.Sprintf(`%s:"%s"`, d.dt.string(), k)
 		}
 
 		name = strcase.ToCamel(k)

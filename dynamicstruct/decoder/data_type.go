@@ -8,22 +8,24 @@ import (
 )
 
 // DataType is implemented by any value that has String and Unmershal method,
+/*
 type DataType interface {
 	String() string
 	Unmarshal([]byte, interface{}) error
 	Marshal(interface{}) ([]byte, error)
 	IntfToStringMap(interface{}) (map[string]interface{}, error)
 }
+*/
 
 // DefaultDataType is the type of original data format
-type defaultDataType int
+type dataType int
 
 const (
 	// TypeJSON is the type sign of JSON
-	TypeJSON defaultDataType = iota
+	typeJSON dataType = iota
 
 	// TypeYAML is the type sign of YAML
-	TypeYAML
+	typeYAML
 
 	// FIXME: futures as follows
 
@@ -38,46 +40,46 @@ const (
 )
 
 var formats = [...]string{
-	TypeJSON: "json",
-	TypeYAML: "yaml",
+	typeJSON: "json",
+	typeYAML: "yaml",
 }
 
-func (ddt defaultDataType) String() string {
-	if ddt >= 0 && int(ddt) < len(formats) {
-		return formats[ddt]
+func (dt dataType) string() string {
+	if dt >= 0 && int(dt) < len(formats) {
+		return formats[dt]
 	}
 	return ""
 }
 
-func (ddt defaultDataType) Unmarshal(data []byte, ptr interface{}) (err error) {
-	switch ddt {
-	case TypeJSON:
+func (dt dataType) unmarshal(data []byte, ptr interface{}) (err error) {
+	switch dt {
+	case typeJSON:
 		err = json.Unmarshal(data, ptr)
-	case TypeYAML:
+	case typeYAML:
 		// Note: The gopkg.in/yaml.v2 package returns an unmarshaled interface as "map[interface{}]interface{}" type.
 		err = yaml.Unmarshal(data, ptr)
 	default:
-		err = fmt.Errorf("invalid datatype for Unmarshal: %v", ddt)
+		err = fmt.Errorf("invalid datatype for Unmarshal: %v", dt)
 	}
 
 	return
 }
 
 // FIXME: add tests and examples
-func (ddt defaultDataType) Marshal(v interface{}) (data []byte, err error) {
-	switch ddt {
-	case TypeJSON:
+func (dt dataType) marshal(v interface{}) (data []byte, err error) {
+	switch dt {
+	case typeJSON:
 		data, err = json.Marshal(v)
-	case TypeYAML:
+	case typeYAML:
 		data, err = yaml.Marshal(v)
 	default:
-		err = fmt.Errorf("invalid datatype for Marshal: %v", ddt)
+		err = fmt.Errorf("invalid datatype for Marshal: %v", dt)
 	}
 
 	return
 }
 
-func (ddt defaultDataType) IntfToStringMap(v interface{}) (map[string]interface{}, error) {
+func (dt dataType) intfToStringMap(v interface{}) (map[string]interface{}, error) {
 	ms := make(map[string]interface{})
 
 	if v == nil {
@@ -86,14 +88,14 @@ func (ddt defaultDataType) IntfToStringMap(v interface{}) (map[string]interface{
 
 	var ok bool
 
-	switch ddt {
-	case TypeJSON:
+	switch dt {
+	case typeJSON:
 		ms, ok = v.(map[string]interface{})
 		if !ok {
 			return nil, fmt.Errorf("expect to be returned map[string]interface{} but not. v = %#v", v)
 		}
 		return ms, nil
-	case TypeYAML:
+	case typeYAML:
 		mi, ok := v.(map[interface{}]interface{})
 		if !ok {
 			return nil, fmt.Errorf("expect to be returned map[interface{}]interface{} but not. v = %#v", v)
@@ -108,6 +110,6 @@ func (ddt defaultDataType) IntfToStringMap(v interface{}) (map[string]interface{
 		}
 		return ms, nil
 	default:
-		return nil, fmt.Errorf("invalid datatype for Marshal: %v", ddt)
+		return nil, fmt.Errorf("invalid datatype for Marshal: %v", dt)
 	}
 }

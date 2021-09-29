@@ -39,7 +39,7 @@ func ExampleDynamicStruct_json() {
 }
 `)
 
-	decoder, err := New(unknownFormatJSON, TypeJSON)
+	decoder, err := NewJSON(unknownFormatJSON)
 	if err != nil {
 		panic(err)
 	}

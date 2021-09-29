@@ -9,6 +9,11 @@ import (
 	. "github.com/goldeneggg/structil/dynamicstruct/decoder"
 )
 
+const (
+	typeJSON int = iota
+	typeYAML
+)
+
 var (
 	singleJSON = []byte(`
 {
@@ -316,7 +321,7 @@ array_string_field = ["array_str_1", "array_str_2"]
 type decoderTest struct {
 	name            string
 	data            []byte
-	dt              DataType
+	dt              int
 	nest            bool
 	useTag          bool
 	wantNumF        int
@@ -342,7 +347,7 @@ func TestDynamicStructJSON(t *testing.T) {
 	"bool_field":false
 }
 `),
-			dt:       TypeJSON,
+			dt:       typeJSON,
 			nest:     false,
 			useTag:   false,
 			wantNumF: 5,
@@ -372,7 +377,7 @@ func TestDynamicStructJSON(t *testing.T) {
 	}
 }
 `),
-			dt:       TypeJSON,
+			dt:       typeJSON,
 			nest:     false,
 			useTag:   false,
 			wantNumF: 2,
@@ -396,7 +401,7 @@ func TestDynamicStructJSON(t *testing.T) {
 	}
 }
 `),
-			dt:       TypeJSON,
+			dt:       typeJSON,
 			nest:     false,
 			useTag:   true,
 			wantNumF: 2,
@@ -420,7 +425,7 @@ func TestDynamicStructJSON(t *testing.T) {
 	}
 }
 `),
-			dt:       TypeJSON,
+			dt:       typeJSON,
 			nest:     true,
 			useTag:   false,
 			wantNumF: 2,
@@ -457,7 +462,7 @@ func TestDynamicStructJSON(t *testing.T) {
 	}
 }
 `),
-			dt:       TypeJSON,
+			dt:       typeJSON,
 			nest:     true,
 			useTag:   true,
 			wantNumF: 2,
@@ -493,7 +498,7 @@ func TestDynamicStructJSON(t *testing.T) {
 	}
 }
 `),
-			dt:       TypeJSON,
+			dt:       typeJSON,
 			nest:     true,
 			useTag:   false,
 			wantNumF: 2,
@@ -524,7 +529,7 @@ func TestDynamicStructJSON(t *testing.T) {
 	]
 }
 `),
-			dt:       TypeJSON,
+			dt:       typeJSON,
 			nest:     false,
 			useTag:   false,
 			wantNumF: 2,
@@ -548,7 +553,7 @@ func TestDynamicStructJSON(t *testing.T) {
 	]
 }
 `),
-			dt:       TypeJSON,
+			dt:       typeJSON,
 			nest:     false,
 			useTag:   false,
 			wantNumF: 2,
@@ -586,7 +591,7 @@ func TestDynamicStructJSON(t *testing.T) {
 	}	
 ]
 `),
-			dt:           TypeJSON,
+			dt:           typeJSON,
 			nest:         false,
 			useTag:       false,
 			wantNumF:     3,    // FIXME: Is 3 really OK? (TopLevelIsArray JSON works flaky)
@@ -606,7 +611,7 @@ func TestDynamicStructJSON(t *testing.T) {
 		{
 			name:     "BracketOnly",
 			data:     []byte(`{}`),
-			dt:       TypeJSON,
+			dt:       typeJSON,
 			nest:     false,
 			useTag:   false,
 			wantNumF: 0,
@@ -617,7 +622,7 @@ func TestDynamicStructJSON(t *testing.T) {
 		{
 			name:           "ArrayBracketOnly",
 			data:           []byte(`[]`),
-			dt:             TypeJSON,
+			dt:             typeJSON,
 			nest:           false,
 			useTag:         false,
 			wantNumF:       0,
@@ -628,7 +633,7 @@ func TestDynamicStructJSON(t *testing.T) {
 		{
 			name:           "OnlyLiteral",
 			data:           []byte(`aiueo`),
-			dt:             TypeJSON,
+			dt:             typeJSON,
 			nest:           false,
 			useTag:         false,
 			wantNumF:       0,
@@ -638,7 +643,7 @@ func TestDynamicStructJSON(t *testing.T) {
 		{
 			name:           "Empty",
 			data:           []byte(``),
-			dt:             TypeJSON,
+			dt:             typeJSON,
 			nest:           false,
 			useTag:         false,
 			wantNumF:       0,
@@ -670,7 +675,7 @@ int_field: 45678
 float32_field: 9.876
 bool_field: false
 `),
-			dt:       TypeYAML,
+			dt:       typeYAML,
 			nest:     false,
 			useTag:   false,
 			wantNumF: 5,
@@ -698,7 +703,7 @@ obj_field:
   id: 123
   name: Test Tarou
 `),
-			dt:       TypeYAML,
+			dt:       typeYAML,
 			nest:     false,
 			useTag:   false,
 			wantNumF: 2,
@@ -720,7 +725,7 @@ obj_field:
   id: 123
   name: Test Tarou
 `),
-			dt:       TypeYAML,
+			dt:       typeYAML,
 			nest:     false,
 			useTag:   true,
 			wantNumF: 2,
@@ -742,7 +747,7 @@ obj_field:
   id: 123
   name: Test Tarou
 `),
-			dt:       TypeYAML,
+			dt:       typeYAML,
 			nest:     true,
 			useTag:   false,
 			wantNumF: 2,
@@ -767,7 +772,7 @@ obj_field:
   id: 123
   name: Test Tarou
 `),
-			dt:       TypeYAML,
+			dt:       typeYAML,
 			nest:     true,
 			useTag:   true,
 			wantNumF: 2,
@@ -796,7 +801,7 @@ obj_field:
     user_id: 678
     status: progress
 `),
-			dt:       TypeYAML,
+			dt:       typeYAML,
 			nest:     true,
 			useTag:   false,
 			wantNumF: 2,
@@ -826,7 +831,7 @@ string_array_field:
   - id1
   - id2
 `),
-			dt:       TypeYAML,
+			dt:       typeYAML,
 			nest:     false,
 			useTag:   false,
 			wantNumF: 2,
@@ -843,7 +848,7 @@ string_array_field:
 		{
 			name:           "OnlyLiteral",
 			data:           []byte(`aiueo`),
-			dt:             TypeYAML,
+			dt:             typeYAML,
 			nest:           false,
 			useTag:         false,
 			wantNumF:       0,
@@ -854,7 +859,7 @@ string_array_field:
 		{
 			name:           "Empty",
 			data:           []byte(``),
-			dt:             TypeYAML,
+			dt:             typeYAML,
 			nest:           false,
 			useTag:         false,
 			wantNumF:       0,
@@ -881,9 +886,9 @@ func testCorrectCase(t *testing.T, tt decoderTest) {
 	var err error
 
 	switch tt.dt {
-	case TypeJSON:
+	case typeJSON:
 		dec, err = NewJSON(tt.data)
-	case TypeYAML:
+	case typeYAML:
 		dec, err = NewYAML(tt.data)
 	}
 	if err != nil {
@@ -938,12 +943,12 @@ func testCorrectCase(t *testing.T, tt decoderTest) {
 		var g *structil.Getter
 
 		switch tt.dt {
-		case TypeJSON:
+		case typeJSON:
 			g, err = JSONToGetter(tt.data)
 			if err != nil {
 				t.Fatalf("unexpected error is returned from JSONToGetter: %v", err)
 			}
-		case TypeYAML:
+		case typeYAML:
 			g, err = YAMLToGetter(tt.data)
 			if err != nil {
 				t.Fatalf("unexpected error is returned from YAMLToGetter: %v", err)

@@ -8,7 +8,7 @@ import (
 
 // NewYAML returns a concrete Decoder for YAML.
 func NewYAML(data []byte) (*Decoder, error) {
-	return New(data, TypeYAML)
+	return newDecoder(data, typeYAML)
 }
 
 // YAMLToI returns a decoded interface from YAML via DynamicStruct.

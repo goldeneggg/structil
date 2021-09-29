@@ -6,7 +6,7 @@ import (
 
 // NewJSON returns a concrete Decoder for JSON.
 func NewJSON(data []byte) (*Decoder, error) {
-	return New(data, TypeJSON)
+	return newDecoder(data, typeJSON)
 }
 
 // JSONToI returns a decoded interface from JSON via DynamicStruct.
