@@ -887,9 +887,9 @@ func testCorrectCase(t *testing.T, tt decoderTest) {
 
 	switch tt.dt {
 	case typeJSON:
-		dec, err = NewJSON(tt.data)
+		dec, err = FromJSON(tt.data)
 	case typeYAML:
-		dec, err = NewYAML(tt.data)
+		dec, err = FromYAML(tt.data)
 	}
 	if err != nil {
 		if !tt.wantErrorNew {
