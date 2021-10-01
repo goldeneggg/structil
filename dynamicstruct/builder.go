@@ -533,7 +533,6 @@ func (b *Builder) build(isPtr bool) (ds *DynamicStruct, err error) {
 
 	defer func() {
 		err = util.RecoverToError(recover())
-		return
 	}()
 
 	var i int
