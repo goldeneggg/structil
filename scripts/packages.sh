@@ -1,6 +1,7 @@
 #!/bin/bash
 set -eu
 
+# shellcheck disable=SC1091
 source scripts/_prepare.sh
 
-echo "$(${LOCAL_GO} list ./... | \grep -v 'vendor' | \grep -v '/examples')"
+${LOCAL_GO} list ./... | \grep -v 'vendor' | \grep -v '/examples'
