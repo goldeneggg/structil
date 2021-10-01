@@ -88,12 +88,14 @@ func (ds *DynamicStruct) newValue() reflect.Value {
 	return reflect.New(ds.rt)
 }
 
+// DecodeMap returns the interface that was decoded from input map.
 // Deprecated: use decoder.XXXToI() instead.
 // FIXME: delete candidates of the future
 func (ds *DynamicStruct) DecodeMap(m map[string]interface{}) (interface{}, error) {
 	return ds.decodeMap(m, false)
 }
 
+// DecodeMapWithKeyCamelize returns the interface that was decoded from input map with keys camelization.
 // Deprecated: use decoder.XXXToI() instead.
 // FIXME: delete candidates of the future
 func (ds *DynamicStruct) DecodeMapWithKeyCamelize(m map[string]interface{}) (interface{}, error) {

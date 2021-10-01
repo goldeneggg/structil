@@ -85,7 +85,7 @@ func BenchmarkAddChanSend(b *testing.B) {
 }
 
 func BenchmarkAddStruct(b *testing.B) {
-	st := newDynamicTestStruct() // See: dynamicstruct_test.go
+	st := newTestDynamicStruct() // See: dynamicstruct_test.go
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -94,7 +94,7 @@ func BenchmarkAddStruct(b *testing.B) {
 }
 
 func BenchmarkAddStructPtr(b *testing.B) {
-	st := newDynamicTestStructPtr() // See: dynamicstruct_test.go
+	st := newTestDynamicStructPtr() // See: dynamicstruct_test.go
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -103,7 +103,7 @@ func BenchmarkAddStructPtr(b *testing.B) {
 }
 
 func BenchmarkAddSlice(b *testing.B) {
-	st := newDynamicTestStructPtr() // See: dynamicstruct_test.go
+	st := newTestDynamicStructPtr() // See: dynamicstruct_test.go
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -126,7 +126,7 @@ func BenchmarkAddInterfacePtr(b *testing.B) {
 }
 
 func BenchmarkBuild(b *testing.B) {
-	builder := newDynamicTestBuilder() // See: dynamicstruct_test.go
+	builder := newTestBuilder() // See: dynamicstruct_test.go
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -135,7 +135,7 @@ func BenchmarkBuild(b *testing.B) {
 }
 
 func BenchmarkBuildNonPtr(b *testing.B) {
-	builder := newDynamicTestBuilder() // See: dynamicstruct_test.go
+	builder := newTestBuilder() // See: dynamicstruct_test.go
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -144,7 +144,7 @@ func BenchmarkBuildNonPtr(b *testing.B) {
 }
 
 func BenchmarkDefinition(b *testing.B) {
-	builder := newDynamicTestBuilder() // See: dynamicstruct_test.go
+	builder := newTestBuilder() // See: dynamicstruct_test.go
 	ds, _ := builder.Build()
 
 	b.ResetTimer()
