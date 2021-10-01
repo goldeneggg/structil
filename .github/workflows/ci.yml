@@ -103,6 +103,47 @@ jobs:
           echo ">>>>>>>>>> show MATRIX_CONTEXT"
           echo "$MATRIX_CONTEXT"
 
+  gitleaks:
+    name: Run gitleaks
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ 'ubuntu-latest' ]
+
+    steps:
+      - id: checkout
+        name: Check out code into the Go module directory with checkout@v1
+        # See: https://github.com/marketplace/actions/gitleaks
+        uses: actions/checkout@v1
+
+      - id: run-gitleaks
+        name: Run gitleaks
+        uses: zricethezav/gitleaks-action@master
+
+      - id: dump-contexts-after
+        name: Dump contexts After
+        if: ${{ always() }}
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          JOB_CONTEXT: ${{ toJson(job) }}
+          STEPS_CONTEXT: ${{ toJson(steps) }}
+          RUNNER_CONTEXT: ${{ toJson(runner) }}
+          STRATEGY_CONTEXT: ${{ toJson(strategy) }}
+          MATRIX_CONTEXT: ${{ toJson(matrix) }}
+        run: |
+          echo ">>>>>>>>>> show GITHUB_CONTEXT"
+          echo "$GITHUB_CONTEXT"
+          echo ">>>>>>>>>> show JOB_CONTEXT"
+          echo "$JOB_CONTEXT"
+          echo ">>>>>>>>>> show STEPS_CONTEXT"
+          echo "$STEPS_CONTEXT"
+          echo ">>>>>>>>>> show RUNNER_CONTEXT"
+          echo "$RUNNER_CONTEXT"
+          echo ">>>>>>>>>> show STRATEGY_CONTEXT"
+          echo "$STRATEGY_CONTEXT"
+          echo ">>>>>>>>>> show MATRIX_CONTEXT"
+          echo "$MATRIX_CONTEXT"
+
   ###
   # only on push to master
   ###
