@@ -58,7 +58,7 @@ func (ds *DynamicStruct) Fields() []reflect.StructField {
 }
 
 // Field returns the i'th field of the built struct.
-// It panics if i is not in the range [0, NumField()).  // FIXME:
+// It panics if i is not in the range [0, NumField()).
 func (ds *DynamicStruct) Field(i int) reflect.StructField {
 	return ds.rt.Field(i)
 }

@@ -1,7 +1,6 @@
 package decoder
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/iancoleman/strcase"
@@ -12,10 +11,34 @@ import (
 
 // Decoder is the struct that decodes some marshaled data like JSON and YAML.
 type Decoder struct {
-	data []byte
-	dt   dataType
-	unm  interface{}
-	ds   *dynamicstruct.DynamicStruct
+	data     []byte // original data
+	dt       dataType
+	unm      interface{}            // unmarshaled result from data to JSON/YAML/etc
+	unmMapsi map[string]interface{} // convert string map from unmarshaled result
+	ds       *dynamicstruct.DynamicStruct
+	dsi      interface{} // unmarshaled result from data to DynamicStruct
+}
+
+func newDecoder(data []byte, dt dataType) (d *Decoder, err error) {
+	unm, err := dt.unmarshal(data)
+
+	d = &Decoder{
+		data:     data,
+		dt:       dt,
+		unm:      unm,
+		unmMapsi: make(map[string]interface{}),
+	}
+
+	switch t := d.unm.(type) {
+	case map[string]interface{}:
+		// JSON
+		d.unmMapsi = t
+	case map[interface{}]interface{}:
+		// YAML
+		d.unmMapsi = mapiiToMapsi(t)
+	}
+
+	return
 }
 
 // FromJSON returns a concrete Decoder for JSON.
@@ -23,109 +46,84 @@ func FromJSON(data []byte) (*Decoder, error) {
 	return newDecoder(data, typeJSON)
 }
 
-// JSONToI returns a decoded interface from JSON via DynamicStruct.
-func JSONToI(data []byte) (interface{}, error) {
-	d, err := FromJSON(data)
-	if err != nil {
-		return nil, err
-	}
-
-	return d.toDynamicStructI()
-}
-
-// JSONToGetter returns a structil.Getter with a decoded JSON via DynamicStruct.
-func JSONToGetter(data []byte) (*structil.Getter, error) {
-	intf, err := JSONToI(data)
-	if err != nil {
-		return nil, err
-	}
-
-	return structil.NewGetter(intf)
-}
-
 // FromYAML returns a concrete Decoder for YAML.
 func FromYAML(data []byte) (*Decoder, error) {
 	return newDecoder(data, typeYAML)
 }
 
-// YAMLToI returns a decoded interface from YAML via DynamicStruct.
-// Note: The gopkg.in/yaml.v2 package returns an unmarshaled interface as "map[interface{}]interface{}" type.
-func YAMLToI(data []byte) (interface{}, error) {
+// JSONToGetter returns a structil.Getter with a decoded JSON via DynamicStruct.
+func JSONToGetter(data []byte) (*structil.Getter, error) {
+	d, err := FromJSON(data)
+	if err != nil {
+		return nil, err
+	}
+
+	// FIXME: when nest = true, failed to unmershal array_struct_field
+	// "json: cannot unmarshal array into Go struct field .array_struct_field of type struct { Vvvv string "json:\"vvvv\""; Kkk string "json:\"kkk\"" }"
+	// _, err = d.DynamicStruct(true, true)
+	_, err = d.DynamicStruct(false, true)
+	if err != nil {
+		return nil, err
+	}
+
+	return structil.NewGetter(d.dsi)
+}
+
+// YAMLToGetter returns a structil.Getter with a decoded YAML via DynamicStruct.
+// FIXME: this function has a problem caused by map[interface{}]interface{}.
+func YAMLToGetter(data []byte) (*structil.Getter, error) {
 	d, err := FromYAML(data)
 	if err != nil {
 		return nil, err
 	}
 
-	return d.toDynamicStructI()
-}
-
-// YAMLToGetter returns a structil.Getter with a decoded YAML via DynamicStruct.
-func YAMLToGetter(data []byte) (*structil.Getter, error) {
-	intf, err := YAMLToI(data)
+	// FIXME: when nest = true, failed to unmershal array_struct_field
+	// _, err = d.DynamicStruct(true, true)
+	_, err = d.DynamicStruct(false, true)
 	if err != nil {
 		return nil, err
 	}
 
-	// Note:
-	// YAMLToI returns a map[interface{}]interface{} so via json.Marshal for generating []byte data.
-	// FIXME: json.Marshal does not support "map[interface{}]interface{}", and is expected "map[string]interface{}"
-	jsonD, err := json.Marshal(intf)
-	if err != nil {
-		return nil, err
-	}
-
-	return JSONToGetter(jsonD)
+	return structil.NewGetter(d.dsi)
 }
 
-func newDecoder(data []byte, dt dataType) (d *Decoder, err error) {
-	var intf interface{}
-	err = dt.unmarshal(data, &intf)
-
-	d = &Decoder{
-		data: data,
-		dt:   dt,
-		unm:  intf,
-	}
-
-	return
-}
-
-func (d *Decoder) toDynamicStructI() (interface{}, error) {
-	if d.ds == nil {
-		_, err := d.DynamicStruct(true, true)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	intf := d.ds.NewInterface()
-	if err := d.dt.unmarshal(d.data, &intf); err != nil {
-		return nil, err
-	}
-
-	return intf, nil
-}
-
+/*
 // RawData returns an original data as []byte.
 func (d *Decoder) RawData() []byte {
 	return d.data
 }
+*/
 
+/*
 // Interface returns a unmarshaled interface from original data.
 func (d *Decoder) Interface() interface{} {
 	return d.unm
 }
+*/
 
+/*
 // Map returns a map of unmarshaled interface from original data.
 func (d *Decoder) Map() (map[string]interface{}, error) {
 	return d.dt.intfToStringMap(d.Interface())
 }
+*/
 
-// DynamicStruct returns a decoded DynamicStruct.
+// DynamicStruct returns a decoded DynamicStruct with unmarshaling data to DynamicStruct interface.
 func (d *Decoder) DynamicStruct(nest bool, useTag bool) (*dynamicstruct.DynamicStruct, error) {
 	ds, err := d.toDs(d.unm, nest, useTag)
+	if err != nil {
+		return nil, err
+	}
+
+	dsi := ds.NewInterface()
+	if err := d.dt.unmarshalWithIPtr(d.data, &dsi); err != nil {
+		return nil, err
+	}
+
 	d.ds = ds
-	return ds, err
+	d.dsi = dsi
+
+	return d.ds, err
 }
 
 func (d *Decoder) toDs(i interface{}, nest bool, useTag bool) (*dynamicstruct.DynamicStruct, error) {
@@ -146,11 +144,7 @@ func (d *Decoder) toDs(i interface{}, nest bool, useTag bool) (*dynamicstruct.Dy
 		}
 	// YAML support
 	case map[interface{}]interface{}:
-		m := make(map[string]interface{})
-		for k, v := range t {
-			m[fmt.Sprintf("%v", k)] = v
-		}
-		return d.toDsFromStringMap(m, nest, useTag)
+		return d.toDsFromStringMap(mapiiToMapsi(t), nest, useTag)
 	}
 
 	return nil, fmt.Errorf("unexpected interface: %#v", i)
@@ -158,6 +152,7 @@ func (d *Decoder) toDs(i interface{}, nest bool, useTag bool) (*dynamicstruct.Dy
 
 func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag bool) (*dynamicstruct.DynamicStruct, error) {
 	var tag, name string
+	var err error
 	b := dynamicstruct.NewBuilder()
 
 	for k, v := range m {
@@ -187,56 +182,79 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag 
 				// FIXME: fix nest mode support or not
 				switch vv := value[0].(type) {
 				case map[string]interface{}:
-					if nest {
-						nds, err := d.toDsFromStringMap(vv, nest, useTag)
-						if err != nil {
-							return nil, err
+					b, err = d.addForStringMap(b, vv, true, tag, name, nest, useTag)
+					if err != nil {
+						return nil, err
+					}
+
+					/*
+						if nest {
+							nds, err := d.toDsFromStringMap(vv, nest, useTag)
+							if err != nil {
+								return nil, err
+							}
+							b = b.AddDynamicStructSliceWithTag(name, nds, false, tag)
+						} else {
+							b = b.AddSliceWithTag(name, interface{}(vv), tag)
 						}
-						b = b.AddDynamicStructSliceWithTag(name, nds, false, tag)
-					} else {
-						b = b.AddSliceWithTag(name, interface{}(vv), tag)
+					*/
+				case map[interface{}]interface{}:
+					m := mapiiToMapsi(vv)
+					b, err = d.addForStringMap(b, m, true, tag, name, nest, useTag)
+					if err != nil {
+						return nil, err
 					}
 				default:
 					b = b.AddSliceWithTag(name, interface{}(vv), tag)
 				}
 			}
 		case map[string]interface{}:
-			if nest {
-				nds, err := d.toDsFromStringMap(value, nest, useTag)
-				if err != nil {
-					return nil, err
-				}
-				b = b.AddDynamicStructWithTag(name, nds, false, tag)
-			} else {
-				for kk := range value {
-					b = b.AddMapWithTag(name, kk, nil, tag)
-					// only one addition
-					break
-				}
+			b, err = d.addForStringMap(b, value, false, tag, name, nest, useTag)
+			if err != nil {
+				return nil, err
 			}
+
+			/*
+				if nest {
+					nds, err := d.toDsFromStringMap(value, nest, useTag)
+					if err != nil {
+						return nil, err
+					}
+					b = b.AddDynamicStructWithTag(name, nds, false, tag)
+				} else {
+					for kk := range value {
+						b = b.AddMapWithTag(name, kk, nil, tag)
+						// only one addition
+						break
+					}
+				}
+			*/
 		// YAML support
 		case int:
 			b = b.AddIntWithTag(name, tag)
 		// YAML support
 		case map[interface{}]interface{}:
-			m := make(map[string]interface{})
-			for k, v := range value {
-				m[fmt.Sprintf("%v", k)] = v
+			m := mapiiToMapsi(value)
+			b, err = d.addForStringMap(b, m, false, tag, name, nest, useTag)
+			if err != nil {
+				return nil, err
 			}
 
-			if nest {
-				nds, err := d.toDsFromStringMap(m, nest, useTag)
-				if err != nil {
-					return nil, err
+			/*
+				if nest {
+					nds, err := d.toDsFromStringMap(m, nest, useTag)
+					if err != nil {
+						return nil, err
+					}
+					b = b.AddDynamicStruct(name, nds, false)
+				} else {
+					for kk := range m {
+						b = b.AddMapWithTag(name, kk, nil, tag)
+						// only one addition
+						break
+					}
 				}
-				b = b.AddDynamicStruct(name, nds, false)
-			} else {
-				for kk := range m {
-					b = b.AddMapWithTag(name, kk, nil, tag)
-					// only one addition
-					break
-				}
-			}
+			*/
 		case nil:
 			b = b.AddInterfaceWithTag(name, false, tag)
 		default:
@@ -245,4 +263,47 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag 
 	}
 
 	return b.Build()
+}
+
+func (d *Decoder) addForStringMap(
+	b *dynamicstruct.Builder,
+	m map[string]interface{},
+	forSlice bool,
+	tag string,
+	name string,
+	nest bool,
+	useTag bool) (*dynamicstruct.Builder, error) {
+
+	if nest {
+		nds, err := d.toDsFromStringMap(m, nest, useTag)
+		if err != nil {
+			return b, err
+		}
+		b = b.AddDynamicStructWithTag(name, nds, false, tag)
+	} else if forSlice {
+		b = b.AddSliceWithTag(name, interface{}(m), tag)
+	} else {
+		for kk := range m {
+			b = b.AddMapWithTag(name, kk, nil, tag)
+			// only one addition
+			break
+		}
+	}
+
+	return b, nil
+}
+
+// convert map[interface{}]interface{} to map[string]interface{}
+func mapiiToMapsi(mapii map[interface{}]interface{}) map[string]interface{} {
+	mapsi := make(map[string]interface{})
+	for k, v := range mapii {
+		switch t := v.(type) {
+		case map[interface{}]interface{}:
+			mapsi[fmt.Sprintf("%v", k)] = mapiiToMapsi(t)
+		default:
+			mapsi[fmt.Sprintf("%v", k)] = v
+		}
+	}
+
+	return mapsi
 }

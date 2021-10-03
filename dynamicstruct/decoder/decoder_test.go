@@ -319,13 +319,13 @@ array_string_field = ["array_str_1", "array_str_2"]
 )
 
 type decoderTest struct {
-	name            string
-	data            []byte
-	dt              int
-	nest            bool
-	useTag          bool
-	wantNumF        int
-	wantErrorMap    bool
+	name     string
+	data     []byte
+	dt       int
+	nest     bool
+	useTag   bool
+	wantNumF int
+	// wantErrorMap    bool
 	wantDefinition  string
 	namesTestGetter map[string][]string
 	wantErrorNew    bool
@@ -591,11 +591,11 @@ func TestDynamicStructJSON(t *testing.T) {
 	}	
 ]
 `),
-			dt:           typeJSON,
-			nest:         false,
-			useTag:       false,
-			wantNumF:     3,    // FIXME: Is 3 really OK? (TopLevelIsArray JSON works flaky)
-			wantErrorMap: true, // FIXME: TopLevelIsArray JSON does not work correctly for Map() method
+			dt:       typeJSON,
+			nest:     false,
+			useTag:   false,
+			wantNumF: 3, // FIXME: Is 3 really OK? (TopLevelIsArray JSON works flaky)
+			// wantErrorMap: true, // FIXME: TopLevelIsArray JSON does not work correctly for Map() method
 			wantDefinition: `type DynamicStruct struct {
 	ObjobjField map[string]interface {}
 	StringArrayField []string
@@ -620,13 +620,13 @@ func TestDynamicStructJSON(t *testing.T) {
 }`,
 		},
 		{
-			name:           "ArrayBracketOnly",
-			data:           []byte(`[]`),
-			dt:             typeJSON,
-			nest:           false,
-			useTag:         false,
-			wantNumF:       0,
-			wantErrorMap:   true,
+			name:     "ArrayBracketOnly",
+			data:     []byte(`[]`),
+			dt:       typeJSON,
+			nest:     false,
+			useTag:   false,
+			wantNumF: 0,
+			// wantErrorMap:   true,
 			wantDefinition: ``,
 			wantErrorDs:    true,
 		},
@@ -687,13 +687,13 @@ bool_field: false
 	StringField string
 }`,
 			// FIXME: need to fix "unsupported type: map[interface {}]interface {}" error
-			// namesTestGetter: map[string][]string{
-			// 	"BoolField":    nil,
-			// 	"Float32Field": nil,
-			// 	"IntField":     nil,
-			// 	"NullField":    nil,
-			// 	"StringField":  nil,
-			// },
+			namesTestGetter: map[string][]string{
+				"BoolField":    nil,
+				"Float32Field": nil,
+				"IntField":     nil,
+				"NullField":    nil,
+				"StringField":  nil,
+			},
 		},
 		{
 			name: "HasObj",
@@ -846,13 +846,13 @@ string_array_field:
 			// },
 		},
 		{
-			name:           "OnlyLiteral",
-			data:           []byte(`aiueo`),
-			dt:             typeYAML,
-			nest:           false,
-			useTag:         false,
-			wantNumF:       0,
-			wantErrorMap:   true,
+			name:     "OnlyLiteral",
+			data:     []byte(`aiueo`),
+			dt:       typeYAML,
+			nest:     false,
+			useTag:   false,
+			wantNumF: 0,
+			// wantErrorMap:   true,
 			wantDefinition: ``,
 			wantErrorDs:    true,
 		},
@@ -900,22 +900,24 @@ func testCorrectCase(t *testing.T, tt decoderTest) {
 		t.Fatalf("error is expected but it does not occur from NewXXX. data: %s", string(tt.data))
 	}
 
-	if d := cmp.Diff(dec.RawData(), tt.data); d != "" {
-		t.Fatalf("mismatch RawData: (-got +want)\n%s", d)
-	}
+	/*
+		if d := cmp.Diff(dec.RawData(), tt.data); d != "" {
+			t.Fatalf("mismatch RawData: (-got +want)\n%s", d)
+		}
 
-	m, err := dec.Map()
-	if err != nil {
-		if !tt.wantErrorMap {
-			t.Fatalf("unexpected error is returned from dec.Map(): %v", err)
-		}
-	} else if tt.wantErrorMap {
-		t.Fatalf("error is expected but it does not occur from dec.Map(). m: %#v", m)
-	} else {
-		if d := cmp.Diff(len(m), tt.wantNumF); d != "" {
-			t.Fatalf("mismatch len(dec.Map()): (-got +want)\n%s", d)
-		}
-	}
+			m, err := dec.Map()
+			if err != nil {
+				if !tt.wantErrorMap {
+					t.Fatalf("unexpected error is returned from dec.Map(): %v", err)
+				}
+			} else if tt.wantErrorMap {
+				t.Fatalf("error is expected but it does not occur from dec.Map(). m: %#v", m)
+			} else {
+				if d := cmp.Diff(len(m), tt.wantNumF); d != "" {
+					t.Fatalf("mismatch len(dec.Map()): (-got +want)\n%s", d)
+				}
+			}
+	*/
 
 	ds, err := dec.DynamicStruct(tt.nest, tt.useTag)
 	if err != nil {
