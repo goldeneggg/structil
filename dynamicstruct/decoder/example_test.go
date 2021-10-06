@@ -110,7 +110,7 @@ func ExampleJSONToGetter() {
 	i, _ := g.Float64("IntField")     // Note: type of unmarshalled number fields are float64. See: https://golang.org/pkg/encoding/json/#Unmarshal
 	f, _ := g.Float64("Float32Field") // same as above
 	b, _ := g.Bool("BoolField")
-	strct, _ := g.Get("StructPtrField")
+	strct, _ := g.Get("StructPtrField") // FIXME: may be flaky? get unexpected result of order of field names "sometimes".
 	arrS, _ := g.Get("ArrayStringField")
 	null, _ := g.Get("NullField")
 
