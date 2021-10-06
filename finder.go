@@ -15,10 +15,10 @@ const (
 // Finder is the struct that builds the nested struct finder.
 type Finder struct {
 	topLevelGetter *Getter
-	gMap           map[string]*Getter
-	fMap           map[string][]string
-	eMap           map[string][]error
-	ck             string
+	getterMap      map[string]*Getter
+	namesMap       map[string][]string
+	errMap         map[string][]error
+	curKey         string
 	sep            string
 }
 
@@ -65,7 +65,7 @@ func (f *Finder) FindTop(names ...string) *Finder {
 
 // Find returns a Finder that fields in struct are looked up and held named names.
 func (f *Finder) Find(names ...string) *Finder {
-	return f.find(f.ck, names...)
+	return f.find(f.curKey, names...)
 }
 
 func (f *Finder) find(fKey string, names ...string) *Finder {
@@ -73,8 +73,8 @@ func (f *Finder) find(fKey string, names ...string) *Finder {
 		return f
 	}
 
-	f.fMap[fKey] = make([]string, len(names))
-	copy(f.fMap[fKey], names)
+	f.namesMap[fKey] = make([]string, len(names))
+	copy(f.namesMap[fKey], names)
 
 	return f
 }
@@ -85,7 +85,7 @@ func (f *Finder) Into(names ...string) *Finder {
 		return f
 	}
 
-	f.ck = topLevelKey
+	f.curKey = topLevelKey
 
 	var nextGetter *Getter
 	var ok bool
@@ -105,10 +105,10 @@ func (f *Finder) Into(names ...string) *Finder {
 		}
 		err = nil
 
-		nextGetter, ok = f.gMap[nextKey]
+		nextGetter, ok = f.getterMap[nextKey]
 		if !ok {
-			if f.gMap[f.ck].Has(name) {
-				intf, _ = f.gMap[f.ck].Get(name)
+			if f.getterMap[f.curKey].Has(name) {
+				intf, _ = f.getterMap[f.curKey].Get(name)
 				nextGetter, err = NewGetter(intf)
 			} else {
 				err = fmt.Errorf("name %s does not exist", name)
@@ -119,18 +119,18 @@ func (f *Finder) Into(names ...string) *Finder {
 			f.addError(nextKey, fmt.Errorf("Error in name: %s, key: %s. [%v]", name, nextKey, err))
 		}
 
-		f.gMap[nextKey] = nextGetter
-		f.ck = nextKey
+		f.getterMap[nextKey] = nextGetter
+		f.curKey = nextKey
 	}
 
 	return f
 }
 
 func (f *Finder) addError(key string, err error) *Finder {
-	if _, ok := f.eMap[key]; !ok {
-		f.eMap[key] = make([]error, 0, 3)
+	if _, ok := f.errMap[key]; !ok {
+		f.errMap[key] = make([]error, 0, 3)
 	}
-	f.eMap[key] = append(f.eMap[key], err)
+	f.errMap[key] = append(f.errMap[key], err)
 
 	return f
 }
@@ -178,8 +178,8 @@ func (f *Finder) ToMap() (map[string]interface{}, error) {
 	res := map[string]interface{}{}
 	var key string
 
-	for kg, getter := range f.gMap {
-		for _, name := range f.fMap[kg] {
+	for kg, getter := range f.getterMap {
+		for _, name := range f.namesMap[kg] {
 			if kg == topLevelKey {
 				key = name
 			} else {
@@ -204,7 +204,7 @@ func (f *Finder) ToMap() (map[string]interface{}, error) {
 
 // HasError tests whether this Finder have any errors.
 func (f *Finder) HasError() bool {
-	for _, errs := range f.eMap {
+	for _, errs := range f.errMap {
 		if len(errs) > 0 {
 			return true
 		}
@@ -217,7 +217,7 @@ func (f *Finder) HasError() bool {
 func (f *Finder) Error() string {
 	var es []string
 
-	for _, errs := range f.eMap {
+	for _, errs := range f.errMap {
 		if len(errs) > 0 {
 			es = make([]string, len(errs))
 			for i, err := range errs {
@@ -238,17 +238,17 @@ func (f *Finder) GetNameSeparator() string {
 
 // Reset resets the current build Finder.
 func (f *Finder) Reset() *Finder {
-	gMap := map[string]*Getter{}
-	gMap[topLevelKey] = f.topLevelGetter
-	f.gMap = gMap
+	getterMap := map[string]*Getter{}
+	getterMap[topLevelKey] = f.topLevelGetter
+	f.getterMap = getterMap
 
-	fMap := map[string][]string{}
-	f.fMap = fMap
+	namesMap := map[string][]string{}
+	f.namesMap = namesMap
 
-	eMap := map[string][]error{}
-	f.eMap = eMap
+	errMap := map[string][]error{}
+	f.errMap = errMap
 
-	f.ck = topLevelKey
+	f.curKey = topLevelKey
 
 	return f
 }
