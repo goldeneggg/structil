@@ -386,6 +386,23 @@ func (g *Getter) UnsafePointer(name string) (unsafe.Pointer, bool) {
 	return res, ok
 }
 
+// Slice returns the slice of interface of the original struct field named name.
+// 2nd return value will be false if the original struct does not have a "name" field.
+// 2nd return value will be false if type of the original struct "name" field is not slice of interface.
+func (g *Getter) Slice(name string) ([]interface{}, bool) {
+	if !g.IsSlice(name) {
+		return nil, false
+	}
+
+	// See: https://golang.org/doc/faq#convert_slice_of_interface
+	v, _ := g.GetValue(name)
+	iSlice := make([]interface{}, v.Len())
+	for i := 0; i < v.Len(); i++ {
+		iSlice[i] = v.Index(i).Interface()
+	}
+	return iSlice, true
+}
+
 // IsByte reports whether type of the original struct field named name is byte.
 func (g *Getter) IsByte(name string) bool {
 	return g.is(name, reflect.Uint8)

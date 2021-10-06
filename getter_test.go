@@ -1456,6 +1456,49 @@ func TestUnsafePointer(t *testing.T) {
 	}
 }
 
+func TestSlice(t *testing.T) {
+	t.Parallel()
+
+	testStructPtr := newGetterTestStructPtr()
+	g, err := NewGetter(testStructPtr)
+	if err != nil {
+		t.Errorf("NewGetter() occurs unexpected error: %v", err)
+	}
+
+	tests := newGetterTests()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// FIXME: comment out t.Parallel() because of race condition
+			// t.Parallel()
+
+			switch tt.name {
+			case "Bytes":
+				tt.wantIntf = []interface{}{uint8(0), testStructPtr.Byte}
+			case "GetterTestStruct4Slice":
+				tt.wantIntf = []interface{}{testStructPtr.GetterTestStruct4Slice[0], testStructPtr.GetterTestStruct4Slice[1]}
+			case "GetterTestStruct4PtrSlice":
+				tt.wantIntf = []interface{}{testStructPtr.GetterTestStruct4PtrSlice[0], testStructPtr.GetterTestStruct4PtrSlice[1]}
+			default:
+				tt.wantNotOK = true
+			}
+
+			got, ok := g.Slice(tt.args.name)
+
+			if ok {
+				if tt.wantNotOK {
+					t.Errorf("expected ok is false but true. args: %+v", tt.args)
+				} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+					t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
+				}
+			} else {
+				if !tt.wantNotOK {
+					t.Errorf("expected ok is true but false. args: %+v", tt.args)
+				}
+			}
+		})
+	}
+}
+
 func TestIsByte(t *testing.T) {
 	t.Parallel()
 
