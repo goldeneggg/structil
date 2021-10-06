@@ -73,12 +73,7 @@ func JSONToGetter(data []byte, nest bool) (*structil.Getter, error) {
 
 	// FIXME: when nest = true, failed to unmershal array_struct_field
 	// "json: cannot unmarshal array into Go struct field .array_struct_field of type struct { Vvvv string "json:\"vvvv\""; Kkk string "json:\"kkk\"" }"
-	_, err = d.DynamicStruct(nest, true)
-	if err != nil {
-		return nil, err
-	}
-
-	return structil.NewGetter(d.dsi)
+	return d.dsToGetter(nest)
 }
 
 // YAMLToGetter returns a structil.Getter with a decoded YAML via DynamicStruct.
@@ -90,12 +85,30 @@ func YAMLToGetter(data []byte, nest bool) (*structil.Getter, error) {
 	}
 
 	// FIXME: when nest = true, failed to unmershal array_struct_field
-	_, err = d.DynamicStruct(nest, true)
+	return d.dsToGetter(nest)
+}
+
+func (d *Decoder) dsToGetter(nest bool) (*structil.Getter, error) {
+	ds, err := d.DynamicStruct(nest, true)
 	if err != nil {
 		return nil, err
 	}
 
-	return structil.NewGetter(d.dsi)
+	dsi, err := d.decodeToDynamicStruct(ds)
+	if err != nil {
+		return nil, err
+	}
+
+	return structil.NewGetter(dsi)
+}
+
+func (d *Decoder) decodeToDynamicStruct(ds *dynamicstruct.DynamicStruct) (interface{}, error) {
+	d.dsi = ds.NewInterface()
+	if err := d.dt.unmarshalWithIPtr(d.data, &d.dsi); err != nil {
+		return nil, err
+	}
+
+	return d.dsi, nil
 }
 
 // Data returns an original data as []byte.
@@ -119,22 +132,12 @@ func (d *Decoder) Map() (map[string]interface{}, error) {
 
 // DynamicStruct returns a decoded DynamicStruct with unmarshaling data to DynamicStruct interface.
 func (d *Decoder) DynamicStruct(nest bool, useTag bool) (*dynamicstruct.DynamicStruct, error) {
-	ds, err := d.toDs(d.unm, nest, useTag)
+	var err error
+
+	d.ds, err = d.toDs(d.unm, nest, useTag)
 	if err != nil {
 		return nil, err
 	}
-
-	// FIXME:
-	// このメソッド内でunmarshalもやる事にした結果、諸々弊害が出ている。テストもfail中
-	//  - トップレベルが配列のJSONはunmarshal出来ない（json.Unmarshalの仕様）
-	//    → d.data (= "[]byte") のJSONがトップレベル配列JSONだったら、1番目の要素を取り出して処理したい
-	dsi := ds.NewInterface()
-	if err := d.dt.unmarshalWithIPtr(d.data, &dsi); err != nil {
-		return nil, err
-	}
-
-	d.ds = ds
-	d.dsi = dsi
 
 	return d.ds, err
 }
