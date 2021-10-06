@@ -659,13 +659,21 @@ func TestDynamicStructJSON(t *testing.T) {
 			// if tt.name != "TopLevelIsArray" {
 			// 	return
 			// }
+			dec, err := FromJSON(tt.data)
+			if err != nil {
+				if !tt.wantErrorNew {
+					t.Fatalf("unexpected error is returned from NewXXX: %v", err)
+				}
+				return
+			} else if tt.wantErrorNew {
+				t.Fatalf("error is expected but it does not occur from NewXXX. data: %s", string(tt.data))
+			}
 
-			testCorrectCase(t, tt)
+			testCorrectCase(t, tt, dec)
 		})
 	}
 }
 
-/*
 func TestDynamicStructYAML(t *testing.T) {
 	t.Parallel()
 
@@ -877,33 +885,24 @@ string_array_field:
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
+			dec, err := FromYAML(tt.data)
+			if err != nil {
+				if !tt.wantErrorNew {
+					t.Fatalf("unexpected error is returned from NewXXX: %v", err)
+				}
+				return
+			} else if tt.wantErrorNew {
+				t.Fatalf("error is expected but it does not occur from NewXXX. data: %s", string(tt.data))
+			}
+
 			// FIXME: error cases
-			testCorrectCase(t, tt)
+			testCorrectCase(t, tt, dec)
 		})
 	}
 }
-*/
 
-func testCorrectCase(t *testing.T, tt decoderTest) {
+func testCorrectCase(t *testing.T, tt decoderTest, dec *Decoder) {
 	t.Helper()
-
-	var dec *Decoder
-	var err error
-
-	switch tt.dt {
-	case typeJSON:
-		dec, err = FromJSON(tt.data)
-	case typeYAML:
-		dec, err = FromYAML(tt.data)
-	}
-	if err != nil {
-		if !tt.wantErrorNew {
-			t.Fatalf("unexpected error is returned from NewXXX: %v", err)
-		}
-		return
-	} else if tt.wantErrorNew {
-		t.Fatalf("error is expected but it does not occur from NewXXX. data: %s", string(tt.data))
-	}
 
 	if d := cmp.Diff(dec.Data(), tt.data); d != "" {
 		t.Fatalf("mismatch RawData: (-got +want)\n%s", d)
