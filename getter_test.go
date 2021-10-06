@@ -672,6 +672,34 @@ func TestGet(t *testing.T) {
 	testGetSeries(t, true, false, assertionFunc)
 }
 
+func TestGetterToMap(t *testing.T) {
+	assertionFunc := func(t *testing.T, tt *getterTest, g *Getter) {
+		m := g.ToMap()
+		got, ok := m[tt.args.name]
+
+		if ok {
+			if tt.wantNotOK {
+				t.Fatalf("expected ok is false but true. args: %+v", tt.args)
+			} else if tt.args.name == "Func" {
+				// Note: cmp.Diff does not support comparing func and func
+				gp := reflect.ValueOf(got).Pointer()
+				wp := reflect.ValueOf(tt.wantIntf).Pointer()
+				if gp != wp {
+					t.Fatalf("unexpected mismatch func type: gp: %v, wp: %v", gp, wp)
+				}
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Fatalf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
+			}
+		} else {
+			if !tt.wantNotOK {
+				t.Fatalf("expected ok is true but false. args: %+v", tt.args)
+			}
+		}
+	}
+
+	testGetSeries(t, true, false, assertionFunc)
+}
+
 func TestByte(t *testing.T) {
 	t.Parallel()
 

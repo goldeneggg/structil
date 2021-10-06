@@ -126,6 +126,16 @@ func (g *Getter) Get(name string) (interface{}, bool) {
 	return g.intfs[name], g.hases[name]
 }
 
+// ToMap returns a map converted from this Getter.
+func (g *Getter) ToMap() map[string]interface{} {
+	m := make(map[string]interface{})
+	for _, nm := range g.Names() {
+		m[nm], _ = g.Get(nm)
+	}
+
+	return m
+}
+
 // Bool returns the byte of the original struct field named name.
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not bool.

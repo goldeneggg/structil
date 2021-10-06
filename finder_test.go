@@ -214,7 +214,7 @@ func TestNewFinderWithGetterAndSep(t *testing.T) {
 	}
 }
 
-func TestToMap(t *testing.T) {
+func TestFinderToMap(t *testing.T) {
 	t.Parallel()
 
 	var f *Finder
