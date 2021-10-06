@@ -36,6 +36,19 @@ func newDecoder(data []byte, dt dataType) (d *Decoder, err error) {
 	case map[interface{}]interface{}:
 		// YAML
 		d.unmMapsi = mapiiToMapsi(t)
+		// FIXME:
+		// トップレベルが配列の場合、タイプに関わらず直接のunmarshalはエラーになってしまうので、
+		// （暫定的に）0番目の要素を取り出してそれを処理するようにしている
+		// という対応を取ろうとした際の名残。不要とわかったら消す
+		// case []interface{}:
+		// 	if len(t) > 0 {
+		// 		switch tt := t[0].(type) {
+		// 		case map[string]interface{}:
+		// 			d.unmMapsi = tt
+		// 		case map[interface{}]interface{}:
+		// 			d.unmMapsi = mapiiToMapsi(tt)
+		// 		}
+		// 	}
 	}
 
 	return
@@ -52,7 +65,7 @@ func FromYAML(data []byte) (*Decoder, error) {
 }
 
 // JSONToGetter returns a structil.Getter with a decoded JSON via DynamicStruct.
-func JSONToGetter(data []byte) (*structil.Getter, error) {
+func JSONToGetter(data []byte, nest bool) (*structil.Getter, error) {
 	d, err := FromJSON(data)
 	if err != nil {
 		return nil, err
@@ -60,8 +73,7 @@ func JSONToGetter(data []byte) (*structil.Getter, error) {
 
 	// FIXME: when nest = true, failed to unmershal array_struct_field
 	// "json: cannot unmarshal array into Go struct field .array_struct_field of type struct { Vvvv string "json:\"vvvv\""; Kkk string "json:\"kkk\"" }"
-	// _, err = d.DynamicStruct(true, true)
-	_, err = d.DynamicStruct(false, true)
+	_, err = d.DynamicStruct(nest, true)
 	if err != nil {
 		return nil, err
 	}
@@ -71,15 +83,14 @@ func JSONToGetter(data []byte) (*structil.Getter, error) {
 
 // YAMLToGetter returns a structil.Getter with a decoded YAML via DynamicStruct.
 // FIXME: this function has a problem caused by map[interface{}]interface{}.
-func YAMLToGetter(data []byte) (*structil.Getter, error) {
+func YAMLToGetter(data []byte, nest bool) (*structil.Getter, error) {
 	d, err := FromYAML(data)
 	if err != nil {
 		return nil, err
 	}
 
 	// FIXME: when nest = true, failed to unmershal array_struct_field
-	// _, err = d.DynamicStruct(true, true)
-	_, err = d.DynamicStruct(false, true)
+	_, err = d.DynamicStruct(nest, true)
 	if err != nil {
 		return nil, err
 	}
@@ -115,6 +126,10 @@ func (d *Decoder) DynamicStruct(nest bool, useTag bool) (*dynamicstruct.DynamicS
 		return nil, err
 	}
 
+	// FIXME:
+	// このメソッド内でunmarshalもやる事にした結果、諸々弊害が出ている。テストもfail中
+	//  - トップレベルが配列のJSONはunmarshal出来ない（json.Unmarshalの仕様）
+	//    → d.data (= "[]byte") のJSONがトップレベル配列JSONだったら、1番目の要素を取り出して処理したい
 	dsi := ds.NewInterface()
 	if err := d.dt.unmarshalWithIPtr(d.data, &dsi); err != nil {
 		return nil, err
@@ -187,17 +202,15 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag 
 						return nil, err
 					}
 
-					/*
-						if nest {
-							nds, err := d.toDsFromStringMap(vv, nest, useTag)
-							if err != nil {
-								return nil, err
-							}
-							b = b.AddDynamicStructSliceWithTag(name, nds, false, tag)
-						} else {
-							b = b.AddSliceWithTag(name, interface{}(vv), tag)
+					if nest {
+						nds, err := d.toDsFromStringMap(vv, nest, useTag)
+						if err != nil {
+							return nil, err
 						}
-					*/
+						b = b.AddDynamicStructSliceWithTag(name, nds, false, tag)
+					} else {
+						b = b.AddSliceWithTag(name, interface{}(vv), tag)
+					}
 				case map[interface{}]interface{}:
 					m := mapiiToMapsi(vv)
 					b, err = d.addForStringMap(b, m, true, tag, name, nest, useTag)
@@ -214,21 +227,19 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag 
 				return nil, err
 			}
 
-			/*
-				if nest {
-					nds, err := d.toDsFromStringMap(value, nest, useTag)
-					if err != nil {
-						return nil, err
-					}
-					b = b.AddDynamicStructWithTag(name, nds, false, tag)
-				} else {
-					for kk := range value {
-						b = b.AddMapWithTag(name, kk, nil, tag)
-						// only one addition
-						break
-					}
+			if nest {
+				nds, err := d.toDsFromStringMap(value, nest, useTag)
+				if err != nil {
+					return nil, err
 				}
-			*/
+				b = b.AddDynamicStructWithTag(name, nds, false, tag)
+			} else {
+				for kk := range value {
+					b = b.AddMapWithTag(name, kk, nil, tag)
+					// only one addition
+					break
+				}
+			}
 		// YAML support
 		case int:
 			b = b.AddIntWithTag(name, tag)
@@ -240,21 +251,19 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag 
 				return nil, err
 			}
 
-			/*
-				if nest {
-					nds, err := d.toDsFromStringMap(m, nest, useTag)
-					if err != nil {
-						return nil, err
-					}
-					b = b.AddDynamicStruct(name, nds, false)
-				} else {
-					for kk := range m {
-						b = b.AddMapWithTag(name, kk, nil, tag)
-						// only one addition
-						break
-					}
+			if nest {
+				nds, err := d.toDsFromStringMap(m, nest, useTag)
+				if err != nil {
+					return nil, err
 				}
-			*/
+				b = b.AddDynamicStruct(name, nds, false)
+			} else {
+				for kk := range m {
+					b = b.AddMapWithTag(name, kk, nil, tag)
+					// only one addition
+					break
+				}
+			}
 		case nil:
 			b = b.AddInterfaceWithTag(name, false, tag)
 		default:
@@ -274,6 +283,9 @@ func (d *Decoder) addForStringMap(
 	nest bool,
 	useTag bool) (*dynamicstruct.Builder, error) {
 
+	// Note: forSlice judgement is top priority.
+	// FIXME: support nested dynamicstruct for slice element
+	// (currently, this causes a panic when field type is "array_struct")
 	if nest {
 		nds, err := d.toDsFromStringMap(m, nest, useTag)
 		if err != nil {
