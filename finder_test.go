@@ -246,6 +246,7 @@ func TestFinderToMap(t *testing.T) {
 		wantError       bool
 		wantErrorString string
 		wantMap         map[string]interface{}
+		wantNestedMap   map[string]interface{} // FIXME: not implemented ToNestedMap method yet
 		cmpopts         []cmp.Option
 	}{
 		{
@@ -307,6 +308,11 @@ func TestFinderToMap(t *testing.T) {
 			wantMap: map[string]interface{}{
 				"FinderTestStruct2.String": "struct2 string",
 			},
+			wantNestedMap: map[string]interface{}{
+				"FinderTestStruct2": map[string]interface{}{
+					"String": "struct2 string",
+				},
+			},
 		},
 		{
 			name: "with two-nest chain",
@@ -317,6 +323,14 @@ func TestFinderToMap(t *testing.T) {
 			wantMap: map[string]interface{}{
 				"FinderTestStruct2Ptr.FinderTestStruct3.String": "struct3 string ptr",
 				"FinderTestStruct2Ptr.FinderTestStruct3.Int":    int(-456),
+			},
+			wantNestedMap: map[string]interface{}{
+				"FinderTestStruct2Ptr": map[string]interface{}{
+					"FinderTestStruFinderTestStruct3ct2Ptr": map[string]interface{}{
+						"String": "struct3 string ptr",
+						"Int":    int(-456),
+					},
+				},
 			},
 		},
 		{
@@ -332,6 +346,18 @@ func TestFinderToMap(t *testing.T) {
 				"FinderTestStruct2Ptr.String":                   "struct2 string ptr",
 				"FinderTestStruct2Ptr.FinderTestStruct3.String": "struct3 string ptr",
 				"FinderTestStruct2Ptr.FinderTestStruct3.Int":    int(-456),
+			},
+			wantNestedMap: map[string]interface{}{
+				"FinderTestStruct2": map[string]interface{}{
+					"String": "struct2 string",
+					"FinderTestStruct2Ptr": map[string]interface{}{
+						"String": "struct2 string ptr",
+						"FinderTestStruct3": map[string]interface{}{
+							"String": "struct3 string ptr",
+							"Int":    int(-456),
+						},
+					},
+				},
 			},
 		},
 		{

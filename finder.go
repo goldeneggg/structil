@@ -178,6 +178,7 @@ func (f *Finder) ToMap() (map[string]interface{}, error) {
 	res := map[string]interface{}{}
 	var key string
 
+	// kg is separated by f.sep step-by-step
 	for kg, getter := range f.getterMap {
 		for _, name := range f.namesMap[kg] {
 			if kg == topLevelKey {
@@ -192,6 +193,51 @@ func (f *Finder) ToMap() (map[string]interface{}, error) {
 			}
 
 			res[key], _ = getter.Get(name)
+		}
+	}
+
+	if f.HasError() {
+		return nil, f
+	}
+
+	return res, nil
+}
+
+// FIXME: EXPERIMENTAL (this method has a bug)
+func (f *Finder) ToNestedMap() (map[string]interface{}, error) {
+	if f.HasError() {
+		return nil, f
+	}
+
+	res := map[string]interface{}{}
+
+	for kg, getter := range f.getterMap {
+		m := map[string]interface{}{}
+
+		for _, name := range f.namesMap[kg] {
+			i, ok := getter.Get(name)
+			if !ok {
+				var eKey string
+				if kg == topLevelKey {
+					eKey = name
+				} else {
+					eKey = kg + f.sep + name
+				}
+				f.addError(eKey, fmt.Errorf("field name %s does not exist", name))
+				break
+			}
+
+			m[name] = i
+		}
+
+		if !f.HasError() {
+			if kg == topLevelKey {
+				res = m
+			} else {
+				sepKeys := strings.Split(kg, f.sep)
+				sepKeysLen := len(sepKeys)
+				res[sepKeys[sepKeysLen-1]] = m
+			}
 		}
 	}
 
