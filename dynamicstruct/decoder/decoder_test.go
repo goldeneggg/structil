@@ -905,23 +905,23 @@ func testCorrectCase(t *testing.T, tt decoderTest) {
 		t.Fatalf("error is expected but it does not occur from NewXXX. data: %s", string(tt.data))
 	}
 
-	/*
-		if d := cmp.Diff(dec.RawData(), tt.data); d != "" {
-			t.Fatalf("mismatch RawData: (-got +want)\n%s", d)
-		}
+	if d := cmp.Diff(dec.Data(), tt.data); d != "" {
+		t.Fatalf("mismatch RawData: (-got +want)\n%s", d)
+	}
 
-			m, err := dec.Map()
-			if err != nil {
-				if !tt.wantErrorMap {
-					t.Fatalf("unexpected error is returned from dec.Map(): %v", err)
-				}
-			} else if tt.wantErrorMap {
-				t.Fatalf("error is expected but it does not occur from dec.Map(). m: %#v", m)
-			} else {
-				if d := cmp.Diff(len(m), tt.wantNumF); d != "" {
-					t.Fatalf("mismatch len(dec.Map()): (-got +want)\n%s", d)
-				}
+	/*
+		m, err := dec.Map()
+		if err != nil {
+			if !tt.wantErrorMap {
+				t.Fatalf("unexpected error is returned from dec.Map(): %v", err)
 			}
+		} else if tt.wantErrorMap {
+			t.Fatalf("error is expected but it does not occur from dec.Map(). m: %#v", m)
+		} else {
+			if d := cmp.Diff(len(m), tt.wantNumF); d != "" {
+				t.Fatalf("mismatch len(dec.Map()): (-got +want)\n%s", d)
+			}
+		}
 	*/
 
 	ds, err := dec.DynamicStruct(tt.nest, tt.useTag)

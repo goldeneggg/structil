@@ -98,12 +98,10 @@ func YAMLToGetter(data []byte, nest bool) (*structil.Getter, error) {
 	return structil.NewGetter(d.dsi)
 }
 
-/*
-// RawData returns an original data as []byte.
-func (d *Decoder) RawData() []byte {
+// Data returns an original data as []byte.
+func (d *Decoder) Data() []byte {
 	return d.data
 }
-*/
 
 /*
 // Interface returns a unmarshaled interface from original data.
