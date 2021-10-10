@@ -319,13 +319,12 @@ array_string_field = ["array_str_1", "array_str_2"]
 )
 
 type decoderTest struct {
-	name     string
-	data     []byte
-	dt       int
-	nest     bool
-	useTag   bool
-	wantNumF int
-	// wantErrorMap    bool
+	name            string
+	data            []byte
+	dt              int
+	nest            bool
+	useTag          bool
+	wantNumF        int
 	wantDefinition  string
 	namesTestGetter map[string][]string
 	wantErrorNew    bool
@@ -595,18 +594,16 @@ func TestDynamicStructJSON(t *testing.T) {
 			nest:     false,
 			useTag:   false,
 			wantNumF: 3, // FIXME: Is 3 really OK? (TopLevelIsArray JSON works flaky)
-			// wantErrorMap: true, // FIXME: TopLevelIsArray JSON does not work correctly for Map() method
 			wantDefinition: `type DynamicStruct struct {
 	ObjobjField map[string]interface {}
 	StringArrayField []string
 	StringField string
 }`,
-			// FIXME: Failed to test for top level is array pattern
-			// namesTestGetter: map[string][]string{
-			// 	"ObjobjField":      nil,
-			// 	"StringArrayField": nil,
-			// 	"StringField":      nil,
-			// },
+			namesTestGetter: map[string][]string{
+				"ObjobjField":      nil,
+				"StringArrayField": nil,
+				"StringField":      nil,
+			},
 		},
 		{
 			name:     "BracketOnly",
@@ -620,13 +617,12 @@ func TestDynamicStructJSON(t *testing.T) {
 }`,
 		},
 		{
-			name:     "ArrayBracketOnly",
-			data:     []byte(`[]`),
-			dt:       typeJSON,
-			nest:     false,
-			useTag:   false,
-			wantNumF: 0,
-			// wantErrorMap:   true,
+			name:           "ArrayBracketOnly",
+			data:           []byte(`[]`),
+			dt:             typeJSON,
+			nest:           false,
+			useTag:         false,
+			wantNumF:       0,
 			wantDefinition: ``,
 			wantErrorDs:    true,
 		},
@@ -656,9 +652,7 @@ func TestDynamicStructJSON(t *testing.T) {
 		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			// if tt.name != "TopLevelIsArray" {
-			// 	return
-			// }
+
 			dec, err := FromJSON(tt.data)
 			if err != nil {
 				if !tt.wantErrorNew {
@@ -698,7 +692,6 @@ bool_field: false
 	NullField interface {}
 	StringField string
 }`,
-			// FIXME: need to fix "unsupported type: map[interface {}]interface {}" error
 			namesTestGetter: map[string][]string{
 				"BoolField":    nil,
 				"Float32Field": nil,
@@ -723,11 +716,10 @@ obj_field:
 	ObjField map[string]interface {}
 	StringField string
 }`,
-			// FIXME: need to fix "unsupported type: map[interface {}]interface {}" error
-			// namesTestGetter: map[string][]string{
-			// 	"ObjField":    nil,
-			// 	"StringField": nil,
-			// },
+			namesTestGetter: map[string][]string{
+				"ObjField":    nil,
+				"StringField": nil,
+			},
 		},
 		{
 			name: "HasObjWithTag",
@@ -745,11 +737,10 @@ obj_field:
 	ObjField map[string]interface {} ` + "`yaml:\"obj_field\"`" + `
 	StringField string ` + "`yaml:\"string_field\"`" + `
 }`,
-			// FIXME: need to fix "unsupported type: map[interface {}]interface {}" error
-			// namesTestGetter: map[string][]string{
-			// 	"ObjField":    nil,
-			// 	"StringField": nil,
-			// },
+			namesTestGetter: map[string][]string{
+				"ObjField":    nil,
+				"StringField": nil,
+			},
 		},
 		{
 			name: "HasObjWithNest",
@@ -770,11 +761,10 @@ obj_field:
 	}
 	StringField string
 }`,
-			// FIXME: need to fix "unsupported type: map[interface {}]interface {}" error
-			// namesTestGetter: map[string][]string{
-			// 	"ObjField":    {"Id", "Name"},
-			// 	"StringField": nil,
-			// },
+			namesTestGetter: map[string][]string{
+				"ObjField":    {"Id", "Name"},
+				"StringField": nil,
+			},
 		},
 		{
 			name: "HasObjWithTagNest",
@@ -795,11 +785,10 @@ obj_field:
 	} ` + "`yaml:\"obj_field\"`" + `
 	StringField string ` + "`yaml:\"string_field\"`" + `
 }`,
-			// FIXME: need to fix "unsupported type: map[interface {}]interface {}" error
-			// namesTestGetter: map[string][]string{
-			// 	"ObjField":    {"Id", "Name"},
-			// 	"StringField": nil,
-			// },
+			namesTestGetter: map[string][]string{
+				"ObjField":    {"Id", "Name"},
+				"StringField": nil,
+			},
 		},
 		{
 			name: "HasObjTwoNest",
@@ -829,11 +818,10 @@ obj_field:
 	}
 	StringField string
 }`,
-			// FIXME: need to fix "unsupported type: map[interface {}]interface {}" error
-			// namesTestGetter: map[string][]string{
-			// 	"ObjField":    {"Boss", "Id", "Name", "ObjobjField"},
-			// 	"StringField": nil,
-			// },
+			namesTestGetter: map[string][]string{
+				"ObjField":    {"Boss", "Id", "Name", "ObjobjField"},
+				"StringField": nil,
+			},
 		},
 		{
 			name: "HasArrayString",
@@ -851,20 +839,18 @@ string_array_field:
 	StringArrayField []string
 	StringField string
 }`,
-			// FIXME: need to fix "unsupported type: map[interface {}]interface {}" error
-			// namesTestGetter: map[string][]string{
-			// 	"StringArrayField": nil,
-			// 	"StringField":      nil,
-			// },
+			namesTestGetter: map[string][]string{
+				"StringArrayField": nil,
+				"StringField":      nil,
+			},
 		},
 		{
-			name:     "OnlyLiteral",
-			data:     []byte(`aiueo`),
-			dt:       typeYAML,
-			nest:     false,
-			useTag:   false,
-			wantNumF: 0,
-			// wantErrorMap:   true,
+			name:           "OnlyLiteral",
+			data:           []byte(`aiueo`),
+			dt:             typeYAML,
+			nest:           false,
+			useTag:         false,
+			wantNumF:       0,
 			wantDefinition: ``,
 			wantErrorDs:    true,
 		},
@@ -907,21 +893,6 @@ func testCorrectCase(t *testing.T, tt decoderTest, dec *Decoder) {
 	if d := cmp.Diff(dec.Data(), tt.data); d != "" {
 		t.Fatalf("mismatch RawData: (-got +want)\n%s", d)
 	}
-
-	/*
-		m, err := dec.Map()
-		if err != nil {
-			if !tt.wantErrorMap {
-				t.Fatalf("unexpected error is returned from dec.Map(): %v", err)
-			}
-		} else if tt.wantErrorMap {
-			t.Fatalf("error is expected but it does not occur from dec.Map(). m: %#v", m)
-		} else {
-			if d := cmp.Diff(len(m), tt.wantNumF); d != "" {
-				t.Fatalf("mismatch len(dec.Map()): (-got +want)\n%s", d)
-			}
-		}
-	*/
 
 	ds, err := dec.DynamicStruct(tt.nest, tt.useTag)
 	if err != nil {

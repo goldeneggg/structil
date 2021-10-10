@@ -11,44 +11,43 @@ import (
 
 // Decoder is the struct that decodes some marshaled data like JSON and YAML.
 type Decoder struct {
-	data     []byte // original data
-	dt       dataType
-	unm      interface{}            // unmarshaled result from data to JSON/YAML/etc
-	unmMapsi map[string]interface{} // convert string map from unmarshaled result
-	ds       *dynamicstruct.DynamicStruct
-	dsi      interface{} // unmarshaled result from data to DynamicStruct
+	data        []byte // original data
+	dt          dataType
+	unm         interface{}            // unmarshaled result from data to JSON/YAML/etc
+	dsDecodeMap map[string]interface{} // map for decoding to DymanicStruct
+	ds          *dynamicstruct.DynamicStruct
+	dsi         interface{} // unmarshaled result from data to DynamicStruct
 }
 
 func newDecoder(data []byte, dt dataType) (d *Decoder, err error) {
 	unm, err := dt.unmarshal(data)
 
 	d = &Decoder{
-		data:     data,
-		dt:       dt,
-		unm:      unm,
-		unmMapsi: make(map[string]interface{}),
+		data:        data,
+		dt:          dt,
+		unm:         unm,
+		dsDecodeMap: make(map[string]interface{}),
 	}
 
 	switch t := d.unm.(type) {
 	case map[string]interface{}:
 		// JSON
-		d.unmMapsi = t
+		d.dsDecodeMap = t
 	case map[interface{}]interface{}:
 		// YAML
-		d.unmMapsi = mapiiToMapsi(t)
-		// FIXME:
-		// トップレベルが配列の場合、タイプに関わらず直接のunmarshalはエラーになってしまうので、
-		// （暫定的に）0番目の要素を取り出してそれを処理するようにしている
-		// という対応を取ろうとした際の名残。不要とわかったら消す
-		// case []interface{}:
-		// 	if len(t) > 0 {
-		// 		switch tt := t[0].(type) {
-		// 		case map[string]interface{}:
-		// 			d.unmMapsi = tt
-		// 		case map[interface{}]interface{}:
-		// 			d.unmMapsi = mapiiToMapsi(tt)
-		// 		}
-		// 	}
+		d.dsDecodeMap = toStringKeyMap(t)
+	// FIXME:
+	// for top-level is array
+	// （暫定的に）0番目の要素を取り出してそれを処理するようにしているが、どうすべきか？
+	case []interface{}:
+		if len(t) > 0 {
+			switch tt := t[0].(type) {
+			case map[string]interface{}:
+				d.dsDecodeMap = tt
+			case map[interface{}]interface{}:
+				d.dsDecodeMap = toStringKeyMap(tt)
+			}
+		}
 	}
 
 	return
@@ -103,22 +102,15 @@ func (d *Decoder) dsToGetter(nest bool) (*structil.Getter, error) {
 }
 
 func (d *Decoder) decodeToDynamicStruct(ds *dynamicstruct.DynamicStruct) (interface{}, error) {
-	d.dsi = ds.NewInterface()
-
-	// convert to JSON from non-JSON
-	var data []byte
-	var err error
-	switch d.dt {
-	case typeJSON:
-		data = d.data
-	default:
-		// get marshaled JSON data from mao[string]interface{}
-		data, err = typeJSON.marshal(d.unmMapsi)
-		if err != nil {
-			return nil, fmt.Errorf("fail to typeJSON.marshal: %w", err)
-		}
+	// get marshaled JSON data from map[string]interface{}
+	//   - for YAML
+	//   - for JSON with top-level array
+	data, err := typeJSON.marshal(d.dsDecodeMap)
+	if err != nil {
+		return nil, fmt.Errorf("fail to typeJSON.marshal: %w", err)
 	}
 
+	d.dsi = ds.NewInterface()
 	if err := typeJSON.unmarshalWithIPtr(data, &d.dsi); err != nil {
 		return nil, fmt.Errorf("fail to decodeToDynamicStruct: %w", err)
 	}
@@ -135,13 +127,6 @@ func (d *Decoder) Data() []byte {
 // Interface returns a unmarshaled interface from original data.
 func (d *Decoder) Interface() interface{} {
 	return d.unm
-}
-*/
-
-/*
-// Map returns a map of unmarshaled interface from original data.
-func (d *Decoder) Map() (map[string]interface{}, error) {
-	return d.dt.intfToStringMap(d.Interface())
 }
 */
 
@@ -175,7 +160,7 @@ func (d *Decoder) toDs(i interface{}, nest bool, useTag bool) (*dynamicstruct.Dy
 		}
 	// YAML support
 	case map[interface{}]interface{}:
-		return d.toDsFromStringMap(mapiiToMapsi(t), nest, useTag)
+		return d.toDsFromStringMap(toStringKeyMap(t), nest, useTag)
 	}
 
 	return nil, fmt.Errorf("unsupported type [%T] for toDs", i)
@@ -229,7 +214,7 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag 
 						b = b.AddSliceWithTag(name, interface{}(vv), tag)
 					}
 				case map[interface{}]interface{}:
-					m := mapiiToMapsi(vv)
+					m := toStringKeyMap(vv)
 					b, err = d.addForStringMap(b, m, true, tag, name, nest, useTag)
 					if err != nil {
 						return nil, err
@@ -262,7 +247,7 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag 
 			b = b.AddIntWithTag(name, tag)
 		// YAML support
 		case map[interface{}]interface{}:
-			m := mapiiToMapsi(value)
+			m := toStringKeyMap(value)
 			b, err = d.addForStringMap(b, m, false, tag, name, nest, useTag)
 			if err != nil {
 				return nil, err
@@ -323,12 +308,12 @@ func (d *Decoder) addForStringMap(
 }
 
 // convert map[interface{}]interface{} to map[string]interface{}
-func mapiiToMapsi(mapii map[interface{}]interface{}) map[string]interface{} {
+func toStringKeyMap(mapii map[interface{}]interface{}) map[string]interface{} {
 	mapsi := make(map[string]interface{})
 	for k, v := range mapii {
 		switch t := v.(type) {
 		case map[interface{}]interface{}:
-			mapsi[fmt.Sprintf("%v", k)] = mapiiToMapsi(t)
+			mapsi[fmt.Sprintf("%v", k)] = toStringKeyMap(t)
 		default:
 			mapsi[fmt.Sprintf("%v", k)] = v
 		}
