@@ -68,7 +68,7 @@ func FromYAML(data []byte) (*Decoder, error) {
 func JSONToGetter(data []byte, nest bool) (*structil.Getter, error) {
 	d, err := FromJSON(data)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("fail to JSONToGetter: %w", err)
 	}
 
 	// FIXME: when nest = true, failed to unmershal array_struct_field
@@ -81,7 +81,7 @@ func JSONToGetter(data []byte, nest bool) (*structil.Getter, error) {
 func YAMLToGetter(data []byte, nest bool) (*structil.Getter, error) {
 	d, err := FromYAML(data)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("fail to YAMLToGetter: %w", err)
 	}
 
 	// FIXME: when nest = true, failed to unmershal array_struct_field
@@ -105,7 +105,7 @@ func (d *Decoder) dsToGetter(nest bool) (*structil.Getter, error) {
 func (d *Decoder) decodeToDynamicStruct(ds *dynamicstruct.DynamicStruct) (interface{}, error) {
 	d.dsi = ds.NewInterface()
 	if err := d.dt.unmarshalWithIPtr(d.data, &d.dsi); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("fail to decodeToDynamicStruct: %w", err)
 	}
 
 	return d.dsi, nil
@@ -163,7 +163,7 @@ func (d *Decoder) toDs(i interface{}, nest bool, useTag bool) (*dynamicstruct.Dy
 		return d.toDsFromStringMap(mapiiToMapsi(t), nest, useTag)
 	}
 
-	return nil, fmt.Errorf("unexpected interface: %#v", i)
+	return nil, fmt.Errorf("unsupported type [%T] for toDs", i)
 }
 
 func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag bool) (*dynamicstruct.DynamicStruct, error) {
@@ -269,7 +269,7 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag 
 		case nil:
 			b = b.AddInterfaceWithTag(name, false, tag)
 		default:
-			return nil, fmt.Errorf("value %#v has invalid type. m is %#v", value, m)
+			return nil, fmt.Errorf("unsupported type of map-value. key = [%s] value = %#v", k, value)
 		}
 	}
 
@@ -291,7 +291,7 @@ func (d *Decoder) addForStringMap(
 	if nest {
 		nds, err := d.toDsFromStringMap(m, nest, useTag)
 		if err != nil {
-			return b, err
+			return b, fmt.Errorf("addForStringMap nest = [%t], useTag = [%t]: %w", nest, useTag, err)
 		}
 		b = b.AddDynamicStructWithTag(name, nds, false, tag)
 	} else if forSlice {

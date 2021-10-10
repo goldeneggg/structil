@@ -49,7 +49,7 @@ func NewFinderWithGetter(g *Getter) (*Finder, error) {
 // g must be a Getter
 func NewFinderWithGetterAndSep(g *Getter, sep string) (*Finder, error) {
 	if sep == "" {
-		return nil, fmt.Errorf("sep [%s] is invalid", sep)
+		return nil, fmt.Errorf("cannot use empty separator")
 	}
 
 	f := &Finder{topLevelGetter: g, sep: sep}
@@ -111,12 +111,12 @@ func (f *Finder) Into(names ...string) *Finder {
 				intf, _ = f.getterMap[f.curKey].Get(name)
 				nextGetter, err = NewGetter(intf)
 			} else {
-				err = fmt.Errorf("name %s does not exist", name)
+				err = fmt.Errorf("name [%s] does not exist", name)
 			}
 		}
 
 		if err != nil {
-			f.addError(nextKey, fmt.Errorf("Error in name: %s, key: %s. [%v]", name, nextKey, err))
+			f.addError(nextKey, fmt.Errorf("error Into() key [%s]: %w", nextKey, err))
 		}
 
 		f.getterMap[nextKey] = nextGetter
@@ -188,7 +188,7 @@ func (f *Finder) ToMap() (map[string]interface{}, error) {
 			}
 
 			if !getter.Has(name) {
-				f.addError(key, fmt.Errorf("field name %s does not exist", name))
+				f.addError(key, fmt.Errorf("field name [%s] does not exist in getter", name))
 				break
 			}
 
@@ -223,7 +223,7 @@ func (f *Finder) ToNestedMap() (map[string]interface{}, error) {
 				} else {
 					eKey = kg + f.sep + name
 				}
-				f.addError(eKey, fmt.Errorf("field name %s does not exist", name))
+				f.addError(eKey, fmt.Errorf("field name %s does not exist in getter", name))
 				break
 			}
 
@@ -328,7 +328,7 @@ func NewFinderKeys(dir string, baseName string) (*FinderKeys, error) {
 
 func newFinderKeysFromConf(ck confKeys) (*FinderKeys, error) {
 	if len(ck.Keys) == 0 {
-		return nil, fmt.Errorf("failed to parse or no keys exist in file")
+		return nil, fmt.Errorf("confKeys does not have some Keys")
 	}
 
 	fks := &FinderKeys{keys: make([]string, 0, len(ck.Keys)+1)}
@@ -394,7 +394,7 @@ func (fks *FinderKeys) addRecursive(key interface{}, prefix string) error {
 			}
 		}
 	default:
-		return fmt.Errorf("unsupported type: %#v, prefix: %s", t, prefix)
+		return fmt.Errorf("fail to addRecursive prefix = [%s], key type = %#v", prefix, t)
 	}
 
 	return nil

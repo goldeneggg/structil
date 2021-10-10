@@ -27,7 +27,7 @@ func NewGetter(i interface{}) (*Getter, error) {
 	kind := rv.Kind()
 
 	if kind != reflect.Ptr && kind != reflect.Struct {
-		return nil, fmt.Errorf("%+v is not supported kind: %v. value: %+v", i, kind, rv)
+		return nil, fmt.Errorf("kind [%v] is not either struct or pointer. i = [%+v]", kind, i)
 	}
 
 	if kind == reflect.Ptr {
@@ -35,7 +35,7 @@ func NewGetter(i interface{}) (*Getter, error) {
 	}
 
 	if !rv.IsValid() {
-		return nil, fmt.Errorf("%+v is invalid argument. value: %+v", i, rv)
+		return nil, fmt.Errorf("reflect.Value is invalid. i = [%+v]", i)
 	}
 
 	numf := rv.NumField()
@@ -575,12 +575,12 @@ func (g *Getter) MapGet(name string, f func(int, *Getter) (interface{}, error)) 
 		vi = srv.Index(i)
 		eg, err = NewGetter(util.ToI(vi))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("fail NewGetter: %w", err)
 		}
 
 		r, err = f(i, eg)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("fail MapGet func: %w", err)
 		}
 
 		res[i] = r

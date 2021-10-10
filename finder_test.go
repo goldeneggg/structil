@@ -366,7 +366,7 @@ func TestFinderToMap(t *testing.T) {
 				chain: fs[4].Find("NonExist"),
 			},
 			wantError:       true,
-			wantErrorString: "field name NonExist does not exist",
+			wantErrorString: "field name [NonExist] does not exist in getter",
 		},
 		{
 			name: "with Find with existed and non-existed names",
@@ -374,7 +374,7 @@ func TestFinderToMap(t *testing.T) {
 				chain: fs[5].Find("String", "NonExist"),
 			},
 			wantError:       true,
-			wantErrorString: "field name NonExist does not exist",
+			wantErrorString: "field name [NonExist] does not exist in getter",
 		},
 		{
 			name: "with Struct with non-existed name",
@@ -382,7 +382,7 @@ func TestFinderToMap(t *testing.T) {
 				chain: fs[6].Into("NonExist").Find("String"),
 			},
 			wantError:       true,
-			wantErrorString: "Error in name: NonExist, key: NonExist. [name NonExist does not exist]",
+			wantErrorString: "error Into() key [NonExist]: name [NonExist] does not exist",
 		},
 		{
 			name: "with Struct with existed name and Find with non-existed name",
@@ -390,7 +390,7 @@ func TestFinderToMap(t *testing.T) {
 				chain: fs[7].Into("FinderTestStruct2").Find("NonExist"),
 			},
 			wantError:       true,
-			wantErrorString: "field name NonExist does not exist",
+			wantErrorString: "field name [NonExist] does not exist in getter",
 		},
 		{
 			name: "with Struct with existed and non-existed name and Find",
@@ -400,7 +400,7 @@ func TestFinderToMap(t *testing.T) {
 					Into("FinderTestStruct2", "NonExist").Find("String"),
 			},
 			wantError:       true,
-			wantErrorString: "Error in name: NonExist, key: FinderTestStruct2.NonExist. [name NonExist does not exist]",
+			wantErrorString: "error Into() key [FinderTestStruct2.NonExist]: name [NonExist] does not exist",
 		},
 		{
 			name: "with multi nest chains separated by assigned sep",
@@ -598,7 +598,7 @@ func TestFromKeys(t *testing.T) {
 				chain: fs[1].FromKeys(fks[1]),
 			},
 			wantError:       true,
-			wantErrorString: "field name NonExist does not exist",
+			wantErrorString: "field name [NonExist] does not exist in getter",
 		},
 		{
 			name: "with Find with existed and non-existed names",
@@ -606,7 +606,7 @@ func TestFromKeys(t *testing.T) {
 				chain: fs[2].FromKeys(fks[2]),
 			},
 			wantError:       true,
-			wantErrorString: "field name NonExist does not exist",
+			wantErrorString: "field name [NonExist] does not exist in getter",
 		},
 		{
 			name: "with Struct with non-existed name",
@@ -614,7 +614,7 @@ func TestFromKeys(t *testing.T) {
 				chain: fs[3].FromKeys(fks[3]),
 			},
 			wantError:       true,
-			wantErrorString: "Error in name: NonExist, key: NonExist. [name NonExist does not exist]",
+			wantErrorString: "error Into() key [NonExist]: name [NonExist] does not exist",
 		},
 		{
 			name: "with Struct with existed name and Find with non-existed name",
@@ -622,7 +622,7 @@ func TestFromKeys(t *testing.T) {
 				chain: fs[4].FromKeys(fks[4]),
 			},
 			wantError:       true,
-			wantErrorString: "field name NonExist does not exist",
+			wantErrorString: "field name [NonExist] does not exist in getter",
 		},
 	}
 

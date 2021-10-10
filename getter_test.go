@@ -1550,7 +1550,7 @@ func TestIsByte(t *testing.T) {
 
 			got := g.IsByte(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1577,7 +1577,7 @@ func TestIsBytes(t *testing.T) {
 
 			got := g.IsBytes(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1604,7 +1604,7 @@ func TestIsString(t *testing.T) {
 
 			got := g.IsString(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1631,7 +1631,7 @@ func TestIsInt(t *testing.T) {
 
 			got := g.IsInt(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1658,7 +1658,7 @@ func TestIsInt8(t *testing.T) {
 
 			got := g.IsInt8(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1685,7 +1685,7 @@ func TestIsInt16(t *testing.T) {
 
 			got := g.IsInt16(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1712,7 +1712,7 @@ func TestIsInt32(t *testing.T) {
 
 			got := g.IsInt32(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1739,7 +1739,7 @@ func TestIsInt64(t *testing.T) {
 
 			got := g.IsInt64(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1766,7 +1766,7 @@ func TestIsUint(t *testing.T) {
 
 			got := g.IsUint(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1795,7 +1795,7 @@ func TestIsUint8(t *testing.T) {
 
 			got := g.IsUint8(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1822,7 +1822,7 @@ func TestIsUint16(t *testing.T) {
 
 			got := g.IsUint16(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1849,7 +1849,7 @@ func TestIsUint32(t *testing.T) {
 
 			got := g.IsUint32(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1876,7 +1876,7 @@ func TestIsUint64(t *testing.T) {
 
 			got := g.IsUint64(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1903,7 +1903,7 @@ func TestIsUintptr(t *testing.T) {
 
 			got := g.IsUintptr(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1930,7 +1930,7 @@ func TestIsFloat32(t *testing.T) {
 
 			got := g.IsFloat32(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1957,7 +1957,7 @@ func TestIsFloat64(t *testing.T) {
 
 			got := g.IsFloat64(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1984,7 +1984,7 @@ func TestIsBool(t *testing.T) {
 
 			got := g.IsBool(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -2011,7 +2011,7 @@ func TestIsComplex64(t *testing.T) {
 
 			got := g.IsComplex64(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -2038,7 +2038,7 @@ func TestIsComplex128(t *testing.T) {
 
 			got := g.IsComplex128(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -2065,7 +2065,7 @@ func TestIsUnsafePointer(t *testing.T) {
 
 			got := g.IsUnsafePointer(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -2092,7 +2092,7 @@ func TestIsMap(t *testing.T) {
 
 			got := g.IsMap(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -2119,7 +2119,7 @@ func TestIsFunc(t *testing.T) {
 
 			got := g.IsFunc(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -2146,7 +2146,7 @@ func TestIsChan(t *testing.T) {
 
 			got := g.IsChan(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -2173,7 +2173,7 @@ func TestIsStruct(t *testing.T) {
 
 			got := g.IsStruct(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -2200,7 +2200,7 @@ func TestIsSlice(t *testing.T) {
 
 			got := g.IsSlice(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -2227,7 +2227,7 @@ func TestIsArray(t *testing.T) {
 
 			got := g.IsArray(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
