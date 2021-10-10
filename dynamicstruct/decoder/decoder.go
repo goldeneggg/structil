@@ -104,7 +104,22 @@ func (d *Decoder) dsToGetter(nest bool) (*structil.Getter, error) {
 
 func (d *Decoder) decodeToDynamicStruct(ds *dynamicstruct.DynamicStruct) (interface{}, error) {
 	d.dsi = ds.NewInterface()
-	if err := d.dt.unmarshalWithIPtr(d.data, &d.dsi); err != nil {
+
+	// convert to JSON from non-JSON
+	var data []byte
+	var err error
+	switch d.dt {
+	case typeJSON:
+		data = d.data
+	default:
+		// get marshaled JSON data from mao[string]interface{}
+		data, err = typeJSON.marshal(d.unmMapsi)
+		if err != nil {
+			return nil, fmt.Errorf("fail to typeJSON.marshal: %w", err)
+		}
+	}
+
+	if err := typeJSON.unmarshalWithIPtr(data, &d.dsi); err != nil {
 		return nil, fmt.Errorf("fail to decodeToDynamicStruct: %w", err)
 	}
 

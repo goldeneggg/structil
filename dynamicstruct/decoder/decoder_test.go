@@ -792,7 +792,7 @@ obj_field:
 	ObjField struct {
 		Id int ` + "`yaml:\"id\"`" + `
 		Name string ` + "`yaml:\"name\"`" + `
-	}
+	} ` + "`yaml:\"obj_field\"`" + `
 	StringField string ` + "`yaml:\"string_field\"`" + `
 }`,
 			// FIXME: need to fix "unsupported type: map[interface {}]interface {}" error
