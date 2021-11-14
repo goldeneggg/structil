@@ -11,9 +11,9 @@ import (
 
 // Decoder is the struct that decodes some marshaled data like JSON and YAML.
 type Decoder struct {
-	data        []byte // original data
 	dt          dataType
-	unm         interface{}            // unmarshaled result from data to JSON/YAML/etc
+	data        []byte // original data
+	unm         interface{}
 	dsDecodeMap map[string]interface{} // map for decoding to DymanicStruct
 	ds          *dynamicstruct.DynamicStruct
 	dsi         interface{} // unmarshaled result from data to DynamicStruct
@@ -23,8 +23,8 @@ func newDecoder(data []byte, dt dataType) (d *Decoder, err error) {
 	unm, err := dt.unmarshal(data)
 
 	d = &Decoder{
-		data:        data,
 		dt:          dt,
+		data:        data,
 		unm:         unm,
 		dsDecodeMap: make(map[string]interface{}),
 	}
@@ -97,21 +97,21 @@ func (d *Decoder) dsToGetter(nest bool) (*structil.Getter, error) {
 	return structil.NewGetter(dsi)
 }
 
-// FIXME:
-// dynamic structへのdecode(unmarshal)時は、データ形式の差異を吸収しつつ（エラーを回避しつつ）汎用的に対応する為、
-// オリジナルのdataを使わず、decode済のmapを json.Marshal したdata（= JSON）を代わりに使い、
-// かつそれを json.Unmarshal でunmarshalする、という流れで処理している。
-// が、もっとスマート実装に修正したい
 func (d *Decoder) decodeToDynamicStruct(ds *dynamicstruct.DynamicStruct) (interface{}, error) {
-	data, err := typeJSON.marshal(d.dsDecodeMap)
+	// must use "d.dsDecodeMap" (not "d.unm"). because key of "d.unm" is not string but interface{}
+	data, err := d.dt.marshal(d.dsDecodeMap)
 	if err != nil {
-		return nil, fmt.Errorf("fail to typeJSON.marshal: %w", err)
+		return nil, fmt.Errorf("fail to d.dt.marshal: %w", err)
 	}
 
+	// toDsFromStringMap() method uses "Build()" method and this means that ds is build by pointer-mode
+	// So ds.NewInterface() returns a struct pointer
 	d.dsi = ds.NewInterface()
 
-	if err := typeJSON.unmarshalWithIPtr(data, &d.dsi); err != nil {
-		return nil, fmt.Errorf("fail to decodeToDynamicStruct: %w", err)
+	// must use "d.dsi" (not "&d.dsi"). because "d.dsi" is pointer
+	// if use "&.d.dsi", unmarshal result is not struct but map[interface{}]interface when dt is YAML
+	if err := d.dt.unmarshalWithIPtr(data, d.dsi); err != nil {
+		return nil, fmt.Errorf("fail to d.dt.unmarshalWithIPtr: %w", err)
 	}
 
 	return d.dsi, nil
@@ -122,18 +122,12 @@ func (d *Decoder) Data() []byte {
 	return d.data
 }
 
-/*
-// Interface returns a unmarshaled interface from original data.
-func (d *Decoder) Interface() interface{} {
-	return d.unm
-}
-*/
-
 // DynamicStruct returns a decoded DynamicStruct with unmarshaling data to DynamicStruct interface.
 func (d *Decoder) DynamicStruct(nest bool, useTag bool) (*dynamicstruct.DynamicStruct, error) {
 	var err error
 
-	d.ds, err = d.toDs(d.unm, nest, useTag)
+	// d.ds, err = d.toDs(d.unm, nest, useTag)
+	d.ds, err = d.toDs(d.dsDecodeMap, nest, useTag)
 	if err != nil {
 		return nil, err
 	}
