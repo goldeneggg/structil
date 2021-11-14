@@ -76,7 +76,7 @@ func (ds *DynamicStruct) IsPtr() bool {
 
 // NewInterface returns the new interface value of built struct.
 func (ds *DynamicStruct) NewInterface() interface{} {
-	rv := ds.newValue()
+	rv := reflect.New(ds.rt)
 	if ds.isPtr {
 		return rv.Interface()
 	}
@@ -84,25 +84,19 @@ func (ds *DynamicStruct) NewInterface() interface{} {
 	return reflect.Indirect(rv).Interface()
 }
 
-func (ds *DynamicStruct) newValue() reflect.Value {
-	return reflect.New(ds.rt)
-}
-
 // DecodeMap returns the interface that was decoded from input map.
 // Deprecated: use decoder.XXXToGetter() (e.g. decoder.JSONToGetter()) instead.
-// FIXME: delete candidates of the future
 func (ds *DynamicStruct) DecodeMap(m map[string]interface{}) (interface{}, error) {
 	return ds.decodeMap(m, false)
 }
 
 // DecodeMapWithKeyCamelize returns the interface that was decoded from input map with keys camelization.
 // Deprecated: use decoder.XXXToGetter() (e.g. decoder.JSONToGetter()) instead.
-// FIXME: delete candidates of the future
 func (ds *DynamicStruct) DecodeMapWithKeyCamelize(m map[string]interface{}) (interface{}, error) {
 	return ds.decodeMap(m, true)
 }
 
-// FIXME: delete candidates of the future
+// Deprecated:
 func (ds *DynamicStruct) decodeMap(m map[string]interface{}, camelizeKey bool) (interface{}, error) {
 	if !ds.IsPtr() {
 		return nil, errors.New("DecodeMap can execute only if dynamic struct is pointer. But this is false")
