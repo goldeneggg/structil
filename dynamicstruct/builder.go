@@ -43,6 +43,7 @@ var (
 )
 
 // Builder is the interface that builds a dynamic and runtime struct.
+// All methods are NOT goroutine safe yet (TODO:)
 type Builder struct {
 	name   string
 	fields map[string]reflect.Type

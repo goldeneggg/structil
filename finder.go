@@ -1,4 +1,3 @@
-// TODO: refactoring and supporting goroutine safe
 package structil
 
 import (
@@ -14,7 +13,7 @@ const (
 )
 
 // Finder is the struct that builds the nested struct finder.
-// All methods are NOT goroutine safe yet (FIXME:)
+// All methods are NOT goroutine safe yet (TODO:)
 type Finder struct {
 	topLevelGetter *Getter
 	getterMap      map[string]*Getter
