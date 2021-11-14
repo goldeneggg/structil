@@ -11,6 +11,14 @@ on:
       - 'Dockerfile'
       - '.dockerignore'
       - '**.sample'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
+      - '**/.gitignore'
+      - 'Dockerfile'
+      - '.dockerignore'
+      - '**.sample'
 
 env:
   # See: Makefile
@@ -86,6 +94,7 @@ jobs:
 
   register-latest-result:
     name: Register latest benchmark result
+    if: github.event_name == 'push'
     needs: [ benchmark ]
     runs-on: ${{ matrix.os }}
     strategy:
