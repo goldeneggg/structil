@@ -187,7 +187,7 @@ arr_obj_field:
 
 	// Output:
 	//type DynamicStruct struct {
-	//	ArrObjField struct {
+	//	ArrObjField []struct {
 	//		Aid int `yaml:"aid"`
 	//		Aname string `yaml:"aname"`
 	//	} `yaml:"arr_obj_field"`

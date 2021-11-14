@@ -32,11 +32,9 @@ func newDecoder(data []byte, dt dataType) (d *Decoder, err error) {
 	switch t := d.unm.(type) {
 	case map[string]interface{}:
 		// JSON
-		//fmt.Println("@@@@@ 1 map[string]interface{}")
 		d.dsDecodeMap = t
 	case map[interface{}]interface{}:
 		// YAML
-		//fmt.Println("@@@@@ 2 map[interface{}]interface{}")
 		d.dsDecodeMap = toStringKeyMap(t)
 	// FIXME:
 	// for top-level is array
@@ -76,14 +74,12 @@ func JSONToGetter(data []byte, nest bool) (*structil.Getter, error) {
 }
 
 // YAMLToGetter returns a structil.Getter with a decoded YAML via DynamicStruct.
-// FIXME: this function has a problem caused by map[interface{}]interface{}.
 func YAMLToGetter(data []byte, nest bool) (*structil.Getter, error) {
 	d, err := FromYAML(data)
 	if err != nil {
 		return nil, fmt.Errorf("fail to YAMLToGetter: %w", err)
 	}
 
-	// FIXME: when nest = true, failed to unmershal array_struct_field
 	return d.dsToGetter(nest)
 }
 
@@ -103,11 +99,10 @@ func (d *Decoder) dsToGetter(nest bool) (*structil.Getter, error) {
 
 // FIXME:
 // dynamic structへのdecode(unmarshal)時は、データ形式の差異を吸収しつつ（エラーを回避しつつ）汎用的に対応する為、
-// オリジナルのdataを使わず json.Marshal したdataを代わりに使い、
+// オリジナルのdataを使わず、decode済のmapを json.Marshal したdata（= JSON）を代わりに使い、
 // かつそれを json.Unmarshal でunmarshalする、という流れで処理している。
 // が、もっとスマート実装に修正したい
 func (d *Decoder) decodeToDynamicStruct(ds *dynamicstruct.DynamicStruct) (interface{}, error) {
-	// FIXME: arrayを含んだYAMLが map[interface{}]interface{} を処理しようとしてtypeJSON.marshalでコケる
 	data, err := typeJSON.marshal(d.dsDecodeMap)
 	if err != nil {
 		return nil, fmt.Errorf("fail to typeJSON.marshal: %w", err)
@@ -115,10 +110,6 @@ func (d *Decoder) decodeToDynamicStruct(ds *dynamicstruct.DynamicStruct) (interf
 
 	d.dsi = ds.NewInterface()
 
-	// FIXME: 本来は元のdata ＆ 形式に応じたunmarshalで処理したかったが、特にarrayを含んだデータの扱いが上手くいっていない
-	// if err := d.dt.unmarshalWithIPtr(d.data, &d.dsi); err != nil {
-	// 	return nil, fmt.Errorf("fail to decodeToDynamicStruct: %w", err)
-	// }
 	if err := typeJSON.unmarshalWithIPtr(data, &d.dsi); err != nil {
 		return nil, fmt.Errorf("fail to decodeToDynamicStruct: %w", err)
 	}
@@ -204,7 +195,6 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag 
 			b = b.AddStringWithTag(name, tag)
 		case []interface{}:
 			if len(value) > 0 {
-				// FIXME: fix nest mode support or not
 				switch vv := value[0].(type) {
 				case map[string]interface{}:
 					b, err = d.addForStringMap(b, vv, true, tag, name, nest, useTag)
@@ -294,7 +284,7 @@ func (d *Decoder) addForStringMap(
 	useTag bool) (*dynamicstruct.Builder, error) {
 
 	// Note: forSlice judgement is top priority.
-	// FIXME: support nested dynamicstruct for slice element
+	// FIXME: スライス内の要素のDynamicStruct変換サポート
 	// (currently, this causes a panic when field type is "array_struct")
 	if nest {
 		nds, err := d.toDsFromStringMap(m, nest, useTag)
@@ -319,13 +309,36 @@ func (d *Decoder) addForStringMap(
 func toStringKeyMap(mapii map[interface{}]interface{}) map[string]interface{} {
 	mapsi := make(map[string]interface{})
 	for k, v := range mapii {
-		switch t := v.(type) {
+		switch vt := v.(type) {
+		case []interface{}:
+			// for nest array
+			mapsi[fmt.Sprintf("%v", k)] = fromArrayToMapValue(vt)
 		case map[interface{}]interface{}:
-			mapsi[fmt.Sprintf("%v", k)] = toStringKeyMap(t)
+			// for nest object
+			mapsi[fmt.Sprintf("%v", k)] = toStringKeyMap(vt)
 		default:
 			mapsi[fmt.Sprintf("%v", k)] = v
 		}
 	}
 
 	return mapsi
+}
+
+func fromArrayToMapValue(ia []interface{}) interface{} {
+	resIa := make([]interface{}, 0, len(ia))
+	for _, iv := range ia {
+		switch ivt := iv.(type) {
+		case []interface{}:
+			// for nest array
+			resIa = append(resIa, fromArrayToMapValue(ivt))
+		case map[interface{}]interface{}:
+			// for nest object
+			// !!! this is important process for map[interface{}]interface{} to map[string]interface{} for JSON unmarshaling
+			resIa = append(resIa, toStringKeyMap(ivt))
+		default:
+			resIa = append(resIa, ivt)
+		}
+	}
+
+	return resIa
 }

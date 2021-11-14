@@ -890,40 +890,41 @@ string_array_field:
 			},
 		},
 		// FIXME: arrayを含んだYAMLは YAMLToGetter で失敗してしまう
-		// 		{
-		// 			name: "HasArrayObject",
-		// 			data: []byte(`
-		// string_field: いいい
-		// obj_field:
-		//   user_id: 678
-		//   status: progress
-		// arr_obj_field:
-		//   - aid: 45
-		//     aname: Test Mike
-		//   - aid: 678
-		//     aname: Test Davis
-		// `),
-		// 			dt:       typeYAML,
-		// 			nest:     true,
-		// 			useTag:   false,
-		// 			wantNumF: 3,
-		// 			wantDefinition: `type DynamicStruct struct {
-		// 	ArrObjField struct {
-		// 		Aid int
-		// 		Aname string
-		// 	}
-		// 	ObjField struct {
-		// 		Status string
-		// 		UserId int
-		// 	}
-		// 	StringField string
-		// }`,
-		// 			namesTestGetter: map[string][]string{
-		// 				"ArrObjField": nil,
-		// 				"ObjField":    {"Status", "UserId"},
-		// 				"StringField": nil,
-		// 			},
-		// 		},
+		/// "unexpected error is returned from YAMLToGetter: fail to typeJSON.marshal: json: unsupported type: map[interface {}]interface {}"
+		{
+			name: "HasArrayObject",
+			data: []byte(`
+string_field: いいい
+obj_field:
+  user_id: 678
+  status: progress
+arr_obj_field:
+  - aid: 45
+    aname: Test Mike
+  - aid: 678
+    aname: Test Davis
+`),
+			dt:       typeYAML,
+			nest:     true,
+			useTag:   false,
+			wantNumF: 3,
+			wantDefinition: `type DynamicStruct struct {
+	ArrObjField []struct {
+		Aid int
+		Aname string
+	}
+	ObjField struct {
+		Status string
+		UserId int
+	}
+	StringField string
+}`,
+			namesTestGetter: map[string][]string{
+				"ArrObjField": nil,
+				"ObjField":    {"Status", "UserId"},
+				"StringField": nil,
+			},
+		},
 		{
 			name:           "OnlyLiteral",
 			data:           []byte(`aiueo`),
