@@ -1,3 +1,4 @@
+// TODO: refactoring and supporting goroutine safe
 package structil
 
 import (
@@ -13,6 +14,7 @@ const (
 )
 
 // Finder is the struct that builds the nested struct finder.
+// All methods are NOT goroutine safe yet (FIXME:)
 type Finder struct {
 	topLevelGetter *Getter
 	getterMap      map[string]*Getter
@@ -55,6 +57,34 @@ func NewFinderWithGetterAndSep(g *Getter, sep string) (*Finder, error) {
 	f := &Finder{topLevelGetter: g, sep: sep}
 
 	return f.Reset(), nil
+}
+
+// HasError tests whether this Finder have any errors.
+func (f *Finder) HasError() bool {
+	for _, errs := range f.errMap {
+		if len(errs) > 0 {
+			return true
+		}
+	}
+
+	return false
+}
+
+// Error returns error string.
+func (f *Finder) Error() string {
+	var es []string
+
+	for _, errs := range f.errMap {
+		if len(errs) > 0 {
+			es = make([]string, len(errs))
+			for i, err := range errs {
+				es[i] = err.Error()
+			}
+		}
+	}
+
+	// TODO: prettize
+	return strings.Join(es, "\n")
 }
 
 // FindTop returns a Finder that top level fields in struct are looked up and held named names.
@@ -247,34 +277,6 @@ func (f *Finder) ToNestedMap() (map[string]interface{}, error) {
 	}
 
 	return res, nil
-}
-
-// HasError tests whether this Finder have any errors.
-func (f *Finder) HasError() bool {
-	for _, errs := range f.errMap {
-		if len(errs) > 0 {
-			return true
-		}
-	}
-
-	return false
-}
-
-// Error returns error string.
-func (f *Finder) Error() string {
-	var es []string
-
-	for _, errs := range f.errMap {
-		if len(errs) > 0 {
-			es = make([]string, len(errs))
-			for i, err := range errs {
-				es[i] = err.Error()
-			}
-		}
-	}
-
-	// TODO: prettize
-	return strings.Join(es, "\n")
 }
 
 // GetNameSeparator returns the separator string for nested struct name separating.
