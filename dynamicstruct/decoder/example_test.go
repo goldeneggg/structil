@@ -2,6 +2,8 @@ package decoder
 
 import (
 	"fmt"
+
+	"github.com/goldeneggg/structil"
 )
 
 func ExampleDecoder_DynamicStruct_json() {
@@ -87,15 +89,15 @@ func ExampleJSONToGetter() {
 	"array_struct_field":[
 		{
 			"kkk":"kkk1",
-			"vvvv":"vvv1"
+			"vvvv":12
 		},
 		{
 			"kkk":"kkk2",
-			"vvvv":"vvv2"
+			"vvvv":23
 		},
 		{
 			"kkk":"kkk3",
-			"vvvv":"vvv3"
+			"vvvv":34
 		}
 	],
 	"null_field":null
@@ -110,25 +112,33 @@ func ExampleJSONToGetter() {
 	i, _ := g.Float64("IntField")     // Note: type of unmarshalled number fields are float64. See: https://golang.org/pkg/encoding/json/#Unmarshal
 	f, _ := g.Float64("Float32Field") // same as above
 	b, _ := g.Bool("BoolField")
-	strct, _ := g.Get("StructPtrField") // FIXME: may be flaky? get unexpected result of order of field names "sometimes".
 	arrS, _ := g.Get("ArrayStringField")
 	null, _ := g.Get("NullField")
 
-	// FIXME: test Getter for array struct element
-	// arrStrct, _ := g.Get("ArrayStructField")
 	fmt.Printf("g.IsStruct(StructPtrField) = %v\n", g.IsStruct("StructPtrField"))
+	strct, _ := g.Get("StructPtrField") // FIXME: fieldの並びが時々変わるflaky
+
 	fmt.Printf("g.IsSlice(ArrayStructField) = %v\n", g.IsSlice("ArrayStructField"))
+	arrStrct, _ := g.Slice("ArrayStructField")
+	gArrZero, err := structil.NewGetter(arrStrct[0])
+	if err != nil {
+		panic(err)
+	}
+	sGArrZero, _ := gArrZero.String("Kkk")
+	fGArrZero, _ := gArrZero.Float64("Vvvv")
 
 	fmt.Printf(
-		"num of fields=%d\n'StringField'=%s\n'IntField'=%f\n'Float32Field'=%f\n'BoolField'=%t\n'StructPtrField'=%#v\n'ArrayStringField'=%+v\n'NullField'=%+v",
+		"num of fields=%d\n'StringField'=%s\n'IntField'=%f\n'Float32Field'=%f\n'BoolField'=%t\n'ArrayStringField'=%+v\n'NullField'=%+v\n'StructPtrField'=%#v\n'ArrayStructField[0].Kkk'=%s\n'ArrayStructField[0].Vvvv'=%f",
 		g.NumField(),
 		s,
 		i, // Note: type of unmarshalled number fields are float64. See: https://golang.org/pkg/encoding/json/#Unmarshal
 		f, // same as above
 		b,
-		strct,
 		arrS,
 		null,
+		strct,
+		sGArrZero,
+		fGArrZero,
 	)
 	// Output:
 	// g.IsStruct(StructPtrField) = true
@@ -138,9 +148,11 @@ func ExampleJSONToGetter() {
 	// 'IntField'=45678.000000
 	// 'Float32Field'=9.876000
 	// 'BoolField'=false
-	// 'StructPtrField'=struct { Key string "json:\"key\""; Value string "json:\"value\"" }{Key:"hugakey", Value:"hugavalue"}
 	// 'ArrayStringField'=[array_str_1 array_str_2]
 	// 'NullField'=<nil>
+	// 'StructPtrField'=struct { Key string "json:\"key\""; Value string "json:\"value\"" }{Key:"hugakey", Value:"hugavalue"}
+	// 'ArrayStructField[0].Kkk'=kkk1
+	// 'ArrayStructField[0].Vvvv'=12.000000
 }
 
 func ExampleDecoder_DynamicStruct_yaml() {
@@ -153,6 +165,11 @@ obj_field:
   objobj_field:
     user_id: 678
     status: progress
+arr_obj_field:
+  - aid: 45
+    aname: Test Mike
+  - aid: 678
+    aname: Test Davis
 `)
 
 	dec, err := FromYAML(unknownFormatYAML)
@@ -160,7 +177,7 @@ obj_field:
 		panic(err)
 	}
 
-	ds, err := dec.DynamicStruct(false, true)
+	ds, err := dec.DynamicStruct(true, true)
 	if err != nil {
 		panic(err)
 	}
@@ -170,7 +187,19 @@ obj_field:
 
 	// Output:
 	//type DynamicStruct struct {
-	//	ObjField map[string]interface {} `yaml:"obj_field"`
+	//	ArrObjField struct {
+	//		Aid int `yaml:"aid"`
+	//		Aname string `yaml:"aname"`
+	//	} `yaml:"arr_obj_field"`
+	//	ObjField struct {
+	//		Boss bool `yaml:"boss"`
+	//		Id int `yaml:"id"`
+	//		Name string `yaml:"name"`
+	//		ObjobjField struct {
+	// 			Status string `yaml:"status"`
+	// 			UserId int `yaml:"user_id"`
+	//		} `yaml:"objobj_field"`
+	//	} `yaml:"obj_field"`
 	//	StringField string `yaml:"string_field"`
 	//}
 }

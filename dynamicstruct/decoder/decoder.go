@@ -32,9 +32,11 @@ func newDecoder(data []byte, dt dataType) (d *Decoder, err error) {
 	switch t := d.unm.(type) {
 	case map[string]interface{}:
 		// JSON
+		//fmt.Println("@@@@@ 1 map[string]interface{}")
 		d.dsDecodeMap = t
 	case map[interface{}]interface{}:
 		// YAML
+		//fmt.Println("@@@@@ 2 map[interface{}]interface{}")
 		d.dsDecodeMap = toStringKeyMap(t)
 	// FIXME:
 	// for top-level is array
@@ -70,8 +72,6 @@ func JSONToGetter(data []byte, nest bool) (*structil.Getter, error) {
 		return nil, fmt.Errorf("fail to JSONToGetter: %w", err)
 	}
 
-	// FIXME: when nest = true, failed to unmershal array_struct_field
-	// "json: cannot unmarshal array into Go struct field .array_struct_field of type struct { Vvvv string "json:\"vvvv\""; Kkk string "json:\"kkk\"" }"
 	return d.dsToGetter(nest)
 }
 
@@ -101,16 +101,24 @@ func (d *Decoder) dsToGetter(nest bool) (*structil.Getter, error) {
 	return structil.NewGetter(dsi)
 }
 
+// FIXME:
+// dynamic structへのdecode(unmarshal)時は、データ形式の差異を吸収しつつ（エラーを回避しつつ）汎用的に対応する為、
+// オリジナルのdataを使わず json.Marshal したdataを代わりに使い、
+// かつそれを json.Unmarshal でunmarshalする、という流れで処理している。
+// が、もっとスマート実装に修正したい
 func (d *Decoder) decodeToDynamicStruct(ds *dynamicstruct.DynamicStruct) (interface{}, error) {
-	// get marshaled JSON data from map[string]interface{}
-	//   - for YAML
-	//   - for JSON with top-level array
+	// FIXME: arrayを含んだYAMLが map[interface{}]interface{} を処理しようとしてtypeJSON.marshalでコケる
 	data, err := typeJSON.marshal(d.dsDecodeMap)
 	if err != nil {
 		return nil, fmt.Errorf("fail to typeJSON.marshal: %w", err)
 	}
 
 	d.dsi = ds.NewInterface()
+
+	// FIXME: 本来は元のdata ＆ 形式に応じたunmarshalで処理したかったが、特にarrayを含んだデータの扱いが上手くいっていない
+	// if err := d.dt.unmarshalWithIPtr(d.data, &d.dsi); err != nil {
+	// 	return nil, fmt.Errorf("fail to decodeToDynamicStruct: %w", err)
+	// }
 	if err := typeJSON.unmarshalWithIPtr(data, &d.dsi); err != nil {
 		return nil, fmt.Errorf("fail to decodeToDynamicStruct: %w", err)
 	}

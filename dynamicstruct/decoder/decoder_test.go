@@ -565,8 +565,9 @@ func TestDynamicStructJSON(t *testing.T) {
 				"StringField":      nil,
 			},
 		},
+		// Note: トップレベルが配列のJSONは、配列の1番目の要素を使って処理する
 		{
-			name: "TopLevelIsArray",
+			name: "TopLevelIsArrayNestFalse",
 			data: []byte(`
 [
 	{
@@ -593,7 +594,7 @@ func TestDynamicStructJSON(t *testing.T) {
 			dt:       typeJSON,
 			nest:     false,
 			useTag:   false,
-			wantNumF: 3, // FIXME: Is 3 really OK? (TopLevelIsArray JSON works flaky)
+			wantNumF: 3,
 			wantDefinition: `type DynamicStruct struct {
 	ObjobjField map[string]interface {}
 	StringArrayField []string
@@ -605,6 +606,50 @@ func TestDynamicStructJSON(t *testing.T) {
 				"StringField":      nil,
 			},
 		},
+		// Note: トップレベルが配列のJSONは、配列の1番目の要素を使って処理する（nest=trueでも同様）
+		{
+			name: "TopLevelIsArrayNestTrue",
+			data: []byte(`
+[
+	{
+		"string_field":"あああ",
+		"objobj_field":{
+			"user_id":678,
+			"status":"progress"
+		},
+		"string_array_field":[
+			"id1",
+			"id2"
+		]
+	},
+	{
+		"string_field":"いいいい",
+		"string_array_field":[
+			"id4",
+			"id5",
+			"id6"
+		]
+	}	
+]
+`),
+			dt:       typeJSON,
+			nest:     true,
+			useTag:   false,
+			wantNumF: 3,
+			wantDefinition: `type DynamicStruct struct {
+	ObjobjField struct {
+		Status string
+		UserId float64
+	}
+	StringArrayField []string
+	StringField string
+}`,
+			namesTestGetter: map[string][]string{
+				"ObjobjField":      {"Status", "UserId"},
+				"StringArrayField": nil,
+				"StringField":      nil,
+			},
+		},
 		{
 			name:     "BracketOnly",
 			data:     []byte(`{}`),
@@ -612,7 +657,7 @@ func TestDynamicStructJSON(t *testing.T) {
 			nest:     false,
 			useTag:   false,
 			wantNumF: 0,
-			// FIXME: is this ok?
+			// FIXME: 空JSONでfiledが無いstructが出力される挙動になっているが、見直すべきか？
 			wantDefinition: `type DynamicStruct struct {
 }`,
 		},
@@ -844,6 +889,41 @@ string_array_field:
 				"StringField":      nil,
 			},
 		},
+		// FIXME: arrayを含んだYAMLは YAMLToGetter で失敗してしまう
+		// 		{
+		// 			name: "HasArrayObject",
+		// 			data: []byte(`
+		// string_field: いいい
+		// obj_field:
+		//   user_id: 678
+		//   status: progress
+		// arr_obj_field:
+		//   - aid: 45
+		//     aname: Test Mike
+		//   - aid: 678
+		//     aname: Test Davis
+		// `),
+		// 			dt:       typeYAML,
+		// 			nest:     true,
+		// 			useTag:   false,
+		// 			wantNumF: 3,
+		// 			wantDefinition: `type DynamicStruct struct {
+		// 	ArrObjField struct {
+		// 		Aid int
+		// 		Aname string
+		// 	}
+		// 	ObjField struct {
+		// 		Status string
+		// 		UserId int
+		// 	}
+		// 	StringField string
+		// }`,
+		// 			namesTestGetter: map[string][]string{
+		// 				"ArrObjField": nil,
+		// 				"ObjField":    {"Status", "UserId"},
+		// 				"StringField": nil,
+		// 			},
+		// 		},
 		{
 			name:           "OnlyLiteral",
 			data:           []byte(`aiueo`),
