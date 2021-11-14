@@ -234,6 +234,7 @@ func (f *Finder) ToMap() (map[string]interface{}, error) {
 
 // ToNestedMap preturns a map converted from struct with nested keys.
 // FIXME: EXPERIMENTAL (this method has a bug)
+/*
 func (f *Finder) ToNestedMap() (map[string]interface{}, error) {
 	if f.HasError() {
 		return nil, f
@@ -277,6 +278,7 @@ func (f *Finder) ToNestedMap() (map[string]interface{}, error) {
 
 	return res, nil
 }
+*/
 
 // GetNameSeparator returns the separator string for nested struct name separating.
 // Default is "." (dot).
