@@ -203,6 +203,7 @@ func (f *Finder) ToMap() (map[string]interface{}, error) {
 	return res, nil
 }
 
+// ToNestedMap preturns a map converted from struct with nested keys.
 // FIXME: EXPERIMENTAL (this method has a bug)
 func (f *Finder) ToNestedMap() (map[string]interface{}, error) {
 	if f.HasError() {
