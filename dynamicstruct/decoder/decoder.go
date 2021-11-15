@@ -62,6 +62,12 @@ func FromYAML(data []byte) (*Decoder, error) {
 	return newDecoder(data, typeYAML)
 }
 
+// FromYAML returns a concrete Decoder for YAML.
+// FIXME: This function is still a future candidate (returned error now)
+func FromXML(data []byte) (*Decoder, error) {
+	return newDecoder(data, end) // FIXME: "end" is provisional type
+}
+
 // JSONToGetter returns a structil.Getter with a decoded JSON via DynamicStruct.
 func JSONToGetter(data []byte, nest bool) (*structil.Getter, error) {
 	d, err := FromJSON(data)
@@ -157,9 +163,9 @@ func (d *Decoder) toDs(i interface{}, nest bool, useTag bool) (*dynamicstruct.Dy
 			//   should use "unsafe.Sizeof(var)"?
 			return d.toDs(t[0], nest, useTag)
 		}
-	// YAML support
-	case map[interface{}]interface{}:
-		return d.toDsFromStringMap(toStringKeyMap(t), nest, useTag)
+		// FIXME: 初期化時にkeyがstringのmapを生成しているので、このブロックはまるごと不要なはず
+		// case map[interface{}]interface{}:
+		// 	return d.toDsFromStringMap(toStringKeyMap(t), nest, useTag)
 	}
 
 	return nil, fmt.Errorf("unsupported type [%T] for toDs", i)
@@ -211,13 +217,15 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag 
 					} else {
 						b = b.AddSliceWithTag(name, interface{}(vv), tag)
 					}
-				case map[interface{}]interface{}:
-					m := toStringKeyMap(vv)
-					b, err = d.addForStringMap(b, m, true, tag, name, nest, useTag)
-					if err != nil {
-						return nil, err
-					}
+				// FIXME: 初期化時にkeyがstringのmapを生成しているので、このブロックはまるごと不要なはず
+				// case map[interface{}]interface{}:
+				// 	m := toStringKeyMap(vv)
+				// 	b, err = d.addForStringMap(b, m, true, tag, name, nest, useTag)
+				// 	if err != nil {
+				// 		return nil, err
+				// 	}
 				default:
+					// FIXME: 配列要素を全て "interface{}" にキャストしているが、型を明示したい
 					b = b.AddSliceWithTag(name, interface{}(vv), tag)
 				}
 			}

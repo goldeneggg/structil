@@ -28,6 +28,8 @@ const (
 
 	// TypeCSV is the type sign of CSV
 	// TypeCSV
+
+	end // end of iota
 )
 
 var formats = [...]string{

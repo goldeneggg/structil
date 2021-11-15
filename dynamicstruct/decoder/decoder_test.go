@@ -12,6 +12,7 @@ import (
 const (
 	typeJSON int = iota
 	typeYAML
+	typeXML
 )
 
 var (
@@ -319,16 +320,16 @@ array_string_field = ["array_str_1", "array_str_2"]
 )
 
 type decoderTest struct {
-	name            string
-	data            []byte
-	dt              int
-	nest            bool
-	useTag          bool
-	wantNumF        int
-	wantDefinition  string
-	namesTestGetter map[string][]string
-	wantErrorNew    bool
-	wantErrorDs     bool
+	name               string
+	data               []byte
+	dt                 int
+	nest               bool
+	useTag             bool
+	wantNumF           int
+	wantDefinition     string
+	fieldAndNestFields map[string][]string
+	wantErrorNew       bool
+	wantErrorDs        bool
 }
 
 func TestDynamicStructJSON(t *testing.T) {
@@ -357,7 +358,7 @@ func TestDynamicStructJSON(t *testing.T) {
 	NullField interface {}
 	StringField string
 }`,
-			namesTestGetter: map[string][]string{
+			fieldAndNestFields: map[string][]string{
 				"BoolField":    nil,
 				"Float32Field": nil,
 				"IntField":     nil,
@@ -384,7 +385,7 @@ func TestDynamicStructJSON(t *testing.T) {
 	ObjField map[string]interface {}
 	StringField string
 }`,
-			namesTestGetter: map[string][]string{
+			fieldAndNestFields: map[string][]string{
 				"StringField": nil,
 				"ObjField":    nil,
 			},
@@ -408,7 +409,7 @@ func TestDynamicStructJSON(t *testing.T) {
 	ObjField map[string]interface {} ` + "`json:\"obj_field\"`" + `
 	StringField string ` + "`json:\"string_field\"`" + `
 }`,
-			namesTestGetter: map[string][]string{
+			fieldAndNestFields: map[string][]string{
 				"StringField": nil,
 				"ObjField":    nil,
 			},
@@ -435,7 +436,7 @@ func TestDynamicStructJSON(t *testing.T) {
 	}
 	StringField string
 }`,
-			namesTestGetter: map[string][]string{
+			fieldAndNestFields: map[string][]string{
 				"StringField": nil,
 				"ObjField":    {"Id", "Name"},
 			},
@@ -476,7 +477,7 @@ func TestDynamicStructJSON(t *testing.T) {
 	} ` + "`json:\"obj_field\"`" + `
 	StringField string ` + "`json:\"string_field\"`" + `
 }`,
-			namesTestGetter: map[string][]string{
+			fieldAndNestFields: map[string][]string{
 				"StringField": nil,
 				"ObjField":    {"Id", "Name", "ObjArrayField"},
 			},
@@ -513,7 +514,7 @@ func TestDynamicStructJSON(t *testing.T) {
 	}
 	StringField string
 }`,
-			namesTestGetter: map[string][]string{
+			fieldAndNestFields: map[string][]string{
 				"StringField": nil,
 				"ObjField":    {"Boss", "Id", "Name", "ObjobjField"},
 			},
@@ -536,7 +537,7 @@ func TestDynamicStructJSON(t *testing.T) {
 	StringArrayField []string
 	StringField string
 }`,
-			namesTestGetter: map[string][]string{
+			fieldAndNestFields: map[string][]string{
 				"StringArrayField": nil,
 				"StringField":      nil,
 			},
@@ -560,8 +561,57 @@ func TestDynamicStructJSON(t *testing.T) {
 	StringArrayField []string
 	StringField string
 }`,
-			namesTestGetter: map[string][]string{
+			fieldAndNestFields: map[string][]string{
 				"StringArrayField": nil,
+				"StringField":      nil,
+			},
+		},
+		{
+			name: "HasArrayStringInArray",
+			data: []byte(`
+{
+	"string_field":"あああ",
+	"string_array_field":[
+		["id11","id12"],
+		["id21","id22"]
+	]
+}
+`),
+			dt:       typeJSON,
+			nest:     false,
+			useTag:   false,
+			wantNumF: 2,
+			// FIXME: [][]interface ではなく [][]string になるように修正したい
+			wantDefinition: `type DynamicStruct struct {
+	StringArrayField [][]interface {}
+	StringField string
+}`,
+			fieldAndNestFields: map[string][]string{
+				"StringArrayField": nil,
+				"StringField":      nil,
+			},
+		},
+		{
+			name: "HasObjectInArray",
+			data: []byte(`
+{
+	"string_field":"あああ",
+	"object_array_field":[
+		{"nest_str":"aaa","nest_num":23},
+		{"nest_str":"bbb","nest_num":34}
+	]
+}
+`),
+			dt:       typeJSON,
+			nest:     false,
+			useTag:   false,
+			wantNumF: 2,
+			wantDefinition: `type DynamicStruct struct {
+	ObjectArrayField []map[string]interface {}
+	StringField string
+}`,
+			fieldAndNestFields: map[string][]string{
+				"ObjectArrayField": nil,
 				"StringField":      nil,
 			},
 		},
@@ -600,7 +650,7 @@ func TestDynamicStructJSON(t *testing.T) {
 	StringArrayField []string
 	StringField string
 }`,
-			namesTestGetter: map[string][]string{
+			fieldAndNestFields: map[string][]string{
 				"ObjobjField":      nil,
 				"StringArrayField": nil,
 				"StringField":      nil,
@@ -644,7 +694,7 @@ func TestDynamicStructJSON(t *testing.T) {
 	StringArrayField []string
 	StringField string
 }`,
-			namesTestGetter: map[string][]string{
+			fieldAndNestFields: map[string][]string{
 				"ObjobjField":      {"Status", "UserId"},
 				"StringArrayField": nil,
 				"StringField":      nil,
@@ -694,6 +744,14 @@ func TestDynamicStructJSON(t *testing.T) {
 			wantDefinition: ``,
 			wantErrorNew:   true,
 		},
+		{
+			name:         "NullData",
+			data:         nil,
+			dt:           typeJSON,
+			nest:         false,
+			useTag:       false,
+			wantErrorNew: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -704,11 +762,11 @@ func TestDynamicStructJSON(t *testing.T) {
 			dec, err := FromJSON(tt.data)
 			if err != nil {
 				if !tt.wantErrorNew {
-					t.Fatalf("unexpected error is returned from NewXXX: %v", err)
+					t.Fatalf("unexpected error is returned from FromJSON: %v", err)
 				}
 				return
 			} else if tt.wantErrorNew {
-				t.Fatalf("error is expected but it does not occur from NewXXX. data: %q", string(tt.data))
+				t.Fatalf("error is expected but it does not occur from FromJSON. data: %q", string(tt.data))
 			}
 
 			testCorrectCase(t, tt, dec)
@@ -740,7 +798,7 @@ bool_field: false
 	NullField interface {}
 	StringField string
 }`,
-			namesTestGetter: map[string][]string{
+			fieldAndNestFields: map[string][]string{
 				"BoolField":    nil,
 				"Float32Field": nil,
 				"IntField":     nil,
@@ -764,7 +822,7 @@ obj_field:
 	ObjField map[string]interface {}
 	StringField string
 }`,
-			namesTestGetter: map[string][]string{
+			fieldAndNestFields: map[string][]string{
 				"ObjField":    nil,
 				"StringField": nil,
 			},
@@ -785,7 +843,7 @@ obj_field:
 	ObjField map[string]interface {} ` + "`yaml:\"obj_field\"`" + `
 	StringField string ` + "`yaml:\"string_field\"`" + `
 }`,
-			namesTestGetter: map[string][]string{
+			fieldAndNestFields: map[string][]string{
 				"ObjField":    nil,
 				"StringField": nil,
 			},
@@ -809,7 +867,7 @@ obj_field:
 	}
 	StringField string
 }`,
-			namesTestGetter: map[string][]string{
+			fieldAndNestFields: map[string][]string{
 				"ObjField":    {"Id", "Name"},
 				"StringField": nil,
 			},
@@ -833,7 +891,7 @@ obj_field:
 	} ` + "`yaml:\"obj_field\"`" + `
 	StringField string ` + "`yaml:\"string_field\"`" + `
 }`,
-			namesTestGetter: map[string][]string{
+			fieldAndNestFields: map[string][]string{
 				"ObjField":    {"Id", "Name"},
 				"StringField": nil,
 			},
@@ -866,7 +924,7 @@ obj_field:
 	}
 	StringField string
 }`,
-			namesTestGetter: map[string][]string{
+			fieldAndNestFields: map[string][]string{
 				"ObjField":    {"Boss", "Id", "Name", "ObjobjField"},
 				"StringField": nil,
 			},
@@ -887,7 +945,7 @@ string_array_field:
 	StringArrayField []string
 	StringField string
 }`,
-			namesTestGetter: map[string][]string{
+			fieldAndNestFields: map[string][]string{
 				"StringArrayField": nil,
 				"StringField":      nil,
 			},
@@ -920,7 +978,7 @@ arr_obj_field:
 	}
 	StringField string
 }`,
-			namesTestGetter: map[string][]string{
+			fieldAndNestFields: map[string][]string{
 				"ArrObjField": nil,
 				"ObjField":    {"Status", "UserId"},
 				"StringField": nil,
@@ -933,10 +991,57 @@ arr_obj_field:
 			nest:     false,
 			useTag:   false,
 			wantNumF: 0,
-			// FIXME: "aiueo" でfiledが無いstructが出力される挙動になっているが、見直すべきか？（JSONとも挙動が違っている）
+			// FIXME: "aiueo" でfieldが無いstructが出力される挙動になっているが、見直すべきか？（JSONとも挙動が違っている）
 			//wantErrorDs:    true,
 			wantDefinition: `type DynamicStruct struct {
 }`,
+		},
+		{
+			name: "HasArrayStringInArray",
+			data: []byte(`
+string_field: あああ
+string_array_field:
+ - - id11
+   - id12
+ - - id21
+   - id22
+`),
+			dt:       typeYAML,
+			nest:     false,
+			useTag:   false,
+			wantNumF: 2,
+			// FIXME: [][]interface ではなく [][]string になるように修正したい
+			wantDefinition: `type DynamicStruct struct {
+	StringArrayField [][]interface {}
+	StringField string
+}`,
+			fieldAndNestFields: map[string][]string{
+				"StringArrayField": nil,
+				"StringField":      nil,
+			},
+		},
+		{
+			name: "HasObjectInArray",
+			data: []byte(`
+string_field: あああ
+object_array_field:
+ - nest_str: aaa
+   nest_num: 23
+ - nest_str: bbb
+   nest_num: 34
+`),
+			dt:       typeYAML,
+			nest:     false,
+			useTag:   false,
+			wantNumF: 2,
+			wantDefinition: `type DynamicStruct struct {
+	ObjectArrayField []map[string]interface {}
+	StringField string
+}`,
+			fieldAndNestFields: map[string][]string{
+				"ObjectArrayField": nil,
+				"StringField":      nil,
+			},
 		},
 		{
 			name:     "Empty",
@@ -945,8 +1050,19 @@ arr_obj_field:
 			nest:     false,
 			useTag:   false,
 			wantNumF: 0,
-			// FIXME: "" でfiledが無いstructが出力される挙動になっているが、見直すべきか？（JSONとも挙動が違っている）
+			// FIXME: "" でfieldが無いstructが出力される挙動になっているが、見直すべきか？（JSONとも挙動が違っている）
 			//wantErrorDs:    true,
+			wantDefinition: `type DynamicStruct struct {
+}`,
+		},
+		{
+			name:   "NullData",
+			data:   nil,
+			dt:     typeYAML,
+			nest:   false,
+			useTag: false,
+			// FIXME: "" でfieldが無いstructが出力される挙動になっているが、見直すべきか？（JSONとも挙動が違っている）
+			// wantErrorNew: true,
 			wantDefinition: `type DynamicStruct struct {
 }`,
 		},
@@ -960,15 +1076,71 @@ arr_obj_field:
 			dec, err := FromYAML(tt.data)
 			if err != nil {
 				if !tt.wantErrorNew {
-					t.Fatalf("unexpected error is returned from NewXXX: %v", err)
+					t.Fatalf("unexpected error is returned from FromYAML: %v", err)
 				}
 				return
 			} else if tt.wantErrorNew {
-				t.Fatalf("error is expected but it does not occur from NewXXX. data: %q", string(tt.data))
+				t.Fatalf("error is expected but it does not occur from FromYAML. data: %q", string(tt.data))
 			}
 
 			// FIXME: error cases
 			testCorrectCase(t, tt, dec)
+		})
+	}
+}
+
+func TestDynamicStructFixmeXml(t *testing.T) {
+	t.Parallel()
+
+	tests := []decoderTest{
+		{
+			name: "ValidYamlButTypeIsInvalid",
+			data: []byte(`
+null_field: null
+string_field: かきくけこ
+int_field: 45678
+float32_field: 9.876
+bool_field: false
+`),
+			dt:           typeXML,
+			nest:         false,
+			useTag:       false,
+			wantNumF:     0,
+			wantErrorNew: true,
+		},
+		{
+			name:         "Empty",
+			data:         []byte(``),
+			dt:           typeXML,
+			nest:         false,
+			useTag:       false,
+			wantNumF:     0,
+			wantErrorNew: true,
+		},
+		{
+			name:         "NullData",
+			data:         nil,
+			dt:           typeXML,
+			nest:         false,
+			useTag:       false,
+			wantErrorNew: true,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			_, err := FromXML(tt.data)
+			if err != nil {
+				if !tt.wantErrorNew {
+					t.Fatalf("unexpected error is returned from FromXML: %v", err)
+				}
+				return
+			} else if tt.wantErrorNew {
+				t.Fatalf("error is expected but it does not occur from FromXML	. data: %q", string(tt.data))
+			}
 		})
 	}
 }
@@ -1002,7 +1174,7 @@ func testCorrectCase(t *testing.T, tt decoderTest, dec *Decoder) {
 		t.Fatalf("mismatch Definition: (-got +want)\n%s", d)
 	}
 
-	if len(tt.namesTestGetter) > 0 {
+	if len(tt.fieldAndNestFields) > 0 {
 		var g *structil.Getter
 
 		switch tt.dt {
@@ -1018,7 +1190,7 @@ func testCorrectCase(t *testing.T, tt decoderTest, dec *Decoder) {
 			}
 		}
 
-		for n, nests := range tt.namesTestGetter {
+		for n, nests := range tt.fieldAndNestFields {
 			testToGetter(t, n, nests, g)
 		}
 	}
