@@ -36,10 +36,9 @@ func newDecoder(data []byte, dt dataType) (d *Decoder, err error) {
 	case map[interface{}]interface{}:
 		// YAML
 		d.strKeyMap = toStringKeyMap(t)
-	// FIXME:
-	// for top-level is array
-	// （暫定的に）0番目の要素を取り出してそれを処理するようにしているが、どうすべきか？
 	case []interface{}:
+		// FIXME: for top-level is array
+		// （暫定的に）0番目の要素を取り出してそれを処理するようにしているが、どうすべきか？
 		if len(t) > 0 {
 			switch tt := t[0].(type) {
 			case map[string]interface{}:
@@ -98,15 +97,22 @@ func (d *Decoder) dsToGetter(nest bool) (*structil.Getter, error) {
 }
 
 func (d *Decoder) decodeToDynamicStruct(ds *dynamicstruct.DynamicStruct) (interface{}, error) {
+	// toDsFromStringMap() method uses "Build()" method and this means that ds is build by pointer-mode
+	// So ds.NewInterface() returns a struct *pointer*
+	d.dsi = ds.NewInterface()
+
+	// FIXME: workaroundな意図が複数込められて実装になっているのでメモ
+	// - unmarshalWithIPtrのdataに d.orgData は指定できない。トップレベルが配列のJSON の処理で失敗してしまう為
+	//   （"json: cannot unmarshal array into Go value of type" エラーが発生する）
+	// - ↑を回避する為に 「元データのunmarshal結果をさらに"keyがstringのmap"に変換しておき、これをmarshalしてJSON/YAMLに戻す」というプロセスが必要になる
+	//   （d.dt.marshal(d.strKeyMap) という処理を行っているのはこの為）
+	// - ↑の処理で作成したJSON/YAMLを unmarshalWithIPtrのdataに指定する
+
 	// must use "d.strKeyMap" (not "d.orgIntf"). because key of "d.orgIntf" is not string but interface{}
 	data, err := d.dt.marshal(d.strKeyMap)
 	if err != nil {
 		return nil, fmt.Errorf("fail to d.dt.marshal: %w", err)
 	}
-
-	// toDsFromStringMap() method uses "Build()" method and this means that ds is build by pointer-mode
-	// So ds.NewInterface() returns a struct pointer
-	d.dsi = ds.NewInterface()
 
 	// must use "d.dsi" (not "&d.dsi"). because "d.dsi" is pointer
 	// if use "&.d.dsi", unmarshal result is not struct but map[interface{}]interface when dt is YAML
