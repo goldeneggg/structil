@@ -62,7 +62,7 @@ func FromYAML(data []byte) (*Decoder, error) {
 	return newDecoder(data, typeYAML)
 }
 
-// FromYAML returns a concrete Decoder for YAML.
+// FromXML returns a concrete Decoder for XML.
 // FIXME: This function is still a future candidate (returned error now)
 func FromXML(data []byte) (*Decoder, error) {
 	return newDecoder(data, end) // FIXME: "end" is provisional type
