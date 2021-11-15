@@ -252,26 +252,27 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag 
 		case int:
 			b = b.AddIntWithTag(name, tag)
 		// YAML support
-		case map[interface{}]interface{}:
-			m := toStringKeyMap(value)
-			b, err = d.addForStringMap(b, m, false, tag, name, nest, useTag)
-			if err != nil {
-				return nil, err
-			}
+		// FIXME: 初期化時にkeyがstringのmapを生成しているので、このブロックはまるごと不要なはず
+		// case map[interface{}]interface{}:
+		// 	m := toStringKeyMap(value)
+		// 	b, err = d.addForStringMap(b, m, false, tag, name, nest, useTag)
+		// 	if err != nil {
+		// 		return nil, err
+		// 	}
 
-			if nest {
-				nds, err := d.toDsFromStringMap(m, nest, useTag)
-				if err != nil {
-					return nil, err
-				}
-				b = b.AddDynamicStruct(name, nds, false)
-			} else {
-				for kk := range m {
-					b = b.AddMapWithTag(name, kk, nil, tag)
-					// only one addition
-					break
-				}
-			}
+		// 	if nest {
+		// 		nds, err := d.toDsFromStringMap(m, nest, useTag)
+		// 		if err != nil {
+		// 			return nil, err
+		// 		}
+		// 		b = b.AddDynamicStruct(name, nds, false)
+		// 	} else {
+		// 		for kk := range m {
+		// 			b = b.AddMapWithTag(name, kk, nil, tag)
+		// 			// only one addition
+		// 			break
+		// 		}
+		// 	}
 		case nil:
 			b = b.AddInterfaceWithTag(name, false, tag)
 		default:
