@@ -11,31 +11,31 @@ import (
 
 // Decoder is the struct that decodes some marshaled data like JSON and YAML.
 type Decoder struct {
-	dt          dataType
-	data        []byte // original data
-	unm         interface{}
-	dsDecodeMap map[string]interface{} // map for decoding to DymanicStruct
-	ds          *dynamicstruct.DynamicStruct
-	dsi         interface{} // unmarshaled result from data to DynamicStruct
+	dt        dataType
+	orgData   []byte                 // original data
+	orgIntf   interface{}            // unmarshaled interface from original data
+	strKeyMap map[string]interface{} // string key map for decoding to DymanicStruct
+	ds        *dynamicstruct.DynamicStruct
+	dsi       interface{} // unmarshaled result from data to DynamicStruct
 }
 
 func newDecoder(data []byte, dt dataType) (d *Decoder, err error) {
 	unm, err := dt.unmarshal(data)
 
 	d = &Decoder{
-		dt:          dt,
-		data:        data,
-		unm:         unm,
-		dsDecodeMap: make(map[string]interface{}),
+		dt:        dt,
+		orgData:   data,
+		orgIntf:   unm,
+		strKeyMap: make(map[string]interface{}),
 	}
 
-	switch t := d.unm.(type) {
+	switch t := d.orgIntf.(type) {
 	case map[string]interface{}:
 		// JSON
-		d.dsDecodeMap = t
+		d.strKeyMap = t
 	case map[interface{}]interface{}:
 		// YAML
-		d.dsDecodeMap = toStringKeyMap(t)
+		d.strKeyMap = toStringKeyMap(t)
 	// FIXME:
 	// for top-level is array
 	// （暫定的に）0番目の要素を取り出してそれを処理するようにしているが、どうすべきか？
@@ -43,9 +43,9 @@ func newDecoder(data []byte, dt dataType) (d *Decoder, err error) {
 		if len(t) > 0 {
 			switch tt := t[0].(type) {
 			case map[string]interface{}:
-				d.dsDecodeMap = tt
+				d.strKeyMap = tt
 			case map[interface{}]interface{}:
-				d.dsDecodeMap = toStringKeyMap(tt)
+				d.strKeyMap = toStringKeyMap(tt)
 			}
 		}
 	}
@@ -98,8 +98,8 @@ func (d *Decoder) dsToGetter(nest bool) (*structil.Getter, error) {
 }
 
 func (d *Decoder) decodeToDynamicStruct(ds *dynamicstruct.DynamicStruct) (interface{}, error) {
-	// must use "d.dsDecodeMap" (not "d.unm"). because key of "d.unm" is not string but interface{}
-	data, err := d.dt.marshal(d.dsDecodeMap)
+	// must use "d.strKeyMap" (not "d.orgIntf"). because key of "d.orgIntf" is not string but interface{}
+	data, err := d.dt.marshal(d.strKeyMap)
 	if err != nil {
 		return nil, fmt.Errorf("fail to d.dt.marshal: %w", err)
 	}
@@ -117,17 +117,17 @@ func (d *Decoder) decodeToDynamicStruct(ds *dynamicstruct.DynamicStruct) (interf
 	return d.dsi, nil
 }
 
-// Data returns an original data as []byte.
-func (d *Decoder) Data() []byte {
-	return d.data
+// OrgData returns an original data as []byte.
+func (d *Decoder) OrgData() []byte {
+	return d.orgData
 }
 
 // DynamicStruct returns a decoded DynamicStruct with unmarshaling data to DynamicStruct interface.
 func (d *Decoder) DynamicStruct(nest bool, useTag bool) (*dynamicstruct.DynamicStruct, error) {
 	var err error
 
-	// d.ds, err = d.toDs(d.unm, nest, useTag)
-	d.ds, err = d.toDs(d.dsDecodeMap, nest, useTag)
+	// d.ds, err = d.toDs(d.orgIntf, nest, useTag)
+	d.ds, err = d.toDs(d.strKeyMap, nest, useTag)
 	if err != nil {
 		return nil, err
 	}

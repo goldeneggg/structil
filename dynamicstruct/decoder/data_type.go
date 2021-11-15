@@ -65,7 +65,7 @@ func (dt dataType) unmarshalWithIPtr(data []byte, iptr interface{}) error {
 	return err
 }
 
-// FIXME: add tests and examples
+// TODO: add tests and examples
 // func (dt dataType) marshal(v interface{}) (data []byte, err error) {
 func (dt dataType) marshal(m map[string]interface{}) (data []byte, err error) {
 	switch dt {

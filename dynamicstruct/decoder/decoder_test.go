@@ -976,8 +976,8 @@ arr_obj_field:
 func testCorrectCase(t *testing.T, tt decoderTest, dec *Decoder) {
 	t.Helper()
 
-	if d := cmp.Diff(dec.Data(), tt.data); d != "" {
-		t.Fatalf("mismatch RawData: (-got +want)\n%s", d)
+	if d := cmp.Diff(dec.OrgData(), tt.data); d != "" {
+		t.Fatalf("mismatch OrgData: (-got +want)\n%s", d)
 	}
 
 	ds, err := dec.DynamicStruct(tt.nest, tt.useTag)
