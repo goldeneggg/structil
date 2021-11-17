@@ -428,6 +428,19 @@ func (g *Getter) Slice(name string) ([]interface{}, bool) {
 	return iSlice, true
 }
 
+// GetGetter returns the Getter of interface of the original struct field named name.
+// 2nd return value will be false if the original struct does not have a "name" field.
+// 2nd return value will be false if type of the original struct "name" field is not struct or struct pointer.
+func (g *Getter) GetGetter(name string) (*Getter, bool) {
+	if !g.IsStruct(name) {
+		return nil, false
+	}
+
+	i, _ := g.Get(name)
+	g, err := NewGetter(i)
+	return g, err == nil
+}
+
 // IsByte reports whether type of the original struct field named name is byte.
 func (g *Getter) IsByte(name string) bool {
 	return g.is(name, reflect.Uint8)

@@ -44,7 +44,9 @@ func ExampleDecoder_DynamicStruct_json() {
 		panic(err)
 	}
 
-	ds, err := dec.DynamicStruct(true, true)
+	nest := true
+	useTag := true
+	ds, err := dec.DynamicStruct(nest, useTag)
 	if err != nil {
 		panic(err)
 	}
@@ -104,10 +106,12 @@ func ExampleJSONToGetter() {
 }
 `)
 
-	g, err := JSONToGetter(unknownFormatJSON, true)
+	nest := true
+	g, err := JSONToGetter(unknownFormatJSON, nest)
 	if err != nil {
 		panic(err)
 	}
+
 	s, _ := g.String("StringField")   // field names of DynamicStruct are camelized original json field key
 	i, _ := g.Float64("IntField")     // Note: type of unmarshalled number fields are float64. See: https://golang.org/pkg/encoding/json/#Unmarshal
 	f, _ := g.Float64("Float32Field") // same as above
@@ -115,20 +119,18 @@ func ExampleJSONToGetter() {
 	arrS, _ := g.Get("ArrayStringField")
 	null, _ := g.Get("NullField")
 
-	fmt.Printf("g.IsStruct(StructPtrField) = %v\n", g.IsStruct("StructPtrField"))
-	strct, _ := g.Get("StructPtrField") // FIXME: fieldの並びが時々変わるflaky
+	gg, _ := g.GetGetter("StructPtrField")
+	ggKey, _ := gg.String("Key")
 
-	fmt.Printf("g.IsSlice(ArrayStructField) = %v\n", g.IsSlice("ArrayStructField"))
 	arrStrct, _ := g.Slice("ArrayStructField")
-	gArrZero, err := structil.NewGetter(arrStrct[0])
-	if err != nil {
-		panic(err)
-	}
+	gArrZero, _ := structil.NewGetter(arrStrct[0])
 	sGArrZero, _ := gArrZero.String("Kkk")
 	fGArrZero, _ := gArrZero.Float64("Vvvv")
 
+	fmt.Printf("g.IsStruct(StructPtrField) = %v\n", g.IsStruct("StructPtrField"))
+	fmt.Printf("g.IsSlice(ArrayStructField) = %v\n", g.IsSlice("ArrayStructField"))
 	fmt.Printf(
-		"num of fields=%d\n'StringField'=%s\n'IntField'=%f\n'Float32Field'=%f\n'BoolField'=%t\n'ArrayStringField'=%+v\n'NullField'=%+v\n'StructPtrField'=%#v\n'ArrayStructField[0].Kkk'=%s\n'ArrayStructField[0].Vvvv'=%f",
+		"num of fields=%d\n'StringField'=%s\n'IntField'=%f\n'Float32Field'=%f\n'BoolField'=%t\n'ArrayStringField'=%+v\n'NullField'=%+v\n'StructPtrField.Key'=%s\n'ArrayStructField[0].Kkk'=%s\n'ArrayStructField[0].Vvvv'=%f",
 		g.NumField(),
 		s,
 		i, // Note: type of unmarshalled number fields are float64. See: https://golang.org/pkg/encoding/json/#Unmarshal
@@ -136,10 +138,11 @@ func ExampleJSONToGetter() {
 		b,
 		arrS,
 		null,
-		strct,
+		ggKey,
 		sGArrZero,
 		fGArrZero,
 	)
+
 	// Output:
 	// g.IsStruct(StructPtrField) = true
 	// g.IsSlice(ArrayStructField) = true
@@ -150,7 +153,7 @@ func ExampleJSONToGetter() {
 	// 'BoolField'=false
 	// 'ArrayStringField'=[array_str_1 array_str_2]
 	// 'NullField'=<nil>
-	// 'StructPtrField'=struct { Key string "json:\"key\""; Value string "json:\"value\"" }{Key:"hugakey", Value:"hugavalue"}
+	// 'StructPtrField.Key'=hugakey
 	// 'ArrayStructField[0].Kkk'=kkk1
 	// 'ArrayStructField[0].Vvvv'=12.000000
 }
@@ -177,7 +180,9 @@ arr_obj_field:
 		panic(err)
 	}
 
-	ds, err := dec.DynamicStruct(true, true)
+	nest := true
+	useTag := true
+	ds, err := dec.DynamicStruct(nest, useTag)
 	if err != nil {
 		panic(err)
 	}
@@ -202,4 +207,61 @@ arr_obj_field:
 	//	} `yaml:"obj_field"`
 	//	StringField string `yaml:"string_field"`
 	//}
+}
+
+func ExampleYAMLToGetter() {
+	unknownFormatYAML := []byte(`
+string_field: あいうえ
+obj_field:
+  id: 45
+  name: Test Jiou
+  boss: true
+  objobj_field:
+    user_id: 678
+    status: progress
+arr_obj_field:
+  - aid: 45
+    aname: Test Mike
+  - aid: 678
+    aname: Test Davis
+`)
+
+	nest := true
+	g, err := YAMLToGetter(unknownFormatYAML, nest)
+	if err != nil {
+		panic(err)
+	}
+
+	s, _ := g.String("StringField") // field names of DynamicStruct are camelized original json field key
+	gg, _ := g.GetGetter("ObjField")
+	ggName, _ := gg.String("Name")
+	ggg, _ := gg.GetGetter("ObjobjField")
+	gggUserId, _ := ggg.Int("UserId")
+
+	ao, _ := g.Slice("ArrObjField")
+	gAoZero, err := structil.NewGetter(ao[0])
+	iGAoZero, _ := gAoZero.Int("Aid")
+	sGAoZero, _ := gAoZero.String("Aname")
+
+	fmt.Printf("g.IsStruct(ObjField) = %v\n", g.IsStruct("ObjField"))
+	fmt.Printf("g.IsSlice(ArrObjField) = %v\n", g.IsSlice("ArrObjField"))
+	fmt.Printf(
+		"num of fields=%d\n'StringField'=%s\n'ObjField.Name'=%s\n'ObjobjField.UserId'=%d\n'ArrObjField[0].Aid'=%d\n'ArrObjField[0].Aname'=%s",
+		g.NumField(),
+		s,
+		ggName,
+		gggUserId,
+		iGAoZero,
+		sGAoZero,
+	)
+
+	// Output:
+	// g.IsStruct(ObjField) = true
+	// g.IsSlice(ArrObjField) = true
+	// num of fields=3
+	// 'StringField'=あいうえ
+	// 'ObjField.Name'=Test Jiou
+	// 'ObjobjField.UserId'=678
+	// 'ArrObjField[0].Aid'=45
+	// 'ArrObjField[0].Aname'=Test Mike
 }

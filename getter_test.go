@@ -1527,6 +1527,48 @@ func TestSlice(t *testing.T) {
 	}
 }
 
+func TestGetGetter(t *testing.T) {
+	t.Parallel()
+
+	testStructPtr := newGetterTestStructPtr()
+	g, err := NewGetter(testStructPtr)
+	if err != nil {
+		t.Errorf("NewGetter() occurs unexpected error: %v", err)
+	}
+
+	tests := newGetterTests()
+	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			switch tt.name {
+			case "GetterTestStruct2":
+				tt.wantIntf = testStructPtr.GetterTestStruct2
+			case "GetterTestStruct2Ptr":
+				tt.wantIntf = testStructPtr.GetterTestStruct2Ptr
+			default:
+				tt.wantNotOK = true
+			}
+
+			// got, ok := g.GetGetter(tt.args.name)
+			_, ok := g.GetGetter(tt.args.name)
+
+			if ok {
+				if tt.wantNotOK {
+					t.Errorf("expected ok is false but true. args: %+v", tt.args)
+					// } else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+					// 	t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
+				}
+			} else {
+				if !tt.wantNotOK {
+					t.Errorf("expected ok is true but false. args: %+v", tt.args)
+				}
+			}
+		})
+	}
+}
+
 func TestIsByte(t *testing.T) {
 	t.Parallel()
 

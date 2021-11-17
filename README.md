@@ -35,7 +35,7 @@ YAML →→→→→→→→→→→→→→→→↑
 
 Please see [my medium post](https://medium.com/@s0k0mata/dynamic-and-runtime-struct-utilities-in-go-go-golang-reflection-25c154335185) as well.
 
-## Simple Usage
+## Sample Usecase
 
 Try printing the struct definition from __the unknown formatted__ JSON decoding.
 
@@ -80,7 +80,7 @@ func main() {
 }
 `)
 
-	jsonDec, err := decoder.NewJSON(unknownJSON)
+	jsonDec, err := decoder.FromJSON(unknownJSON)
 	if err != nil {
 		panic(err)
 	}
@@ -99,7 +99,7 @@ func main() {
 
 This program will print a Go struct definition string as follows.
 
-```
+```go
 type DynamicStruct struct {
         ArrayStringField []string `json:"array_string_field"`
         ArrayStructField []struct {
@@ -107,7 +107,7 @@ type DynamicStruct struct {
                 Vvvv string `json:"vvvv"`
         } `json:"array_struct_field"`
         BoolField bool `json:"bool_field"`
-        IntField float64 `json:"int_field"` 
+        IntField float64 `json:"int_field"`
         NullField interface {} `json:"null_field"`
         ObjectField struct {
                 Id float64 `json:"id"`
@@ -131,34 +131,35 @@ And see [example code](/dynamicstruct/decoder/example_test.go#L9).
 
 ## More Examples
 
+### From JSON to `Getter`
 
-### `DynamicStruct`
+We can convert from __the unknown formatted__ JSON to `Getter` via `DynamicStruct` with `decoder.JSONToGetter` function.
+
+See [example code](/dynamicstruct/decoder/example_test.go#L76).
+
+#### What is `Getter`?
+
+We can access a struct using field name string, like (typed) map with `structil.NewGetter` function.
+
+See [example code](/example_test.go#L7)
+
+##### `Getter.MapGet` method
+
+`Getter.MapGet` method provides the __Map__ collection function for slice of struct
+
+See [example code](/example_test.go#L56)
+
+### From JSON to `DynamicStruct`
+
+We can convert from __the unknown formatted__ JSON to `DynamicStruct` with `Decoder` (from `decoder.FromJSON` function) and `Decoder.DynamicStruct` method.
+
+See [example code](/dynamicstruct/decoder/example_test.go#L9).
+
+#### What is `DynamicStruct`?
 
 We can create the dynamic and runtime struct.
 
 See [example code](/dynamicstruct/example_test.go#L10)
-
-
-#### JSON unmershal with `DynamicStruct`
-
-A decoding example from JSON to `DynamicStruct` with `StructTag` using `json.Unmarshal([]byte)` as follows.
-This example works correctly not only JSON but also YAML, TOML and more.
-
-See [example code](/dynamicstruct/example_test.go#L110)
-
-### `Getter`
-
-We can access a struct using field name string, like (typed) map.
-
-See [example code](/example_test.go#L7)
-
-
-#### `MapGet` method
-
-`MapGet` method provides the __Map__ collection function for slice of struct
-
-See [example code](/example_test.go#L56)
-
 
 ### `Finder`
 

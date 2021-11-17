@@ -45,45 +45,6 @@ func Example() {
 	// Print struct definition with Definition method
 	// Struct fields are automatically orderd by field name
 	fmt.Println(ds.Definition())
-
-	// DecodeMap decodes from map to DynamicStruct
-	input := map[string]interface{}{
-		"StringField":     "Abc Def",
-		"IntField":        int(123),
-		"BoolField":       true,
-		"MapField":        map[string]float32{"mkey1": float32(1.23), "mkey2": float32(4.56)},
-		"StructPtrField":  hogePtr,
-		"SliceField":      []int{111, 222},
-		"SomeObjectField": nil,
-	}
-	dec, err := ds.DecodeMap(input)
-	if err != nil {
-		panic(err)
-	}
-
-	// Confirm decoded result using Getter
-	g, err := structil.NewGetter(dec)
-	if err != nil {
-		panic(err)
-	}
-	s, _ := g.String("StringField")
-	i, _ := g.Int("IntField")
-	bl, _ := g.Bool("BoolField")
-	m, _ := g.Get("MapField")
-	strct, _ := g.Get("StructPtrField")
-	sl, _ := g.Get("SliceField")
-	obj, _ := g.Get("SomeObjectField")
-	fmt.Printf(
-		"num of fields=%d\n'StringField'=%s\n'IntField'=%d\n'BoolField'=%t\n'MapField'=%+v\n'StructPtrField'=%+v\n'SliceField'=%+v\n'SomeObjectField'=%+v",
-		g.NumField(),
-		s,
-		i,
-		bl,
-		m,
-		strct,
-		sl,
-		obj,
-	)
 	// Output:
 	// type MyStruct struct {
 	// 	BoolField bool
@@ -97,14 +58,6 @@ func Example() {
 	// 		Value interface {}
 	// 	}
 	// }
-	// num of fields=7
-	// 'StringField'=Abc Def
-	// 'IntField'=123
-	// 'BoolField'=true
-	// 'MapField'=map[mkey1:1.23 mkey2:4.56]
-	// 'StructPtrField'={Key:keystr Value:valuestr}
-	// 'SliceField'=[111 222]
-	// 'SomeObjectField'=<nil>
 }
 
 func Example_unmarshalJSON() {
