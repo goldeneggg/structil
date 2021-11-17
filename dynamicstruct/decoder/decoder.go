@@ -19,37 +19,44 @@ type Decoder struct {
 	dsi       interface{} // unmarshaled result from data to DynamicStruct
 }
 
-func newDecoder(data []byte, dt dataType) (d *Decoder, err error) {
+func newDecoder(data []byte, dt dataType) (*Decoder, error) {
 	unm, err := dt.unmarshal(data)
+	if err != nil {
+		return nil, err
+	}
 
-	d = &Decoder{
+	dec := &Decoder{
 		dt:        dt,
 		orgData:   data,
 		orgIntf:   unm,
 		strKeyMap: make(map[string]interface{}),
 	}
 
-	switch t := d.orgIntf.(type) {
+	switch t := dec.orgIntf.(type) {
 	case map[string]interface{}:
 		// JSON
-		d.strKeyMap = t
+		dec.strKeyMap = t
 	case map[interface{}]interface{}:
 		// YAML
-		d.strKeyMap = toStringKeyMap(t)
+		dec.strKeyMap = toStringKeyMap(t)
 	case []interface{}:
-		// FIXME: for top-level is array
-		// （暫定的に）0番目の要素を取り出してそれを処理するようにしているが、どうすべきか？
+		// FIXME: （暫定的に）0番目の要素を取り出してそれを処理するようにしているが、どうすべきか？
 		if len(t) > 0 {
 			switch tt := t[0].(type) {
 			case map[string]interface{}:
-				d.strKeyMap = tt
-			case map[interface{}]interface{}:
-				d.strKeyMap = toStringKeyMap(tt)
+				dec.strKeyMap = tt
+				// FIXME: 初期化時にkeyがstringのmapを生成しているので、このブロックはまるごと不要なはず
+				// case map[interface{}]interface{}:
+				// 	dec.strKeyMap = toStringKeyMap(tt)
+			default:
+				return nil, fmt.Errorf("unexpected type of t[0] [%v]", tt)
 			}
 		}
+	default:
+		return nil, fmt.Errorf("unexpected type of dec.orgIntf [%v]", t)
 	}
 
-	return
+	return dec, nil
 }
 
 // FromJSON returns a concrete Decoder for JSON.
@@ -107,13 +114,6 @@ func (d *Decoder) decodeToDynamicStruct(ds *dynamicstruct.DynamicStruct) (interf
 	// So ds.NewInterface() returns a struct *pointer*
 	d.dsi = ds.NewInterface()
 
-	// FIXME: workaroundな意図が複数込められて実装になっているのでメモ
-	// - unmarshalWithIPtrのdataに d.orgData は指定できない。トップレベルが配列のJSON の処理で失敗してしまう為
-	//   （"json: cannot unmarshal array into Go value of type" エラーが発生する）
-	// - ↑を回避する為に 「元データのunmarshal結果をさらに"keyがstringのmap"に変換しておき、これをmarshalしてJSON/YAMLに戻す」というプロセスが必要になる
-	//   （d.dt.marshal(d.strKeyMap) という処理を行っているのはこの為）
-	// - ↑の処理で作成したJSON/YAMLを unmarshalWithIPtrのdataに指定する
-
 	// must use "d.strKeyMap" (not "d.orgIntf"). because key of "d.orgIntf" is not string but interface{}
 	data, err := d.dt.marshal(d.strKeyMap)
 	if err != nil {
@@ -151,18 +151,19 @@ func (d *Decoder) toDs(i interface{}, nest bool, useTag bool) (*dynamicstruct.Dy
 	switch t := i.(type) {
 	case map[string]interface{}:
 		return d.toDsFromStringMap(t, nest, useTag)
-	case []interface{}:
-		if len(t) > 0 {
-			if len(t) == 1 {
-				return d.toDs(t[0], nest, useTag)
-			}
-
-			// TODO: seek an element that have max size of t. And call d.toDs with this element
-			// 配列内の構造が可変なケースを考慮して、最も大きい構造の要素を取り出してその要素に対してtoDsを呼ぶようにする
-			// See: https://stackoverflow.com/questions/44257522/how-to-get-memory-size-of-variable-in-go
-			//   should use "unsafe.Sizeof(var)"?
-			return d.toDs(t[0], nest, useTag)
-		}
+		// FIXME: 初期化時にkeyがstringのmapを生成しているので、このブロックはまるごと不要なはず
+		// case []interface{}:
+		// 	if len(t) > 0 {
+		// 		return d.toDs(t[0], nest, useTag)
+		// 		// TODO: seek an element that have max size of t. And call d.toDs with this element
+		// 		// 配列内の構造が可変なケースを考慮して、最も大きい構造の要素を取り出してその要素に対してtoDsを呼ぶようにする
+		// 		// See: https://stackoverflow.com/questions/44257522/how-to-get-memory-size-of-variable-in-go
+		// 		//   should use "unsafe.Sizeof(var)"?
+		// 		// if len(t) == 1 {
+		// 		// 	return d.toDs(t[0], nest, useTag)
+		// 		// }
+		// 		// return d.toDs(t[0], nest, useTag)
+		// 	}
 		// FIXME: 初期化時にkeyがstringのmapを生成しているので、このブロックはまるごと不要なはず
 		// case map[interface{}]interface{}:
 		// 	return d.toDsFromStringMap(toStringKeyMap(t), nest, useTag)

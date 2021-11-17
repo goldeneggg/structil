@@ -985,16 +985,13 @@ arr_obj_field:
 			},
 		},
 		{
-			name:     "OnlyLiteral",
-			data:     []byte(`aiueo`),
-			dt:       typeYAML,
-			nest:     false,
-			useTag:   false,
-			wantNumF: 0,
-			// FIXME: "aiueo" でfieldが無いstructが出力される挙動になっているが、見直すべきか？（JSONとも挙動が違っている）
-			//wantErrorDs:    true,
-			wantDefinition: `type DynamicStruct struct {
-}`,
+			name:         "OnlyLiteral",
+			data:         []byte(`aiueo`),
+			dt:           typeYAML,
+			nest:         false,
+			useTag:       false,
+			wantNumF:     0,
+			wantErrorNew: true,
 		},
 		{
 			name: "HasArrayStringInArray",
@@ -1044,27 +1041,21 @@ object_array_field:
 			},
 		},
 		{
-			name:     "Empty",
-			data:     []byte(``),
-			dt:       typeYAML,
-			nest:     false,
-			useTag:   false,
-			wantNumF: 0,
-			// FIXME: "" でfieldが無いstructが出力される挙動になっているが、見直すべきか？（JSONとも挙動が違っている）
-			//wantErrorDs:    true,
-			wantDefinition: `type DynamicStruct struct {
-}`,
+			name:         "Empty",
+			data:         []byte(``),
+			dt:           typeYAML,
+			nest:         false,
+			useTag:       false,
+			wantNumF:     0,
+			wantErrorNew: true,
 		},
 		{
-			name:   "NullData",
-			data:   nil,
-			dt:     typeYAML,
-			nest:   false,
-			useTag: false,
-			// FIXME: "" でfieldが無いstructが出力される挙動になっているが、見直すべきか？（JSONとも挙動が違っている）
-			// wantErrorNew: true,
-			wantDefinition: `type DynamicStruct struct {
-}`,
+			name:         "NullData",
+			data:         nil,
+			dt:           typeYAML,
+			nest:         false,
+			useTag:       false,
+			wantErrorNew: true,
 		},
 	}
 
@@ -1083,7 +1074,7 @@ object_array_field:
 				t.Fatalf("error is expected but it does not occur from FromYAML. data: %q", string(tt.data))
 			}
 
-			// FIXME: error cases
+			// FIXME: エラーケース対応
 			testCorrectCase(t, tt, dec)
 		})
 	}
