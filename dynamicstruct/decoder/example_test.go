@@ -236,7 +236,7 @@ arr_obj_field:
 	gg, _ := g.GetGetter("ObjField")
 	ggName, _ := gg.String("Name")
 	ggg, _ := gg.GetGetter("ObjobjField")
-	gggUserId, _ := ggg.Int("UserId")
+	gggUserID, _ := ggg.Int("UserId")
 
 	ao, _ := g.Slice("ArrObjField")
 	gAoZero, err := structil.NewGetter(ao[0])
@@ -250,7 +250,7 @@ arr_obj_field:
 		g.NumField(),
 		s,
 		ggName,
-		gggUserId,
+		gggUserID,
 		iGAoZero,
 		sGAoZero,
 	)
