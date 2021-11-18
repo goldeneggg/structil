@@ -81,10 +81,10 @@ func main() {
 `)
 
   // create `Decoder` from JSON
-	dec, err := decoder.FromJSON(unknownJSON)
-	if err != nil {
-		panic(err)
-	}
+  dec, err := decoder.FromJSON(unknownJSON)
+  if err != nil {
+    panic(err)
+  }
 
   // - If `nest` is true, nested object attributes will be also decoded to struct recursively
   // - If `nest` is false, nested object attributes will be decoded to `map[string]interface{}`
@@ -95,12 +95,12 @@ func main() {
 
   // create `DynamicStruct` from `Decoder`
   ds, err := dec.DynamicStruct(nest, useTag)
-	if err != nil {
-		panic(err)
-	}
+  if err != nil {
+    panic(err)
+  }
 
-	// print struct definition from `DynamicStruct`
-	fmt.Println(ds.Definition())
+  // print struct definition from `DynamicStruct`
+  fmt.Println(ds.Definition())
 }
 ```
 

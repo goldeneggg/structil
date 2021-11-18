@@ -130,7 +130,7 @@ func ExampleJSONToGetter() {
 	fmt.Printf("g.IsStruct(StructPtrField) = %v\n", g.IsStruct("StructPtrField"))
 	fmt.Printf("g.IsSlice(ArrayStructField) = %v\n", g.IsSlice("ArrayStructField"))
 	fmt.Printf(
-		"num of fields=%d\n'StringField'=%s\n'IntField'=%f\n'Float32Field'=%f\n'BoolField'=%t\n'ArrayStringField'=%+v\n'NullField'=%+v\n'StructPtrField.Key'=%s\n'ArrayStructField[0].Kkk'=%s\n'ArrayStructField[0].Vvvv'=%f",
+		"num of fields=%d\n'StringField'=%s\n'IntField'=%f\n'Float32Field'=%f\n'BoolField'=%t\n'ArrayStringField'=%+v\n'NullField'=%+v\n'StructPtrField.Key'=%s\n'ArrayStructField[0].Kkk'=%s\n'ArrayStructField[0].Vvvv'=%f\n",
 		g.NumField(),
 		s,
 		i, // Note: type of unmarshalled number fields are float64. See: https://golang.org/pkg/encoding/json/#Unmarshal
@@ -142,6 +142,9 @@ func ExampleJSONToGetter() {
 		sGArrZero,
 		fGArrZero,
 	)
+
+	m := g.ToMap()
+	fmt.Printf("g.ToMap()[StringField] =%v\n", m["StringField"])
 
 	// Output:
 	// g.IsStruct(StructPtrField) = true
@@ -156,6 +159,7 @@ func ExampleJSONToGetter() {
 	// 'StructPtrField.Key'=hugakey
 	// 'ArrayStructField[0].Kkk'=kkk1
 	// 'ArrayStructField[0].Vvvv'=12.000000
+	// g.ToMap()[StringField] =かきくけこ
 }
 
 func ExampleDecoder_DynamicStruct_yaml() {
@@ -246,7 +250,7 @@ arr_obj_field:
 	fmt.Printf("g.IsStruct(ObjField) = %v\n", g.IsStruct("ObjField"))
 	fmt.Printf("g.IsSlice(ArrObjField) = %v\n", g.IsSlice("ArrObjField"))
 	fmt.Printf(
-		"num of fields=%d\n'StringField'=%s\n'ObjField.Name'=%s\n'ObjobjField.UserId'=%d\n'ArrObjField[0].Aid'=%d\n'ArrObjField[0].Aname'=%s",
+		"num of fields=%d\n'StringField'=%s\n'ObjField.Name'=%s\n'ObjobjField.UserId'=%d\n'ArrObjField[0].Aid'=%d\n'ArrObjField[0].Aname'=%s\n",
 		g.NumField(),
 		s,
 		ggName,
@@ -254,6 +258,9 @@ arr_obj_field:
 		iGAoZero,
 		sGAoZero,
 	)
+
+	m := g.ToMap()
+	fmt.Printf("g.ToMap()[StringField] =%v\n", m["StringField"])
 
 	// Output:
 	// g.IsStruct(ObjField) = true
@@ -264,4 +271,5 @@ arr_obj_field:
 	// 'ObjobjField.UserId'=678
 	// 'ArrObjField[0].Aid'=45
 	// 'ArrObjField[0].Aname'=Test Mike
+	// g.ToMap()[StringField] =あいうえ
 }
