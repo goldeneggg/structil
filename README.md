@@ -154,17 +154,23 @@ g.NumField()
 // names of struct fields
 g.Names()
 
-// return true if struct has a "fname" field
-g.Has(fname)
+// return true if struct has a "fName" field
+g.Has(fName)
 
-// get "fname" field value of the original struct as string 
-g.String(fname)
+// get "fName" field value of the original struct as string 
+g.String(fName)
 
-// return true if "fname" field value of the original struct is float64
-g.IsFloat64(fname)
+// return true if "fName" field value of the original struct is float64
+g.IsFloat64(fName)
 
 // convert from struct to map[string]interface{}
 g.ToMap()
+
+// get as `Getter` if "fName" field is a (nested) struct
+gNest, ok := g.GetGetter(fName)
+gNest.NumField()
+gNest.Names()
+
 ```
 
 See [example code](/example_test.go#L7)
