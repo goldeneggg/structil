@@ -43,6 +43,7 @@ var (
 )
 
 // Builder is the interface that builds a dynamic and runtime struct.
+// All methods are NOT goroutine safe yet (TODO:)
 type Builder struct {
 	name   string
 	fields map[string]reflect.Type
@@ -533,7 +534,6 @@ func (b *Builder) build(isPtr bool) (ds *DynamicStruct, err error) {
 
 	defer func() {
 		err = util.RecoverToError(recover())
-		return
 	}()
 
 	var i int

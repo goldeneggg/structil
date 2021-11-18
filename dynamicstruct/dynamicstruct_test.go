@@ -334,7 +334,7 @@ var (
 	//dynamicTestChan    = make(chan int)
 )
 
-func newDynamicTestStruct() DynamicTestStruct {
+func newTestDynamicStruct() DynamicTestStruct {
 	return DynamicTestStruct{
 		Byte:        0x61,
 		Bytes:       []byte{0x00, 0xFF},
@@ -388,13 +388,13 @@ func newDynamicTestStruct() DynamicTestStruct {
 	}
 }
 
-func newDynamicTestStructPtr() *DynamicTestStruct {
-	ts := newDynamicTestStruct()
+func newTestDynamicStructPtr() *DynamicTestStruct {
+	ts := newTestDynamicStruct()
 	return &ts
 }
 
 // See: "expectedDefinition" constant (this is the Definition of the Builder as follows)
-func newDynamicTestBuilder() *Builder {
+func newTestBuilder() *Builder {
 	return NewBuilder().
 		AddString("StringField").
 		AddStringWithTag("StringFieldWithTag", stringFieldTag).
@@ -418,20 +418,20 @@ func newDynamicTestBuilder() *Builder {
 		AddChanRecvWithTag("ChanRecvFieldWithTag", SampleInt, chanRecvFieldTag).
 		AddChanSend("ChanSendField", SampleInt).
 		AddChanSendWithTag("ChanSendFieldWithTag", SampleInt, chanSendFieldTag).
-		AddStruct("StructField", newDynamicTestStruct(), false).
-		AddStructWithTag("StructFieldWithTag", newDynamicTestStruct(), false, structFieldTag).
-		AddStructPtr("StructPtrField", newDynamicTestStructPtr()).
-		AddStructPtrWithTag("StructPtrFieldWithTag", newDynamicTestStructPtr(), structPtrFieldTag).
-		AddSlice("SliceField", newDynamicTestStructPtr()).
-		AddSliceWithTag("SliceFieldWithTag", newDynamicTestStructPtr(), sliceFieldTag).
+		AddStruct("StructField", newTestDynamicStruct(), false).
+		AddStructWithTag("StructFieldWithTag", newTestDynamicStruct(), false, structFieldTag).
+		AddStructPtr("StructPtrField", newTestDynamicStructPtr()).
+		AddStructPtrWithTag("StructPtrFieldWithTag", newTestDynamicStructPtr(), structPtrFieldTag).
+		AddSlice("SliceField", newTestDynamicStructPtr()).
+		AddSliceWithTag("SliceFieldWithTag", newTestDynamicStructPtr(), sliceFieldTag).
 		AddInterface("InterfaceField", false).
 		AddInterfaceWithTag("InterfaceFieldWithTag", false, interfaceFieldTag).
 		AddInterface("InterfacePtrField", true).
 		AddInterfaceWithTag("InterfacePtrFieldWithTag", true, interfaceFieldTag)
 }
 
-func newDynamicTestBuilderWithStructName(name string) *Builder {
-	b := newDynamicTestBuilder()
+func newTestBuilderWithStructName(name string) *Builder {
+	b := newTestBuilder()
 	b.SetStructName(name)
 	return b
 }
@@ -450,22 +450,22 @@ func TestBuilderAddRemoveExistsNumField(t *testing.T) {
 		wantStructName     string
 	}{
 		{
-			name:               "have fields set by newDynamicTestBuilder()",
-			args:               args{builder: newDynamicTestBuilder()},
+			name:               "have fields set by newTestBuilder()",
+			args:               args{builder: newTestBuilder()},
 			wantExistsIntField: true,
-			wantNumField:       32, // See: newDynamicTestBuilder()
+			wantNumField:       32, // See: newTestBuilder()
 			wantStructName:     "DynamicStruct",
 		},
 		{
-			name:               "have fields set by newDynamicTestBuilder() and Remove(IntField)",
-			args:               args{builder: newDynamicTestBuilder().Remove("IntField")},
+			name:               "have fields set by newTestBuilder() and Remove(IntField)",
+			args:               args{builder: newTestBuilder().Remove("IntField")},
 			wantExistsIntField: false,
 			wantNumField:       31,
 			wantStructName:     "DynamicStruct",
 		},
 		{
-			name:               "have struct name by newDynamicTestBuilderWithStructName()",
-			args:               args{builder: newDynamicTestBuilderWithStructName("Abc")},
+			name:               "have struct name by newTestBuilderWithStructName()",
+			args:               args{builder: newTestBuilderWithStructName("Abc")},
 			wantExistsIntField: true,
 			wantNumField:       32,
 			wantStructName:     "Abc",
@@ -507,7 +507,7 @@ func TestBuilderAddStringWithEmptyName(t *testing.T) {
 	}{
 		{
 			name: "try to AddString with empty name",
-			args: args{builder: newDynamicTestBuilder()},
+			args: args{builder: newTestBuilder()},
 		},
 	}
 
@@ -536,7 +536,7 @@ func TestBuilderAddMapWithNilKey(t *testing.T) {
 	}{
 		{
 			name: "try to AddMap with nil key",
-			args: args{builder: newDynamicTestBuilder()},
+			args: args{builder: newTestBuilder()},
 		},
 	}
 
@@ -565,7 +565,7 @@ func TestBuilderAddMapWithNilValue(t *testing.T) {
 	}{
 		{
 			name: "try to AddMap with nil key",
-			args: args{builder: newDynamicTestBuilder()},
+			args: args{builder: newTestBuilder()},
 		},
 	}
 
@@ -595,7 +595,7 @@ func TestBuilderAddFuncWithNilArgs(t *testing.T) {
 	}{
 		{
 			name: "try to AddFunc with nil args",
-			args: args{builder: newDynamicTestBuilder()},
+			args: args{builder: newTestBuilder()},
 		},
 	}
 
@@ -624,7 +624,7 @@ func TestBuilderAddFuncWithNilReturns(t *testing.T) {
 	}{
 		{
 			name: "try to AddFunc with nil returns",
-			args: args{builder: newDynamicTestBuilder()},
+			args: args{builder: newTestBuilder()},
 		},
 	}
 
@@ -653,7 +653,7 @@ func TestBuilderAddChanBothWithNilElem(t *testing.T) {
 	}{
 		{
 			name: "try to AddChanBoth with nil elem",
-			args: args{builder: newDynamicTestBuilder()},
+			args: args{builder: newTestBuilder()},
 		},
 	}
 
@@ -683,7 +683,7 @@ func TestBuilderAddChanRecvWithNilElem(t *testing.T) {
 	}{
 		{
 			name:      "try to AddChanRecv with nil elem",
-			args:      args{builder: newDynamicTestBuilder()},
+			args:      args{builder: newTestBuilder()},
 			wantError: true,
 		},
 	}
@@ -713,7 +713,7 @@ func TestBuilderAddChanSendWithNilElem(t *testing.T) {
 	}{
 		{
 			name: "try to AddChanSend with nil elem",
-			args: args{builder: newDynamicTestBuilder()},
+			args: args{builder: newTestBuilder()},
 		},
 	}
 
@@ -742,7 +742,7 @@ func TestBuilderAddStructWithNil(t *testing.T) {
 	}{
 		{
 			name: "try to AddStruct with nil",
-			args: args{builder: newDynamicTestBuilder()},
+			args: args{builder: newTestBuilder()},
 		},
 	}
 
@@ -771,7 +771,7 @@ func TestBuilderAddStructPtrWithNil(t *testing.T) {
 	}{
 		{
 			name: "try to AddStructWith with nil",
-			args: args{builder: newDynamicTestBuilder()},
+			args: args{builder: newTestBuilder()},
 		},
 	}
 
@@ -800,7 +800,7 @@ func TestBuilderAddSliceWithNil(t *testing.T) {
 	}{
 		{
 			name: "try to AddStructWith with nil",
-			args: args{builder: newDynamicTestBuilder()},
+			args: args{builder: newTestBuilder()},
 		},
 	}
 
@@ -867,10 +867,10 @@ func TestBuilderBuild(t *testing.T) {
 	tests := []buildTest{
 		{
 			name:                "Build() with valid Builder",
-			args:                buildArgs{builder: newDynamicTestBuilder(), isPtr: true},
+			args:                buildArgs{builder: newTestBuilder(), isPtr: true},
 			wantIsPtr:           true,
 			wantStructName:      "DynamicStruct",
-			wantNumField:        32, // See: newDynamicTestBuilder()
+			wantNumField:        32, // See: newTestBuilder()
 			wantDefinition:      expectedDefinition,
 			decodedMap:          testMap,
 			camelizeKeys:        true,
@@ -878,17 +878,17 @@ func TestBuilderBuild(t *testing.T) {
 		},
 		{
 			name:                "Build() with valid Builder",
-			args:                buildArgs{builder: newDynamicTestBuilder(), isPtr: true},
+			args:                buildArgs{builder: newTestBuilder(), isPtr: true},
 			wantIsPtr:           true,
 			wantStructName:      "DynamicStruct",
-			wantNumField:        32, // See: newDynamicTestBuilder()
+			wantNumField:        32, // See: newTestBuilder()
 			wantDefinition:      expectedDefinition,
 			decodedMap:          testCamelizedMap,
 			tryAddDynamicStruct: true,
 		},
 		{
 			name:               "BuildNonPtr() with valid Builder",
-			args:               buildArgs{builder: newDynamicTestBuilder(), isPtr: false},
+			args:               buildArgs{builder: newTestBuilder(), isPtr: false},
 			wantIsPtr:          false,
 			wantStructName:     "DynamicStruct",
 			wantNumField:       32,
@@ -897,10 +897,10 @@ func TestBuilderBuild(t *testing.T) {
 		},
 		{
 			name:           "Build() with valid Builder with struct name",
-			args:           buildArgs{builder: newDynamicTestBuilderWithStructName("HogeHuga"), isPtr: true},
+			args:           buildArgs{builder: newTestBuilderWithStructName("HogeHuga"), isPtr: true},
 			wantIsPtr:      true,
 			wantStructName: "HogeHuga",
-			wantNumField:   32, // See: newDynamicTestBuilder()
+			wantNumField:   32, // See: newTestBuilder()
 			decodedMap:     testCamelizedMap,
 			camelizeKeys:   true,
 		},
@@ -1106,7 +1106,7 @@ func testBuilderBuildDecodeMap(t *testing.T, ds *DynamicStruct, tt buildTest) bo
 func testBuilderBuildAddDynamicStruct(t *testing.T, ds *DynamicStruct, tt buildTest) bool {
 	t.Helper()
 
-	builder := newDynamicTestBuilder()
+	builder := newTestBuilder()
 	builder.AddDynamicStructWithTag("AdditionalDynamicStruct", ds, false, "json")
 	builder.AddDynamicStructPtrWithTag("AdditionalDynamicStructPtr", ds, "json")
 	newds, err := builder.Build()

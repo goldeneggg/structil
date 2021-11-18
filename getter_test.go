@@ -397,6 +397,7 @@ func TestHas(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		switch tt.name {
 		case "NotExist":
 			tt.wantBool = false
@@ -405,8 +406,7 @@ func TestHas(t *testing.T) {
 		}
 
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			got := g.Has(tt.args.name)
 			if got != tt.wantBool {
@@ -474,9 +474,9 @@ func testGetSeries(t *testing.T, wantNotOK bool, wantError bool, fn func(*testin
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Byte":
@@ -672,6 +672,34 @@ func TestGet(t *testing.T) {
 	testGetSeries(t, true, false, assertionFunc)
 }
 
+func TestGetterToMap(t *testing.T) {
+	assertionFunc := func(t *testing.T, tt *getterTest, g *Getter) {
+		m := g.ToMap()
+		got, ok := m[tt.args.name]
+
+		if ok {
+			if tt.wantNotOK {
+				t.Fatalf("expected ok is false but true. args: %+v", tt.args)
+			} else if tt.args.name == "Func" {
+				// Note: cmp.Diff does not support comparing func and func
+				gp := reflect.ValueOf(got).Pointer()
+				wp := reflect.ValueOf(tt.wantIntf).Pointer()
+				if gp != wp {
+					t.Fatalf("unexpected mismatch func type: gp: %v, wp: %v", gp, wp)
+				}
+			} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+				t.Fatalf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
+			}
+		} else {
+			if !tt.wantNotOK {
+				t.Fatalf("expected ok is true but false. args: %+v", tt.args)
+			}
+		}
+	}
+
+	testGetSeries(t, true, false, assertionFunc)
+}
+
 func TestByte(t *testing.T) {
 	t.Parallel()
 
@@ -683,9 +711,9 @@ func TestByte(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Byte":
@@ -724,9 +752,9 @@ func TestBytes(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Bytes":
@@ -763,9 +791,9 @@ func TestString(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "String":
@@ -802,9 +830,9 @@ func TestInt(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Int":
@@ -841,9 +869,9 @@ func TestInt8(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Int8":
@@ -880,9 +908,9 @@ func TestInt16(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Int16":
@@ -919,9 +947,9 @@ func TestInt32(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Int32":
@@ -958,9 +986,9 @@ func TestInt64(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Int64":
@@ -997,9 +1025,9 @@ func TestUint(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Uint":
@@ -1036,9 +1064,9 @@ func TestUint8(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Byte":
@@ -1077,9 +1105,9 @@ func TestUint16(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Uint16":
@@ -1116,9 +1144,9 @@ func TestUint32(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Uint32":
@@ -1155,9 +1183,9 @@ func TestUint64(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Uint64":
@@ -1194,9 +1222,9 @@ func TestUintptr(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Uintptr":
@@ -1233,9 +1261,9 @@ func TestFloat32(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Float32":
@@ -1272,9 +1300,9 @@ func TestFloat64(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Float64":
@@ -1311,9 +1339,9 @@ func TestBool(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Bool":
@@ -1350,9 +1378,9 @@ func TestComplex64(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Complex64":
@@ -1389,9 +1417,9 @@ func TestComplex128(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Complex128":
@@ -1428,9 +1456,9 @@ func TestUnsafePointer(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Unsafeptr":
@@ -1456,6 +1484,91 @@ func TestUnsafePointer(t *testing.T) {
 	}
 }
 
+func TestSlice(t *testing.T) {
+	t.Parallel()
+
+	testStructPtr := newGetterTestStructPtr()
+	g, err := NewGetter(testStructPtr)
+	if err != nil {
+		t.Errorf("NewGetter() occurs unexpected error: %v", err)
+	}
+
+	tests := newGetterTests()
+	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			switch tt.name {
+			case "Bytes":
+				tt.wantIntf = []interface{}{uint8(0), testStructPtr.Byte}
+			case "GetterTestStruct4Slice":
+				tt.wantIntf = []interface{}{testStructPtr.GetterTestStruct4Slice[0], testStructPtr.GetterTestStruct4Slice[1]}
+			case "GetterTestStruct4PtrSlice":
+				tt.wantIntf = []interface{}{testStructPtr.GetterTestStruct4PtrSlice[0], testStructPtr.GetterTestStruct4PtrSlice[1]}
+			default:
+				tt.wantNotOK = true
+			}
+
+			got, ok := g.Slice(tt.args.name)
+
+			if ok {
+				if tt.wantNotOK {
+					t.Errorf("expected ok is false but true. args: %+v", tt.args)
+				} else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+					t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
+				}
+			} else {
+				if !tt.wantNotOK {
+					t.Errorf("expected ok is true but false. args: %+v", tt.args)
+				}
+			}
+		})
+	}
+}
+
+func TestGetGetter(t *testing.T) {
+	t.Parallel()
+
+	testStructPtr := newGetterTestStructPtr()
+	g, err := NewGetter(testStructPtr)
+	if err != nil {
+		t.Errorf("NewGetter() occurs unexpected error: %v", err)
+	}
+
+	tests := newGetterTests()
+	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			switch tt.name {
+			case "GetterTestStruct2":
+				tt.wantIntf = testStructPtr.GetterTestStruct2
+			case "GetterTestStruct2Ptr":
+				tt.wantIntf = testStructPtr.GetterTestStruct2Ptr
+			default:
+				tt.wantNotOK = true
+			}
+
+			// got, ok := g.GetGetter(tt.args.name)
+			_, ok := g.GetGetter(tt.args.name)
+
+			if ok {
+				if tt.wantNotOK {
+					t.Errorf("expected ok is false but true. args: %+v", tt.args)
+					// } else if d := cmp.Diff(got, tt.wantIntf); d != "" {
+					// 	t.Errorf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
+				}
+			} else {
+				if !tt.wantNotOK {
+					t.Errorf("expected ok is true but false. args: %+v", tt.args)
+				}
+			}
+		})
+	}
+}
+
 func TestIsByte(t *testing.T) {
 	t.Parallel()
 
@@ -1466,9 +1579,9 @@ func TestIsByte(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Byte":
@@ -1479,7 +1592,7 @@ func TestIsByte(t *testing.T) {
 
 			got := g.IsByte(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1495,9 +1608,9 @@ func TestIsBytes(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Bytes":
@@ -1506,7 +1619,7 @@ func TestIsBytes(t *testing.T) {
 
 			got := g.IsBytes(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1522,9 +1635,9 @@ func TestIsString(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "String", "privateString": // Note: IsString can work for private string field
@@ -1533,7 +1646,7 @@ func TestIsString(t *testing.T) {
 
 			got := g.IsString(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1549,9 +1662,9 @@ func TestIsInt(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Int":
@@ -1560,7 +1673,7 @@ func TestIsInt(t *testing.T) {
 
 			got := g.IsInt(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1576,9 +1689,9 @@ func TestIsInt8(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Int8":
@@ -1587,7 +1700,7 @@ func TestIsInt8(t *testing.T) {
 
 			got := g.IsInt8(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1603,9 +1716,9 @@ func TestIsInt16(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Int16":
@@ -1614,7 +1727,7 @@ func TestIsInt16(t *testing.T) {
 
 			got := g.IsInt16(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1630,9 +1743,9 @@ func TestIsInt32(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Int32":
@@ -1641,7 +1754,7 @@ func TestIsInt32(t *testing.T) {
 
 			got := g.IsInt32(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1657,9 +1770,9 @@ func TestIsInt64(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Int64":
@@ -1668,7 +1781,7 @@ func TestIsInt64(t *testing.T) {
 
 			got := g.IsInt64(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1684,9 +1797,9 @@ func TestIsUint(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Uint":
@@ -1695,7 +1808,7 @@ func TestIsUint(t *testing.T) {
 
 			got := g.IsUint(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1711,9 +1824,9 @@ func TestIsUint8(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Byte":
@@ -1724,7 +1837,7 @@ func TestIsUint8(t *testing.T) {
 
 			got := g.IsUint8(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1740,9 +1853,9 @@ func TestIsUint16(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Uint16":
@@ -1751,7 +1864,7 @@ func TestIsUint16(t *testing.T) {
 
 			got := g.IsUint16(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1767,9 +1880,9 @@ func TestIsUint32(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Uint32":
@@ -1778,7 +1891,7 @@ func TestIsUint32(t *testing.T) {
 
 			got := g.IsUint32(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1794,9 +1907,9 @@ func TestIsUint64(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Uint64":
@@ -1805,7 +1918,7 @@ func TestIsUint64(t *testing.T) {
 
 			got := g.IsUint64(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1821,9 +1934,9 @@ func TestIsUintptr(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Uintptr":
@@ -1832,7 +1945,7 @@ func TestIsUintptr(t *testing.T) {
 
 			got := g.IsUintptr(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1848,9 +1961,9 @@ func TestIsFloat32(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Float32":
@@ -1859,7 +1972,7 @@ func TestIsFloat32(t *testing.T) {
 
 			got := g.IsFloat32(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1875,9 +1988,9 @@ func TestIsFloat64(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Float64":
@@ -1886,7 +1999,7 @@ func TestIsFloat64(t *testing.T) {
 
 			got := g.IsFloat64(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1902,9 +2015,9 @@ func TestIsBool(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Bool":
@@ -1913,7 +2026,7 @@ func TestIsBool(t *testing.T) {
 
 			got := g.IsBool(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1929,9 +2042,9 @@ func TestIsComplex64(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Complex64":
@@ -1940,7 +2053,7 @@ func TestIsComplex64(t *testing.T) {
 
 			got := g.IsComplex64(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1956,9 +2069,9 @@ func TestIsComplex128(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Complex128":
@@ -1967,7 +2080,7 @@ func TestIsComplex128(t *testing.T) {
 
 			got := g.IsComplex128(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -1983,9 +2096,9 @@ func TestIsUnsafePointer(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Unsafeptr":
@@ -1994,7 +2107,7 @@ func TestIsUnsafePointer(t *testing.T) {
 
 			got := g.IsUnsafePointer(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -2010,9 +2123,9 @@ func TestIsMap(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Map":
@@ -2021,7 +2134,7 @@ func TestIsMap(t *testing.T) {
 
 			got := g.IsMap(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -2037,9 +2150,9 @@ func TestIsFunc(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Func":
@@ -2048,7 +2161,7 @@ func TestIsFunc(t *testing.T) {
 
 			got := g.IsFunc(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -2064,9 +2177,9 @@ func TestIsChan(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "ChInt":
@@ -2075,7 +2188,7 @@ func TestIsChan(t *testing.T) {
 
 			got := g.IsChan(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -2091,9 +2204,9 @@ func TestIsStruct(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "GetterTestStruct2", "GetterTestStruct2Ptr":
@@ -2102,7 +2215,7 @@ func TestIsStruct(t *testing.T) {
 
 			got := g.IsStruct(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -2118,9 +2231,9 @@ func TestIsSlice(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Bytes", "GetterTestStruct4Slice", "GetterTestStruct4PtrSlice":
@@ -2129,7 +2242,7 @@ func TestIsSlice(t *testing.T) {
 
 			got := g.IsSlice(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -2145,9 +2258,9 @@ func TestIsArray(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "Stringarray":
@@ -2156,7 +2269,7 @@ func TestIsArray(t *testing.T) {
 
 			got := g.IsArray(tt.args.name)
 			if got != tt.wantBool {
-				t.Errorf("unexpected mismatch: got: %v, want: %v", got, tt.wantBool)
+				t.Errorf("unexpected mismatch: got: %t, want: %t", got, tt.wantBool)
 			}
 		})
 	}
@@ -2172,9 +2285,9 @@ func TestMapGet(t *testing.T) {
 
 	tests := newGetterTests()
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			t.Parallel()
 
 			switch tt.name {
 			case "GetterTestStruct4Slice":

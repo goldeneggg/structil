@@ -214,7 +214,7 @@ func TestNewFinderWithGetterAndSep(t *testing.T) {
 	}
 }
 
-func TestToMap(t *testing.T) {
+func TestFinderToMap(t *testing.T) {
 	t.Parallel()
 
 	var f *Finder
@@ -246,6 +246,7 @@ func TestToMap(t *testing.T) {
 		wantError       bool
 		wantErrorString string
 		wantMap         map[string]interface{}
+		wantNestedMap   map[string]interface{} // FIXME: not implemented ToNestedMap method yet
 		cmpopts         []cmp.Option
 	}{
 		{
@@ -307,6 +308,11 @@ func TestToMap(t *testing.T) {
 			wantMap: map[string]interface{}{
 				"FinderTestStruct2.String": "struct2 string",
 			},
+			wantNestedMap: map[string]interface{}{
+				"FinderTestStruct2": map[string]interface{}{
+					"String": "struct2 string",
+				},
+			},
 		},
 		{
 			name: "with two-nest chain",
@@ -317,6 +323,14 @@ func TestToMap(t *testing.T) {
 			wantMap: map[string]interface{}{
 				"FinderTestStruct2Ptr.FinderTestStruct3.String": "struct3 string ptr",
 				"FinderTestStruct2Ptr.FinderTestStruct3.Int":    int(-456),
+			},
+			wantNestedMap: map[string]interface{}{
+				"FinderTestStruct2Ptr": map[string]interface{}{
+					"FinderTestStruFinderTestStruct3ct2Ptr": map[string]interface{}{
+						"String": "struct3 string ptr",
+						"Int":    int(-456),
+					},
+				},
 			},
 		},
 		{
@@ -333,6 +347,18 @@ func TestToMap(t *testing.T) {
 				"FinderTestStruct2Ptr.FinderTestStruct3.String": "struct3 string ptr",
 				"FinderTestStruct2Ptr.FinderTestStruct3.Int":    int(-456),
 			},
+			wantNestedMap: map[string]interface{}{
+				"FinderTestStruct2": map[string]interface{}{
+					"String": "struct2 string",
+					"FinderTestStruct2Ptr": map[string]interface{}{
+						"String": "struct2 string ptr",
+						"FinderTestStruct3": map[string]interface{}{
+							"String": "struct3 string ptr",
+							"Int":    int(-456),
+						},
+					},
+				},
+			},
 		},
 		{
 			name: "with Find with non-existed name",
@@ -340,7 +366,7 @@ func TestToMap(t *testing.T) {
 				chain: fs[4].Find("NonExist"),
 			},
 			wantError:       true,
-			wantErrorString: "field name NonExist does not exist",
+			wantErrorString: "field name [NonExist] does not exist in getter",
 		},
 		{
 			name: "with Find with existed and non-existed names",
@@ -348,7 +374,7 @@ func TestToMap(t *testing.T) {
 				chain: fs[5].Find("String", "NonExist"),
 			},
 			wantError:       true,
-			wantErrorString: "field name NonExist does not exist",
+			wantErrorString: "field name [NonExist] does not exist in getter",
 		},
 		{
 			name: "with Struct with non-existed name",
@@ -356,7 +382,7 @@ func TestToMap(t *testing.T) {
 				chain: fs[6].Into("NonExist").Find("String"),
 			},
 			wantError:       true,
-			wantErrorString: "Error in name: NonExist, key: NonExist. [name NonExist does not exist]",
+			wantErrorString: "error Into() key [NonExist]: name [NonExist] does not exist",
 		},
 		{
 			name: "with Struct with existed name and Find with non-existed name",
@@ -364,7 +390,7 @@ func TestToMap(t *testing.T) {
 				chain: fs[7].Into("FinderTestStruct2").Find("NonExist"),
 			},
 			wantError:       true,
-			wantErrorString: "field name NonExist does not exist",
+			wantErrorString: "field name [NonExist] does not exist in getter",
 		},
 		{
 			name: "with Struct with existed and non-existed name and Find",
@@ -374,7 +400,7 @@ func TestToMap(t *testing.T) {
 					Into("FinderTestStruct2", "NonExist").Find("String"),
 			},
 			wantError:       true,
-			wantErrorString: "Error in name: NonExist, key: FinderTestStruct2.NonExist. [name NonExist does not exist]",
+			wantErrorString: "error Into() key [FinderTestStruct2.NonExist]: name [NonExist] does not exist",
 		},
 		{
 			name: "with multi nest chains separated by assigned sep",
@@ -449,9 +475,10 @@ func TestToMap(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
 			// FIXME: comment out t.Parallel() because of race condition
-			// t.Parallel()
+			//t.Parallel()
 
 			got, err := tt.args.chain.ToMap()
 
@@ -572,7 +599,7 @@ func TestFromKeys(t *testing.T) {
 				chain: fs[1].FromKeys(fks[1]),
 			},
 			wantError:       true,
-			wantErrorString: "field name NonExist does not exist",
+			wantErrorString: "field name [NonExist] does not exist in getter",
 		},
 		{
 			name: "with Find with existed and non-existed names",
@@ -580,7 +607,7 @@ func TestFromKeys(t *testing.T) {
 				chain: fs[2].FromKeys(fks[2]),
 			},
 			wantError:       true,
-			wantErrorString: "field name NonExist does not exist",
+			wantErrorString: "field name [NonExist] does not exist in getter",
 		},
 		{
 			name: "with Struct with non-existed name",
@@ -588,7 +615,7 @@ func TestFromKeys(t *testing.T) {
 				chain: fs[3].FromKeys(fks[3]),
 			},
 			wantError:       true,
-			wantErrorString: "Error in name: NonExist, key: NonExist. [name NonExist does not exist]",
+			wantErrorString: "error Into() key [NonExist]: name [NonExist] does not exist",
 		},
 		{
 			name: "with Struct with existed name and Find with non-existed name",
@@ -596,11 +623,12 @@ func TestFromKeys(t *testing.T) {
 				chain: fs[4].FromKeys(fks[4]),
 			},
 			wantError:       true,
-			wantErrorString: "field name NonExist does not exist",
+			wantErrorString: "field name [NonExist] does not exist in getter",
 		},
 	}
 
 	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
 		t.Run(tt.name, func(t *testing.T) {
 			// FIXME: comment out t.Parallel() because of race condition
 			// t.Parallel()

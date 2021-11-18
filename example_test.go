@@ -45,6 +45,7 @@ func ExampleGetter() {
 		age,
 		company,
 	)
+
 	// Output:
 	// num of fields=3
 	// field names=[Name Age Company]
@@ -108,6 +109,7 @@ func ExampleGetter_MapGet() {
 	}
 
 	fmt.Printf("%#v", intfs)
+
 	// Output:
 	// []interface {}{"You worked for 3 years since you joined the company Tiger inc.", "You worked for 4 years since you joined the company Dragon inc."}
 }
@@ -182,6 +184,7 @@ func ExampleFinder() {
 	}
 
 	fmt.Printf("%#v", m)
+
 	// Output:
 	// map[string]interface {}{"Company>Address":"New York", "Company>Group>Boss":"Donald", "Company>Group>Name":"YYY Group Holdings", "School":structil.School{Name:"ABC College", GraduatedYear:1995}}
 }
@@ -265,6 +268,7 @@ func ExampleFinder_FromKeys_yml() {
 	}
 
 	fmt.Printf("%#v", m)
+
 	// Output:
 	// map[string]interface {}{"Age":45, "Company.Address":"New York", "Company.Group.Boss":"Donald", "Company.Group.Name":"YYY Group Holdings", "Company.Period":20, "Name":"Joe Davis"}
 }
@@ -348,6 +352,7 @@ func ExampleFinder_FromKeys_json() {
 	}
 
 	fmt.Printf("%#v", m)
+
 	// Output:
 	// map[string]interface {}{"Age":45, "Company.Address":"New York", "Company.Group.Boss":"Donald", "Company.Group.Name":"YYY Group Holdings", "Company.Period":20, "Name":"Joe Davis"}
 }

@@ -119,12 +119,19 @@ lint: mod-tools-install
 vet:
 	@$(LOCAL_GO) vet $(PKGS)
 
+.PHONY: shellcheck
+shellcheck:
+	@shellcheck ./scripts/*.sh
+
+-confirm-shellcheck-version:
+	@shellcheck --version
+
 .PHONY: ci-test
 ci-test:
 	@./scripts/ci-test.sh
 
 .PHONY: ci
-ci: ci-test vet lint
+ci: ci-test vet lint -confirm-shellcheck-version shellcheck
 
 ###
 # run benchmark and profile

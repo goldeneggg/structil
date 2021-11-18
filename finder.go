@@ -13,12 +13,13 @@ const (
 )
 
 // Finder is the struct that builds the nested struct finder.
+// All methods are NOT goroutine safe yet (TODO:)
 type Finder struct {
 	topLevelGetter *Getter
-	gMap           map[string]*Getter
-	fMap           map[string][]string
-	eMap           map[string][]error
-	ck             string
+	getterMap      map[string]*Getter
+	namesMap       map[string][]string
+	errMap         map[string][]error
+	curKey         string
 	sep            string
 }
 
@@ -49,12 +50,40 @@ func NewFinderWithGetter(g *Getter) (*Finder, error) {
 // g must be a Getter
 func NewFinderWithGetterAndSep(g *Getter, sep string) (*Finder, error) {
 	if sep == "" {
-		return nil, fmt.Errorf("sep [%s] is invalid", sep)
+		return nil, fmt.Errorf("cannot use empty separator")
 	}
 
 	f := &Finder{topLevelGetter: g, sep: sep}
 
 	return f.Reset(), nil
+}
+
+// HasError tests whether this Finder have any errors.
+func (f *Finder) HasError() bool {
+	for _, errs := range f.errMap {
+		if len(errs) > 0 {
+			return true
+		}
+	}
+
+	return false
+}
+
+// Error returns error string.
+func (f *Finder) Error() string {
+	var es []string
+
+	for _, errs := range f.errMap {
+		if len(errs) > 0 {
+			es = make([]string, len(errs))
+			for i, err := range errs {
+				es[i] = err.Error()
+			}
+		}
+	}
+
+	// TODO: prettize
+	return strings.Join(es, "\n")
 }
 
 // FindTop returns a Finder that top level fields in struct are looked up and held named names.
@@ -65,7 +94,7 @@ func (f *Finder) FindTop(names ...string) *Finder {
 
 // Find returns a Finder that fields in struct are looked up and held named names.
 func (f *Finder) Find(names ...string) *Finder {
-	return f.find(f.ck, names...)
+	return f.find(f.curKey, names...)
 }
 
 func (f *Finder) find(fKey string, names ...string) *Finder {
@@ -73,8 +102,8 @@ func (f *Finder) find(fKey string, names ...string) *Finder {
 		return f
 	}
 
-	f.fMap[fKey] = make([]string, len(names))
-	copy(f.fMap[fKey], names)
+	f.namesMap[fKey] = make([]string, len(names))
+	copy(f.namesMap[fKey], names)
 
 	return f
 }
@@ -85,7 +114,7 @@ func (f *Finder) Into(names ...string) *Finder {
 		return f
 	}
 
-	f.ck = topLevelKey
+	f.curKey = topLevelKey
 
 	var nextGetter *Getter
 	var ok bool
@@ -105,32 +134,32 @@ func (f *Finder) Into(names ...string) *Finder {
 		}
 		err = nil
 
-		nextGetter, ok = f.gMap[nextKey]
+		nextGetter, ok = f.getterMap[nextKey]
 		if !ok {
-			if f.gMap[f.ck].Has(name) {
-				intf, _ = f.gMap[f.ck].Get(name)
+			if f.getterMap[f.curKey].Has(name) {
+				intf, _ = f.getterMap[f.curKey].Get(name)
 				nextGetter, err = NewGetter(intf)
 			} else {
-				err = fmt.Errorf("name %s does not exist", name)
+				err = fmt.Errorf("name [%s] does not exist", name)
 			}
 		}
 
 		if err != nil {
-			f.addError(nextKey, fmt.Errorf("Error in name: %s, key: %s. [%v]", name, nextKey, err))
+			f.addError(nextKey, fmt.Errorf("error Into() key [%s]: %w", nextKey, err))
 		}
 
-		f.gMap[nextKey] = nextGetter
-		f.ck = nextKey
+		f.getterMap[nextKey] = nextGetter
+		f.curKey = nextKey
 	}
 
 	return f
 }
 
 func (f *Finder) addError(key string, err error) *Finder {
-	if _, ok := f.eMap[key]; !ok {
-		f.eMap[key] = make([]error, 0, 3)
+	if _, ok := f.errMap[key]; !ok {
+		f.errMap[key] = make([]error, 0, 3)
 	}
-	f.eMap[key] = append(f.eMap[key], err)
+	f.errMap[key] = append(f.errMap[key], err)
 
 	return f
 }
@@ -178,8 +207,9 @@ func (f *Finder) ToMap() (map[string]interface{}, error) {
 	res := map[string]interface{}{}
 	var key string
 
-	for kg, getter := range f.gMap {
-		for _, name := range f.fMap[kg] {
+	// kg is separated by f.sep step-by-step
+	for kg, getter := range f.getterMap {
+		for _, name := range f.namesMap[kg] {
 			if kg == topLevelKey {
 				key = name
 			} else {
@@ -187,7 +217,7 @@ func (f *Finder) ToMap() (map[string]interface{}, error) {
 			}
 
 			if !getter.Has(name) {
-				f.addError(key, fmt.Errorf("field name %s does not exist", name))
+				f.addError(key, fmt.Errorf("field name [%s] does not exist in getter", name))
 				break
 			}
 
@@ -202,33 +232,53 @@ func (f *Finder) ToMap() (map[string]interface{}, error) {
 	return res, nil
 }
 
-// HasError tests whether this Finder have any errors.
-func (f *Finder) HasError() bool {
-	for _, errs := range f.eMap {
-		if len(errs) > 0 {
-			return true
-		}
+// ToNestedMap preturns a map converted from struct with nested keys.
+// FIXME: EXPERIMENTAL (this method has a bug)
+/*
+func (f *Finder) ToNestedMap() (map[string]interface{}, error) {
+	if f.HasError() {
+		return nil, f
 	}
 
-	return false
-}
+	res := map[string]interface{}{}
 
-// Error returns error string.
-func (f *Finder) Error() string {
-	var es []string
+	for kg, getter := range f.getterMap {
+		m := map[string]interface{}{}
 
-	for _, errs := range f.eMap {
-		if len(errs) > 0 {
-			es = make([]string, len(errs))
-			for i, err := range errs {
-				es[i] = err.Error()
+		for _, name := range f.namesMap[kg] {
+			i, ok := getter.Get(name)
+			if !ok {
+				var eKey string
+				if kg == topLevelKey {
+					eKey = name
+				} else {
+					eKey = kg + f.sep + name
+				}
+				f.addError(eKey, fmt.Errorf("field name %s does not exist in getter", name))
+				break
+			}
+
+			m[name] = i
+		}
+
+		if !f.HasError() {
+			if kg == topLevelKey {
+				res = m
+			} else {
+				sepKeys := strings.Split(kg, f.sep)
+				sepKeysLen := len(sepKeys)
+				res[sepKeys[sepKeysLen-1]] = m
 			}
 		}
 	}
 
-	// TODO: prettize
-	return strings.Join(es, "\n")
+	if f.HasError() {
+		return nil, f
+	}
+
+	return res, nil
 }
+*/
 
 // GetNameSeparator returns the separator string for nested struct name separating.
 // Default is "." (dot).
@@ -238,17 +288,17 @@ func (f *Finder) GetNameSeparator() string {
 
 // Reset resets the current build Finder.
 func (f *Finder) Reset() *Finder {
-	gMap := map[string]*Getter{}
-	gMap[topLevelKey] = f.topLevelGetter
-	f.gMap = gMap
+	getterMap := map[string]*Getter{}
+	getterMap[topLevelKey] = f.topLevelGetter
+	f.getterMap = getterMap
 
-	fMap := map[string][]string{}
-	f.fMap = fMap
+	namesMap := map[string][]string{}
+	f.namesMap = namesMap
 
-	eMap := map[string][]error{}
-	f.eMap = eMap
+	errMap := map[string][]error{}
+	f.errMap = errMap
 
-	f.ck = topLevelKey
+	f.curKey = topLevelKey
 
 	return f
 }
@@ -282,7 +332,7 @@ func NewFinderKeys(dir string, baseName string) (*FinderKeys, error) {
 
 func newFinderKeysFromConf(ck confKeys) (*FinderKeys, error) {
 	if len(ck.Keys) == 0 {
-		return nil, fmt.Errorf("failed to parse or no keys exist in file")
+		return nil, fmt.Errorf("confKeys does not have some Keys")
 	}
 
 	fks := &FinderKeys{keys: make([]string, 0, len(ck.Keys)+1)}
@@ -348,7 +398,7 @@ func (fks *FinderKeys) addRecursive(key interface{}, prefix string) error {
 			}
 		}
 	default:
-		return fmt.Errorf("unsupported type: %#v, prefix: %s", t, prefix)
+		return fmt.Errorf("fail to addRecursive prefix = [%s], key type = %#v", prefix, t)
 	}
 
 	return nil

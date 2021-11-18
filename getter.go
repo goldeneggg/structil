@@ -3,6 +3,7 @@ package structil
 import (
 	"fmt"
 	"reflect"
+	"sync"
 	"unsafe"
 
 	"github.com/goldeneggg/structil/util"
@@ -18,38 +19,42 @@ type Getter struct {
 	values map[string]reflect.Value // Value map of indirected struct fields
 	intfs  map[string]interface{}   // interface map of struct fields
 	cached map[string]bool
+	mu     sync.RWMutex
 }
 
 // NewGetter returns a concrete Getter that uses and obtains from i.
 // i must be a struct or struct pointer.
 func NewGetter(i interface{}) (*Getter, error) {
+	// prepare check
 	rv := reflect.ValueOf(i)
 	kind := rv.Kind()
-
 	if kind != reflect.Ptr && kind != reflect.Struct {
-		return nil, fmt.Errorf("%+v is not supported kind: %v. value: %+v", i, kind, rv)
+		return nil, fmt.Errorf("kind [%v] is not either struct or pointer. i = [%+v]", kind, i)
 	}
-
 	if kind == reflect.Ptr {
 		rv = reflect.Indirect(rv)
 	}
-
 	if !rv.IsValid() {
-		return nil, fmt.Errorf("%+v is invalid argument. value: %+v", i, rv)
+		return nil, fmt.Errorf("reflect.Value is invalid. i = [%+v]", i)
 	}
 
-	numf := rv.NumField()
+	// initialize
+	g := &Getter{rv: rv}
+	g.numf = rv.NumField()
 
-	return &Getter{
-		rv:     rv,
-		numf:   numf,
-		names:  make([]string, 0, numf),
-		hases:  map[string]bool{},
-		values: map[string]reflect.Value{},
-		types:  map[string]reflect.Type{},
-		intfs:  map[string]interface{}{},
-		cached: map[string]bool{},
-	}, nil
+	var sf reflect.StructField
+	for i := 0; i < g.numf; i++ {
+		sf = g.rv.Type().Field(i)
+		g.names = append(g.names, sf.Name)
+	}
+
+	g.hases = make(map[string]bool)
+	g.values = make(map[string]reflect.Value)
+	g.types = make(map[string]reflect.Type)
+	g.intfs = make(map[string]interface{})
+	g.cached = make(map[string]bool)
+
+	return g, nil
 }
 
 // NumField returns num of struct field.
@@ -57,73 +62,93 @@ func (g *Getter) NumField() int {
 	return g.numf
 }
 
+// Names returns names of struct field.
+func (g *Getter) Names() []string {
+	return g.names
+}
+
+func (g *Getter) prepare(name string) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	// confirm if name is already accessed
+	_, ok := g.cached[name]
+
+	// cache if not yet
+	if !ok {
+		frv := g.rv.FieldByName(name)
+		if frv.IsValid() {
+			g.types[name] = frv.Type()
+			g.hases[name] = true
+		} else {
+			g.types[name] = nil
+			g.hases[name] = false
+		}
+
+		frv = reflect.Indirect(frv)
+		g.values[name] = frv
+		g.intfs[name] = util.ToI(frv)
+		g.cached[name] = true
+	}
+}
+
 // Has tests whether the original struct has a field named name arg.
 func (g *Getter) Has(name string) bool {
-	if _, ok := g.cached[name]; !ok {
-		g.cache(name)
-	}
+	g.prepare(name)
 
+	g.mu.RLock()
+	defer g.mu.RUnlock()
 	return g.hases[name]
 }
 
-func (g *Getter) cache(name string) {
-	frv := g.rv.FieldByName(name)
-	if frv.IsValid() {
-		g.types[name] = frv.Type()
-		g.hases[name] = true
-	} else {
-		g.types[name] = nil
-		g.hases[name] = false
+func (g *Getter) is(name string, exp reflect.Kind) bool {
+	if !g.Has(name) {
+		return false
 	}
 
-	frv = reflect.Indirect(frv)
-	g.values[name] = frv
-	g.intfs[name] = util.ToI(frv)
-	g.cached[name] = true
-}
-
-// Names returns names of struct field.
-func (g *Getter) Names() []string {
-	// to setup g.names is run only once
-	if g.numf > 0 && len(g.names) == 0 {
-		var sf reflect.StructField
-		for i := 0; i < g.numf; i++ {
-			sf = g.rv.Type().Field(i)
-			g.names = append(g.names, sf.Name)
-		}
-	}
-
-	return g.names
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	return g.values[name].Kind() == exp
 }
 
 // GetType returns the reflect.Type object of the original struct field named name.
 // 2nd return value will be false if the original struct does not have a "name" field.
 func (g *Getter) GetType(name string) (reflect.Type, bool) {
-	if _, ok := g.cached[name]; !ok {
-		g.cache(name)
-	}
+	g.prepare(name)
 
+	g.mu.RLock()
+	defer g.mu.RUnlock()
 	return g.types[name], g.hases[name]
 }
 
 // GetValue returns the reflect.Value object of the original struct field named name.
 // 2nd return value will be false if the original struct does not have a "name" field.
 func (g *Getter) GetValue(name string) (reflect.Value, bool) {
-	if _, ok := g.cached[name]; !ok {
-		g.cache(name)
-	}
+	g.prepare(name)
 
+	g.mu.RLock()
+	defer g.mu.RUnlock()
 	return g.values[name], g.hases[name]
 }
 
 // Get returns the interface of the original struct field named name.
 // 2nd return value will be false if the original struct does not have a "name" field.
 func (g *Getter) Get(name string) (interface{}, bool) {
-	if _, ok := g.cached[name]; !ok {
-		g.cache(name)
+	g.prepare(name)
+
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	return g.intfs[name], g.hases[name]
+}
+
+// ToMap returns a map converted from this Getter.
+func (g *Getter) ToMap() map[string]interface{} {
+	m := make(map[string]interface{})
+	for _, nm := range g.Names() {
+		m[nm], _ = g.Get(nm)
 	}
 
-	return g.intfs[name], g.hases[name]
+	return m
 }
 
 // Bool returns the byte of the original struct field named name.
@@ -386,6 +411,36 @@ func (g *Getter) UnsafePointer(name string) (unsafe.Pointer, bool) {
 	return res, ok
 }
 
+// Slice returns the slice of interface of the original struct field named name.
+// 2nd return value will be false if the original struct does not have a "name" field.
+// 2nd return value will be false if type of the original struct "name" field is not slice of interface.
+func (g *Getter) Slice(name string) ([]interface{}, bool) {
+	if !g.IsSlice(name) {
+		return nil, false
+	}
+
+	// See: https://golang.org/doc/faq#convert_slice_of_interface
+	v, _ := g.GetValue(name)
+	iSlice := make([]interface{}, v.Len())
+	for i := 0; i < v.Len(); i++ {
+		iSlice[i] = v.Index(i).Interface()
+	}
+	return iSlice, true
+}
+
+// GetGetter returns the Getter of interface of the original struct field named name.
+// 2nd return value will be false if the original struct does not have a "name" field.
+// 2nd return value will be false if type of the original struct "name" field is not struct or struct pointer.
+func (g *Getter) GetGetter(name string) (*Getter, bool) {
+	if !g.IsStruct(name) {
+		return nil, false
+	}
+
+	i, _ := g.Get(name)
+	g, err := NewGetter(i)
+	return g, err == nil
+}
+
 // IsByte reports whether type of the original struct field named name is byte.
 func (g *Getter) IsByte(name string) bool {
 	return g.is(name, reflect.Uint8)
@@ -522,14 +577,6 @@ func (g *Getter) IsArray(name string) bool {
 	return g.is(name, reflect.Array)
 }
 
-func (g *Getter) is(name string, exp reflect.Kind) bool {
-	if !g.Has(name) {
-		return false
-	}
-
-	return g.values[name].Kind() == exp
-}
-
 // MapGet returns the interface slice of mapped values of the original struct field named name.
 func (g *Getter) MapGet(name string, f func(int, *Getter) (interface{}, error)) ([]interface{}, error) {
 	if !g.IsSlice(name) {
@@ -548,12 +595,12 @@ func (g *Getter) MapGet(name string, f func(int, *Getter) (interface{}, error)) 
 		vi = srv.Index(i)
 		eg, err = NewGetter(util.ToI(vi))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("fail NewGetter: %w", err)
 		}
 
 		r, err = f(i, eg)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("fail MapGet func: %w", err)
 		}
 
 		res[i] = r

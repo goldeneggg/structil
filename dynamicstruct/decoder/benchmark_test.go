@@ -9,7 +9,7 @@ import (
 func BenchmarkDynamicStructSingleJSON(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		d, _ := New(singleJSON, TypeJSON)
+		d, _ := FromJSON(singleJSON)
 		_, _ = d.DynamicStruct(false, false)
 	}
 }
@@ -17,7 +17,7 @@ func BenchmarkDynamicStructSingleJSON(b *testing.B) {
 func BenchmarkDynamicStructArrayJSON(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		d, _ := New(arrayJSON, TypeJSON)
+		d, _ := FromJSON(arrayJSON)
 		_, _ = d.DynamicStruct(false, false)
 	}
 }
@@ -25,7 +25,7 @@ func BenchmarkDynamicStructArrayJSON(b *testing.B) {
 func BenchmarkDynamicStructSingleYAML(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		d, _ := New(singleYAML, TypeYAML)
+		d, _ := FromYAML(singleYAML)
 		_, _ = d.DynamicStruct(false, false)
 	}
 }
@@ -33,7 +33,7 @@ func BenchmarkDynamicStructSingleYAML(b *testing.B) {
 func BenchmarkDynamicStructArrayYAML(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		d, _ := New(arrayYAML, TypeYAML)
+		d, _ := FromYAML(arrayYAML)
 		_, _ = d.DynamicStruct(false, false)
 	}
 }
