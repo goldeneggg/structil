@@ -45,6 +45,7 @@ func Example() {
 	// Print struct definition with Definition method
 	// Struct fields are automatically orderd by field name
 	fmt.Println(ds.Definition())
+
 	// Output:
 	// type MyStruct struct {
 	// 	BoolField bool
@@ -122,6 +123,7 @@ func Example_unmarshalJSON() {
 		strct,
 		sl,
 	)
+
 	// Output:
 	// type DynamicStruct struct {
 	// 	BoolField bool `json:"bool_field"`

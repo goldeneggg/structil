@@ -80,19 +80,26 @@ func main() {
 }
 `)
 
-	jsonDec, err := decoder.FromJSON(unknownJSON)
+  // create `Decoder` from JSON
+	dec, err := decoder.FromJSON(unknownJSON)
 	if err != nil {
 		panic(err)
 	}
 
-	nest := true
-	useTag := true
-	ds, err := jsonDec.DynamicStruct(nest, useTag)
+  // - If `nest` is true, nested object attributes will be also decoded to struct recursively
+  // - If `nest` is false, nested object attributes will be decoded to `map[string]interface{}`
+  nest := true
+
+  // - If `useTag` is true, JSON Struct tags are defined
+  useTag := true
+
+  // create `DynamicStruct` from `Decoder`
+  ds, err := dec.DynamicStruct(nest, useTag)
 	if err != nil {
 		panic(err)
 	}
 
-	// Print struct definition from DynamicStruct
+	// print struct definition from `DynamicStruct`
 	fmt.Println(ds.Definition())
 }
 ```
@@ -100,6 +107,9 @@ func main() {
 This program will print a Go struct definition string as follows.
 
 ```go
+// - Type name is "DynamicStruct" (raname is available)
+// - Field names are automatically camelized from input json attribute names
+// - Fields are ordered by field name
 type DynamicStruct struct {
         ArrayStringField []string `json:"array_string_field"`
         ArrayStructField []struct {
@@ -121,12 +131,6 @@ type DynamicStruct struct {
 }
 ```
 
-- Type name is "DynamicStruct"
-- Field names are automatically camelized from input json attribute names
-- Fields are ordered by field name
-- If `nest` is true, nested object attributes will be also decoded to struct recursively
-- If `useTag` is true, JSON Struct tags are defined
-
 And see [example code](/dynamicstruct/decoder/example_test.go#L9).
 
 ## More Examples
@@ -140,6 +144,28 @@ See [example code](/dynamicstruct/decoder/example_test.go#L76).
 #### What is `Getter`?
 
 We can access a struct using field name string, like (typed) map with `structil.NewGetter` function.
+
+```go
+g, err := structil.NewGetter(structOrStructPointerVariable)
+
+// get num of struct fields
+g.NumField()
+
+// names of struct fields
+g.Names()
+
+// return true if struct has a "fname" field
+g.Has(fname)
+
+// get "fname" field value of the original struct as string 
+g.String(fname)
+
+// return true if "fname" field value of the original struct is float64
+g.IsFloat64(fname)
+
+// convert from struct to map[string]interface{}
+g.ToMap()
+```
 
 See [example code](/example_test.go#L7)
 
