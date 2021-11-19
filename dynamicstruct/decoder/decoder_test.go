@@ -707,8 +707,6 @@ func TestDynamicStructJSON(t *testing.T) {
 			nest:     false,
 			useTag:   false,
 			wantNumF: 0,
-			// FIXME: 空JSONでfiledが無いstructが出力される挙動になっているが、見直すべきか？
-			//wantErrorDs:    true,
 			wantDefinition: `type DynamicStruct struct {
 }`,
 		},
@@ -719,8 +717,6 @@ func TestDynamicStructJSON(t *testing.T) {
 			nest:     false,
 			useTag:   false,
 			wantNumF: 0,
-			// FIXME: "[]" でfiledが無いstructが出力される挙動になっているが、見直すべきか？
-			//wantErrorDs:    true,
 			wantDefinition: `type DynamicStruct struct {
 }`,
 		},
