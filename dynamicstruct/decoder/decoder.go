@@ -189,7 +189,8 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag 
 			tag = fmt.Sprintf(`%s:"%s"`, d.dt.string(), k)
 		}
 
-		// FIXME: the first character of k should be only alpha-numeric (e.g. "@" is invalid as first character)
+		// FIXME: the first character of k should be only alpha-numeric
+		// "@" や "/" は置換対応が必要かも
 		name = strcase.ToCamel(k)
 
 		// See: https://golang.org/pkg/encoding/json/#Unmarshal
