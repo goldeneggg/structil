@@ -45,9 +45,8 @@ func newDecoder(data []byte, dt dataType) (*Decoder, error) {
 			switch tt := t[0].(type) {
 			case map[string]interface{}:
 				dec.strKeyMap = tt
-				// FIXME: 初期化時にkeyがstringのmapを生成しているので、このブロックはまるごと不要なはず
-				// case map[interface{}]interface{}:
-				// 	dec.strKeyMap = toStringKeyMap(tt)
+			case map[interface{}]interface{}:
+				dec.strKeyMap = toStringKeyMap(tt)
 			default:
 				return nil, fmt.Errorf("unexpected type of t[0] [%v]", tt)
 			}
