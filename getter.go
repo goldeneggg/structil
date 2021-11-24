@@ -123,9 +123,9 @@ func (g *Getter) GetType(name string) (reflect.Type, bool) {
 	gf, ok := g.getSafely(name)
 	if ok {
 		return gf.typ, true
-	} else {
-		return nil, false
 	}
+
+	return nil, false
 }
 
 // GetValue returns the reflect.Value object of the original struct field named "name".
@@ -134,9 +134,9 @@ func (g *Getter) GetValue(name string) (reflect.Value, bool) {
 	gf, ok := g.getSafely(name)
 	if ok {
 		return gf.indirect, true
-	} else {
-		return reflect.Value{}, false
 	}
+
+	return reflect.Value{}, false
 }
 
 // Get returns the interface of the original struct field named name.
@@ -145,9 +145,9 @@ func (g *Getter) Get(name string) (interface{}, bool) {
 	gf, ok := g.getSafely(name)
 	if ok {
 		return gf.intf, true
-	} else {
-		return nil, false
 	}
+
+	return nil, false
 }
 
 // ToMap returns a map converted from this Getter.
