@@ -178,9 +178,11 @@ func (g *Getter) Slice(name string) ([]interface{}, bool) {
 		return nil, false
 	}
 
+	len := gf.indirect.Len()
+
 	// See: https://golang.org/doc/faq#convert_slice_of_interface
-	iSlice := make([]interface{}, gf.indirect.Len())
-	for i := 0; i < gf.indirect.Len(); i++ {
+	iSlice := make([]interface{}, len)
+	for i := 0; i < len; i++ {
 		iSlice[i] = gf.indirect.Index(i).Interface()
 	}
 	return iSlice, true
