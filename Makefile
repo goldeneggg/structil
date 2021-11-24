@@ -20,7 +20,7 @@ TOOL_PKGS = $(shell cat ./tools/tools.go | grep _ | awk -F'"' '{print $$2}')
 assert-command = $(if $(shell which $1),,$(error '$1' command is missing))
 
 
-.DEFAULT_GOAL := test
+.DEFAULT_GOAL := local
 
 
 ###
@@ -118,6 +118,9 @@ lint: mod-tools-install
 .PHONY: vet
 vet:
 	@$(LOCAL_GO) vet $(PKGS)
+
+.PHONY: local
+local: test lint vet
 
 .PHONY: shellcheck
 shellcheck:
