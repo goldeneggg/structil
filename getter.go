@@ -108,10 +108,6 @@ func (g *Getter) getSafely(name string) (*getterField, bool) {
 // goroutine-safely and kind-safely access to a getterField by name
 func (g *Getter) getSafelyKindly(name string, kind reflect.Kind) (*getterField, bool) {
 	gf, ok := g.getSafely(name)
-	if kind == reflect.Invalid {
-		return gf, ok
-	}
-
 	return gf, ok && gf.isKind(kind)
 }
 
