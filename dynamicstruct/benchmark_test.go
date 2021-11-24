@@ -143,6 +143,16 @@ func BenchmarkBuildNonPtr(b *testing.B) {
 	}
 }
 
+func BenchmarkNewInterface(b *testing.B) {
+	builder := newTestBuilder() // See: dynamicstruct_test.go
+	ds, _ := builder.Build()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = ds.NewInterface()
+	}
+}
+
 func BenchmarkDefinition(b *testing.B) {
 	builder := newTestBuilder() // See: dynamicstruct_test.go
 	ds, _ := builder.Build()

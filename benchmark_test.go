@@ -121,6 +121,22 @@ func BenchmarkGetterString(b *testing.B) {
 	}
 }
 
+func BenchmarkGetterBytes(b *testing.B) {
+	var bytes []byte
+
+	g, err := newTestGetter() // See: getter_test.go
+	if err != nil {
+		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
+		return
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		bytes, _ = g.Bytes("Bytes")
+		_ = bytes
+	}
+}
+
 func BenchmarkGetterUintptr(b *testing.B) {
 	var up uintptr
 
@@ -150,6 +166,54 @@ func BenchmarkGetterUnsafePointer(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		up, _ = g.UnsafePointer("Unsafeptr")
 		_ = up
+	}
+}
+
+func BenchmarkGetterSlice_StructPtrSlice(b *testing.B) {
+	var sl []interface{}
+
+	g, err := newTestGetter() // See: getter_test.go
+	if err != nil {
+		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
+		return
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		sl, _ = g.Slice("GetterTestStruct4PtrSlice")
+		_ = sl
+	}
+}
+
+func BenchmarkGetterGetGetter(b *testing.B) {
+	var gg *Getter
+
+	g, err := newTestGetter() // See: getter_test.go
+	if err != nil {
+		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
+		return
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		gg, _ = g.GetGetter("GetterTestStruct2")
+		_ = gg
+	}
+}
+
+func BenchmarkGetterToMap(b *testing.B) {
+	var m map[string]interface{}
+
+	g, err := newTestGetter() // See: getter_test.go
+	if err != nil {
+		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
+		return
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		m = g.ToMap()
+		_ = m
 	}
 }
 
