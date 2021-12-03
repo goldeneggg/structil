@@ -707,8 +707,6 @@ func TestDynamicStructJSON(t *testing.T) {
 			nest:     false,
 			useTag:   false,
 			wantNumF: 0,
-			// FIXME: 空JSONでfiledが無いstructが出力される挙動になっているが、見直すべきか？
-			//wantErrorDs:    true,
 			wantDefinition: `type DynamicStruct struct {
 }`,
 		},
@@ -719,8 +717,6 @@ func TestDynamicStructJSON(t *testing.T) {
 			nest:     false,
 			useTag:   false,
 			wantNumF: 0,
-			// FIXME: "[]" でfiledが無いstructが出力される挙動になっているが、見直すべきか？
-			//wantErrorDs:    true,
 			wantDefinition: `type DynamicStruct struct {
 }`,
 		},
@@ -1018,28 +1014,51 @@ string_array_field:
 			},
 		},
 		{
-			name: "HasObjectInArray",
+			name: "TopLevelIsArrayObject",
 			data: []byte(`
-string_field: あああ
-object_array_field:
- - nest_str: aaa
-   nest_num: 23
- - nest_str: bbb
-   nest_num: 34
+- fieldA: aaa
+  fieldB: 23
+- fieldA: bbb
+  fieldB: 34
 `),
 			dt:       typeYAML,
 			nest:     false,
 			useTag:   false,
 			wantNumF: 2,
 			wantDefinition: `type DynamicStruct struct {
-	ObjectArrayField []map[string]interface {}
-	StringField string
+	FieldA string
+	FieldB int
 }`,
 			fieldAndNestFields: map[string][]string{
-				"ObjectArrayField": nil,
-				"StringField":      nil,
+				"FieldA": nil,
+				"FieldB": nil,
 			},
 		},
+
+		// FIXME: おそらくHasArrayObjectとduplicate
+		// 		{
+		// 			name: "HasObjectInArray",
+		// 			data: []byte(`
+		// string_field: あああ
+		// object_array_field:
+		//  - nest_str: aaa
+		//    nest_num: 23
+		//  - nest_str: bbb
+		//    nest_num: 34
+		// `),
+		// 			dt:       typeYAML,
+		// 			nest:     false,
+		// 			useTag:   false,
+		// 			wantNumF: 2,
+		// 			wantDefinition: `type DynamicStruct struct {
+		// 	ObjectArrayField []map[string]interface {}
+		// 	StringField string
+		// }`,
+		// 			fieldAndNestFields: map[string][]string{
+		// 				"ObjectArrayField": nil,
+		// 				"StringField":      nil,
+		// 			},
+		// 		},
 		{
 			name:         "Empty",
 			data:         []byte(``),

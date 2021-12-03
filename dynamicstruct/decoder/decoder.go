@@ -45,9 +45,8 @@ func newDecoder(data []byte, dt dataType) (*Decoder, error) {
 			switch tt := t[0].(type) {
 			case map[string]interface{}:
 				dec.strKeyMap = tt
-				// FIXME: 初期化時にkeyがstringのmapを生成しているので、このブロックはまるごと不要なはず
-				// case map[interface{}]interface{}:
-				// 	dec.strKeyMap = toStringKeyMap(tt)
+			case map[interface{}]interface{}:
+				dec.strKeyMap = toStringKeyMap(tt)
 			default:
 				return nil, fmt.Errorf("unexpected type of t[0] [%v]", tt)
 			}
@@ -189,7 +188,8 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag 
 			tag = fmt.Sprintf(`%s:"%s"`, d.dt.string(), k)
 		}
 
-		// FIXME: the first character of k should be only alpha-numeric (e.g. "@" is invalid as first character)
+		// FIXME: the first character of k should be only alpha-numeric
+		// "@" や "/" は置換対応が必要かも
 		name = strcase.ToCamel(k)
 
 		// See: https://golang.org/pkg/encoding/json/#Unmarshal
