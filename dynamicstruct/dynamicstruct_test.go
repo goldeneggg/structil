@@ -7,9 +7,6 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/iancoleman/strcase"
-
-	"github.com/goldeneggg/structil"
 
 	. "github.com/goldeneggg/structil/dynamicstruct"
 )
@@ -829,40 +826,12 @@ type buildTest struct {
 	wantStructName      string
 	wantNumField        int
 	wantDefinition      string
-	decodedMap          map[string]interface{}
 	camelizeKeys        bool
-	wantErrorDecodeMap  bool
 	tryAddDynamicStruct bool
 }
 
 func TestBuilderBuild(t *testing.T) {
 	t.Parallel()
-
-	testMap := map[string]interface{}{
-		"string_field":  "XXXyyy",
-		"int_field":     3456,
-		"byte_field":    byte(2),
-		"float32_field": float32(0.98),
-		"float64_field": float64(9.012),
-		"bool_field":    true,
-		"map_field":     map[string]float32{"map_field_key": float32(1.2)},
-		//"func_field":   func(i1 int, i2 int) (bool, error) { return true, nil },  // FIXME: func support
-		"struct_field": DynamicTestStruct{String: "Xyz"},
-		"slice_field":  []*DynamicTestStruct{{String: "Abc1"}, {String: "Abc2"}},
-	}
-
-	testCamelizedMap := map[string]interface{}{
-		"StringField":  "ABCDEFGH",
-		"IntField":     987,
-		"ByteField":    byte(1),
-		"Float32Field": float32(1.23),
-		"Float64Field": float64(2.3),
-		"BoolField":    true,
-		"MapField":     map[string]float32{"mfkey": float32(4.56)},
-		//"FuncField":   func(i1 int, i2 int) (bool, error) { return true, nil },  // FIXME: func support
-		"StructField": DynamicTestStruct{String: "Hoge"},
-		"SliceField":  []*DynamicTestStruct{{String: "Huga1"}, {String: "Huga2"}},
-	}
 
 	tests := []buildTest{
 		{
@@ -872,7 +841,6 @@ func TestBuilderBuild(t *testing.T) {
 			wantStructName:      "DynamicStruct",
 			wantNumField:        32, // See: newTestBuilder()
 			wantDefinition:      expectedDefinition,
-			decodedMap:          testMap,
 			camelizeKeys:        true,
 			tryAddDynamicStruct: true,
 		},
@@ -883,17 +851,14 @@ func TestBuilderBuild(t *testing.T) {
 			wantStructName:      "DynamicStruct",
 			wantNumField:        32, // See: newTestBuilder()
 			wantDefinition:      expectedDefinition,
-			decodedMap:          testCamelizedMap,
 			tryAddDynamicStruct: true,
 		},
 		{
-			name:               "BuildNonPtr() with valid Builder",
-			args:               buildArgs{builder: newTestBuilder(), isPtr: false},
-			wantIsPtr:          false,
-			wantStructName:     "DynamicStruct",
-			wantNumField:       32,
-			decodedMap:         testCamelizedMap,
-			wantErrorDecodeMap: true, // Note: can't execute DecodeMap if dynamic struct is NOT pointer.
+			name:           "BuildNonPtr() with valid Builder",
+			args:           buildArgs{builder: newTestBuilder(), isPtr: false},
+			wantIsPtr:      false,
+			wantStructName: "DynamicStruct",
+			wantNumField:   32,
 		},
 		{
 			name:           "Build() with valid Builder with struct name",
@@ -901,7 +866,6 @@ func TestBuilderBuild(t *testing.T) {
 			wantIsPtr:      true,
 			wantStructName: "HogeHuga",
 			wantNumField:   32, // See: newTestBuilder()
-			decodedMap:     testCamelizedMap,
 			camelizeKeys:   true,
 		},
 	}
@@ -931,12 +895,6 @@ func TestBuilderBuild(t *testing.T) {
 
 			if !testBuilderBuildTag(t, ds, tt) {
 				return
-			}
-
-			if tt.decodedMap != nil {
-				if !testBuilderBuildDecodeMap(t, ds, tt) {
-					return
-				}
 			}
 
 			if tt.tryAddDynamicStruct {
@@ -1036,67 +994,6 @@ func testBuilderBuildTag(t *testing.T, ds *DynamicStruct, tt buildTest) bool {
 			}
 		} else {
 			t.Fatalf("Field %s does not exist.", fName)
-		}
-	}
-
-	return true
-}
-
-func testBuilderBuildDecodeMap(t *testing.T, ds *DynamicStruct, tt buildTest) bool {
-	t.Helper()
-
-	var dec interface{}
-	var err error
-	if tt.camelizeKeys {
-		dec, err = ds.DecodeMapWithKeyCamelize(tt.decodedMap)
-	} else {
-		dec, err = ds.DecodeMap(tt.decodedMap)
-	}
-
-	if err != nil {
-		if !tt.wantErrorDecodeMap {
-			t.Fatalf("unexpected error occurred from DecodeMap: %v", err)
-		}
-		return true
-
-	} else if tt.wantErrorDecodeMap {
-		t.Fatalf("expected error did not occur from DecodeMap. dec: %+v", dec)
-	}
-
-	getter, err := structil.NewGetter(dec)
-	if err != nil {
-		t.Fatalf("unexpected error occurred from NewGetter: %v", err)
-	}
-
-	var name string
-	for k, v := range tt.decodedMap {
-		if tt.camelizeKeys {
-			name = strcase.ToCamel(k)
-		} else {
-			name = k
-		}
-
-		gotValue, ok := getter.Get(name)
-		if !ok {
-			t.Fatalf("key does not exist. It's unexpected. name: %s", name)
-		}
-
-		switch name {
-		case "StructField":
-			getter, err := structil.NewGetter(gotValue)
-			if err != nil {
-				t.Fatalf("unexpected error occurred from NewGetter for StructField: %v", err)
-			}
-
-			ds, _ := v.(DynamicTestStruct)
-			gotString, _ := getter.Get("String")
-			if gotString != ds.String {
-				t.Fatalf("unexpected mismatch Struct String field: got: %v, want: %v", gotString, ds.String)
-			}
-		default:
-			if d := cmp.Diff(gotValue, v); d != "" {
-				t.Fatalf("unexpected mismatch: name: %s, (-got +want)\n%s", name, d)
-			}
 		}
 	}
 
