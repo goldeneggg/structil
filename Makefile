@@ -63,7 +63,7 @@ tidy:
 	@$(call go-mod,tidy,)
 
 .PHONY: update
-update: go-get-update tidy
+update: get-u tidy
 
 .PHONY: vendor
 vendor:
