@@ -50,7 +50,7 @@ jobs:
 
       - id: mod-dl
         name: Download dependency go modules
-        run: make mod-dl
+        run: make dl
 
       - id: mod-tools-install
         name: Install go tools on module-aware mode
@@ -116,7 +116,7 @@ jobs:
 
       # - id: mod-dl
       #   name: Download dependency go modules
-      #   run: make mod-dl
+      #   run: make dl
 
       # - id: mod-tools-install
       #   name: Install go tools on module-aware mode

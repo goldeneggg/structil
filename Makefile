@@ -41,17 +41,29 @@ tool-pkgs:
 ###
 # manage modules
 ###
-go-mod = GO111MODULE=on $(LOCAL_GO) mod $1 $2
-go-install = GO111MODULE=on $(LOCAL_GO) install $1
+go-get = $(LOCAL_GO) get $1 ./...
+go-mod = $(LOCAL_GO) mod $1 $2
+go-install = $(LOCAL_GO) install $1
 chk_latest = go list -u -m $1
 
-.PHONY: mod-dl
-mod-dl:
+.PHONY: get
+get:
+	@$(call go-get,)
+
+.PHONY: get-u
+get-u:
+	@$(call go-get,-u)
+
+.PHONY: dl
+dl:
 	@$(call go-mod,download,)
 
-.PHONY: mod-tidy
-mod-tidy:
+.PHONY: tidy
+tidy:
 	@$(call go-mod,tidy,)
+
+.PHONY: update
+update: go-get-update tidy
 
 .PHONY: vendor
 vendor:
@@ -59,10 +71,10 @@ vendor:
 
 # Note: tools additional process as follows
 #  1. Add pacakge into tools.go
-#  2. Run "make mod-tidy"
+#  2. Run "make tidy"
 #  3. Run "make mod-tools-install"
 .PHONY: mod-tools-install
-mod-tools-install: mod-tidy
+mod-tools-install: tidy
 	@$(call go-install,$(TOOL_PKGS))
 
 .PHONY: chk-latest-mapstructure
@@ -81,7 +93,7 @@ chk-latest-gocmp:
 update-all-modules:
 	@go get -u && make test
 
-upgrade_module = echo module-query="$2"; GO111MODULE=on go get $1@$2
+upgrade_module = echo module-query="$2"; go get $1@$2
 upgrade_to_latest = $(call upgrade_module,$1,latest)
 
 .PHONY: upgrade-latest-mapstructure
@@ -95,7 +107,6 @@ upgrade-latest-viper:
 .PHONY: upgrade-latest-gocmp
 upgrade-latest-gocmp:
 	@$(call upgrade_to_latest,$(PKG_GOCMP))
-
 
 ###
 # run tests

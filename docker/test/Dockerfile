@@ -7,7 +7,7 @@ WORKDIR ${APP_DIR}
 
 COPY go.mod ${APP_DIR}
 COPY go.sum ${APP_DIR}
-RUN GO111MODULE=on go mod download
+RUN go get ./...
 # COPY --from=structil/mod:latest /go/pkg/mod /go/pkg/mod
 
 COPY . ${APP_DIR}

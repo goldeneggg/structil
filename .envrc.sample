@@ -1,5 +1,3 @@
-export GO111MODULE=on
-
 # Setup specified local go version
 export LOCAL_GOVERSION=
 
