@@ -214,7 +214,7 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag 
 						if err != nil {
 							return nil, err
 						}
-						b = b.AddDynamicStructSliceWithTag(name, nds, false, tag)
+						b = b.AddDynamicStructSliceWithTag(name, nds, tag)
 					} else {
 						b = b.AddSliceWithTag(name, interface{}(vv), tag)
 					}

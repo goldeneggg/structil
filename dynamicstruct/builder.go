@@ -7,9 +7,8 @@ import (
 	"github.com/goldeneggg/structil/util"
 )
 
-type pattern int
-
 const (
+	capBuilderField   = 10
 	defaultStructName = "DynamicStruct"
 
 	// SampleString is sample string value
@@ -24,17 +23,6 @@ const (
 	SampleFloat64 = float64(1.1)
 	// SampleBool is sample bool value
 	SampleBool = false
-
-	patternMap pattern = iota
-	patternFunc
-	patternChanBoth
-	patternChanRecv
-	patternChanSend
-	patternStruct
-	patternSlice
-	patternPrmtv
-	patternInterface
-	patternDynamicStruct
 )
 
 var (
@@ -45,28 +33,51 @@ var (
 // Builder is the interface that builds a dynamic and runtime struct.
 // All methods are NOT goroutine safe yet (TODO:)
 type Builder struct {
-	name   string
-	fields map[string]reflect.Type
-	tags   map[string]reflect.StructTag // optional
-	err    error
+	name  string
+	bfMap builderFieldMap
+	err   error
 }
 
 // NewBuilder returns a concrete Builder
 func NewBuilder() *Builder {
 	return &Builder{
-		name:   defaultStructName,
-		fields: map[string]reflect.Type{},
-		tags:   map[string]reflect.StructTag{},
+		name:  defaultStructName,
+		bfMap: make(builderFieldMap),
 	}
 }
 
-type addParam struct {
-	name     string
-	intfs    []interface{}
-	keyIntfs []interface{}
-	pattern  pattern
-	isPtr    bool
-	tag      string
+type builderField struct {
+	name string
+	typ  reflect.Type
+	tag  reflect.StructTag
+}
+
+type builderFieldMap map[string]*builderField
+
+// FIXME: race condition対策
+func (b *Builder) addFieldFunc(name string, isPtr bool, tag string, f func() reflect.Type) *Builder {
+	defer func() {
+		err := util.RecoverToError(recover())
+
+		// keep 1st recoverd error
+		if err != nil && b.err == nil {
+			b.err = err
+		}
+	}()
+
+	typ := f()
+
+	if isPtr {
+		typ = reflect.PtrTo(typ)
+	}
+
+	b.bfMap[name] = &builderField{
+		name: name,
+		typ:  typ,
+		tag:  reflect.StructTag(tag),
+	}
+
+	return b
 }
 
 // AddString returns a Builder that was added a string field named by name parameter.
@@ -77,14 +88,11 @@ func (b *Builder) AddString(name string) *Builder {
 
 // AddStringWithTag returns a Builder that was added a string field with tag named by name parameter.
 func (b *Builder) AddStringWithTag(name string, tag string) *Builder {
-	p := &addParam{
-		name:    name,
-		intfs:   []interface{}{SampleString},
-		pattern: patternPrmtv,
-		isPtr:   false,
-		tag:     tag,
+	f := func() reflect.Type {
+		return reflect.TypeOf(SampleString)
 	}
-	b.add(p)
+	b.addFieldFunc(name, false, tag, f)
+
 	return b
 }
 
@@ -96,14 +104,11 @@ func (b *Builder) AddInt(name string) *Builder {
 
 // AddIntWithTag returns a Builder that was added a int field with tag named by name parameter.
 func (b *Builder) AddIntWithTag(name string, tag string) *Builder {
-	p := &addParam{
-		name:    name,
-		intfs:   []interface{}{SampleInt},
-		pattern: patternPrmtv,
-		isPtr:   false,
-		tag:     tag,
+	f := func() reflect.Type {
+		return reflect.TypeOf(SampleInt)
 	}
-	b.add(p)
+	b.addFieldFunc(name, false, tag, f)
+
 	return b
 }
 
@@ -115,14 +120,11 @@ func (b *Builder) AddByte(name string) *Builder {
 
 // AddByteWithTag returns a Builder that was added a byte field with tag named by name parameter.
 func (b *Builder) AddByteWithTag(name string, tag string) *Builder {
-	p := &addParam{
-		name:    name,
-		intfs:   []interface{}{SampleByte},
-		pattern: patternPrmtv,
-		isPtr:   false,
-		tag:     tag,
+	f := func() reflect.Type {
+		return reflect.TypeOf(SampleByte)
 	}
-	b.add(p)
+	b.addFieldFunc(name, false, tag, f)
+
 	return b
 }
 
@@ -134,14 +136,11 @@ func (b *Builder) AddFloat32(name string) *Builder {
 
 // AddFloat32WithTag returns a Builder that was added a float32 field with tag named by name parameter.
 func (b *Builder) AddFloat32WithTag(name string, tag string) *Builder {
-	p := &addParam{
-		name:    name,
-		intfs:   []interface{}{SampleFloat32},
-		pattern: patternPrmtv,
-		isPtr:   false,
-		tag:     tag,
+	f := func() reflect.Type {
+		return reflect.TypeOf(SampleFloat32)
 	}
-	b.add(p)
+	b.addFieldFunc(name, false, tag, f)
+
 	return b
 }
 
@@ -153,14 +152,11 @@ func (b *Builder) AddFloat64(name string) *Builder {
 
 // AddFloat64WithTag returns a Builder that was added a float64 field with tag named by name parameter.
 func (b *Builder) AddFloat64WithTag(name string, tag string) *Builder {
-	p := &addParam{
-		name:    name,
-		intfs:   []interface{}{SampleFloat64},
-		pattern: patternPrmtv,
-		isPtr:   false,
-		tag:     tag,
+	f := func() reflect.Type {
+		return reflect.TypeOf(SampleFloat64)
 	}
-	b.add(p)
+	b.addFieldFunc(name, false, tag, f)
+
 	return b
 }
 
@@ -172,14 +168,11 @@ func (b *Builder) AddBool(name string) *Builder {
 
 // AddBoolWithTag returns a Builder that was added a bool field with tag named by name parameter.
 func (b *Builder) AddBoolWithTag(name string, tag string) *Builder {
-	p := &addParam{
-		name:    name,
-		intfs:   []interface{}{SampleBool},
-		pattern: patternPrmtv,
-		isPtr:   false,
-		tag:     tag,
+	f := func() reflect.Type {
+		return reflect.TypeOf(SampleBool)
 	}
-	b.add(p)
+	b.addFieldFunc(name, false, tag, f)
+
 	return b
 }
 
@@ -195,15 +188,17 @@ func (b *Builder) AddMap(name string, ki interface{}, vi interface{}) *Builder {
 // Type of map key is type of ki.
 // Type of map value is type of vi.
 func (b *Builder) AddMapWithTag(name string, ki interface{}, vi interface{}, tag string) *Builder {
-	p := &addParam{
-		name:     name,
-		intfs:    []interface{}{vi},
-		keyIntfs: []interface{}{ki},
-		pattern:  patternMap,
-		isPtr:    false,
-		tag:      tag,
+	f := func() reflect.Type {
+		var vt reflect.Type
+		if vi == nil {
+			vt = reflect.TypeOf((*interface{})(nil)).Elem()
+		} else {
+			vt = reflect.TypeOf(vi)
+		}
+		return reflect.MapOf(reflect.TypeOf(ki), vt)
 	}
-	b.add(p)
+	b.addFieldFunc(name, false, tag, f)
+
 	return b
 }
 
@@ -219,15 +214,19 @@ func (b *Builder) AddFunc(name string, in []interface{}, out []interface{}) *Bui
 // Types of func args are types of in.
 // Types of func returns are types of out.
 func (b *Builder) AddFuncWithTag(name string, in []interface{}, out []interface{}, tag string) *Builder {
-	p := &addParam{
-		name:     name,
-		intfs:    out,
-		keyIntfs: in,
-		pattern:  patternFunc,
-		isPtr:    false,
-		tag:      tag,
+	f := func() reflect.Type {
+		it := make([]reflect.Type, len(in))
+		for i := 0; i < len(in); i++ {
+			it[i] = reflect.TypeOf(in[i])
+		}
+		ot := make([]reflect.Type, len(out))
+		for i := 0; i < len(out); i++ {
+			ot[i] = reflect.TypeOf(out[i])
+		}
+		return reflect.FuncOf(it, ot, false)
 	}
-	b.add(p)
+	b.addFieldFunc(name, false, tag, f)
+
 	return b
 }
 
@@ -241,14 +240,11 @@ func (b *Builder) AddChanBoth(name string, i interface{}) *Builder {
 // AddChanBothWithTag returns a Builder that was added a BothDir chan field with tag named by name parameter.
 // Type of chan is type of i.
 func (b *Builder) AddChanBothWithTag(name string, i interface{}, tag string) *Builder {
-	p := &addParam{
-		name:    name,
-		intfs:   []interface{}{i},
-		pattern: patternChanBoth,
-		isPtr:   false,
-		tag:     tag,
+	f := func() reflect.Type {
+		return reflect.ChanOf(reflect.BothDir, reflect.TypeOf(i))
 	}
-	b.add(p)
+	b.addFieldFunc(name, false, tag, f)
+
 	return b
 }
 
@@ -262,14 +258,11 @@ func (b *Builder) AddChanRecv(name string, i interface{}) *Builder {
 // AddChanRecvWithTag returns a Builder that was added a RecvDir chan field with tag named by name parameter.
 // Type of chan is type of i.
 func (b *Builder) AddChanRecvWithTag(name string, i interface{}, tag string) *Builder {
-	p := &addParam{
-		name:    name,
-		intfs:   []interface{}{i},
-		pattern: patternChanRecv,
-		isPtr:   false,
-		tag:     tag,
+	f := func() reflect.Type {
+		return reflect.ChanOf(reflect.RecvDir, reflect.TypeOf(i))
 	}
-	b.add(p)
+	b.addFieldFunc(name, false, tag, f)
+
 	return b
 }
 
@@ -283,14 +276,11 @@ func (b *Builder) AddChanSend(name string, i interface{}) *Builder {
 // AddChanSendWithTag returns a Builder that was added a SendDir chan field with tag named by name parameter.
 // Type of chan is type of i.
 func (b *Builder) AddChanSendWithTag(name string, i interface{}, tag string) *Builder {
-	p := &addParam{
-		name:    name,
-		intfs:   []interface{}{i},
-		pattern: patternChanSend,
-		isPtr:   false,
-		tag:     tag,
+	f := func() reflect.Type {
+		return reflect.ChanOf(reflect.SendDir, reflect.TypeOf(i))
 	}
-	b.add(p)
+	b.addFieldFunc(name, false, tag, f)
+
 	return b
 }
 
@@ -304,14 +294,19 @@ func (b *Builder) AddStruct(name string, i interface{}, isPtr bool) *Builder {
 // AddStructWithTag returns a Builder that was added a struct field with tag named by name parameter.
 // Type of struct is type of i.
 func (b *Builder) AddStructWithTag(name string, i interface{}, isPtr bool, tag string) *Builder {
-	p := &addParam{
-		name:    name,
-		intfs:   []interface{}{i},
-		pattern: patternStruct,
-		isPtr:   isPtr,
-		tag:     tag,
+	f := func() reflect.Type {
+		iType := reflect.TypeOf(i)
+		if iType.Kind() == reflect.Ptr {
+			iType = iType.Elem()
+		}
+		fields := make([]reflect.StructField, iType.NumField())
+		for i := 0; i < iType.NumField(); i++ {
+			fields[i] = iType.Field(i)
+		}
+		return reflect.StructOf(fields)
 	}
-	b.add(p)
+	b.addFieldFunc(name, isPtr, tag, f)
+
 	return b
 }
 
@@ -337,14 +332,29 @@ func (b *Builder) AddSlice(name string, i interface{}) *Builder {
 // AddSliceWithTag returns a Builder that was added a slice field with tag named by name parameter.
 // Type of slice is type of i.
 func (b *Builder) AddSliceWithTag(name string, i interface{}, tag string) *Builder {
-	p := &addParam{
-		name:    name,
-		intfs:   []interface{}{i},
-		pattern: patternSlice,
-		isPtr:   false,
-		tag:     tag,
+	f := func() reflect.Type {
+		return reflect.SliceOf(reflect.TypeOf(i))
 	}
-	b.add(p)
+	b.addFieldFunc(name, false, tag, f)
+
+	return b
+}
+
+// AddSlicePtr returns a Builder that was added a slice pointer field named by name parameter.
+// Type of slice is elem type of i.
+func (b *Builder) AddSlicePtr(name string, i interface{}) *Builder {
+	b.AddSliceWithTag(name, i, "")
+	return b
+}
+
+// AddSlicePtrWithTag returns a Builder that was added a slice pointer field with tag named by name parameter.
+// Type of slice is elem type of i.
+func (b *Builder) AddSlicePtrWithTag(name string, i interface{}, tag string) *Builder {
+	f := func() reflect.Type {
+		return reflect.SliceOf(reflect.TypeOf(i))
+	}
+	b.addFieldFunc(name, true, tag, f)
+
 	return b
 }
 
@@ -356,14 +366,11 @@ func (b *Builder) AddInterface(name string, isPtr bool) *Builder {
 
 // AddInterfaceWithTag returns a Builder that was added a interface{} field with tag named by name parameter.
 func (b *Builder) AddInterfaceWithTag(name string, isPtr bool, tag string) *Builder {
-	p := &addParam{
-		name:    name,
-		intfs:   []interface{}{(*interface{})(nil)},
-		pattern: patternInterface,
-		isPtr:   isPtr,
-		tag:     tag,
+	f := func() reflect.Type {
+		return reflect.TypeOf((*interface{})(nil)).Elem()
 	}
-	b.add(p)
+	b.addFieldFunc(name, isPtr, tag, f)
+
 	return b
 }
 
@@ -375,14 +382,8 @@ func (b *Builder) AddDynamicStruct(name string, ds *DynamicStruct, isPtr bool) *
 
 // AddDynamicStructWithTag returns a Builder that was added a DynamicStruct field with tag named by name parameter.
 func (b *Builder) AddDynamicStructWithTag(name string, ds *DynamicStruct, isPtr bool, tag string) *Builder {
-	p := &addParam{
-		name:    name,
-		intfs:   []interface{}{ds.NewInterface()}, // use ds.NewInterface() for building concrete fields of ds
-		pattern: patternStruct,                    // use patternStruct for building concrete fields of ds
-		isPtr:   isPtr,
-		tag:     tag,
-	}
-	b.add(p)
+	b.AddStructWithTag(name, ds.NewInterface(), isPtr, tag)
+
 	return b
 }
 
@@ -397,87 +398,31 @@ func (b *Builder) AddDynamicStructPtrWithTag(name string, ds *DynamicStruct, tag
 }
 
 // AddDynamicStructSlice returns a Builder that was added a DynamicStruct slice field named by name parameter.
-func (b *Builder) AddDynamicStructSlice(name string, ds *DynamicStruct, isPtr bool) *Builder {
-	return b.AddDynamicStructSliceWithTag(name, ds, isPtr, "")
+func (b *Builder) AddDynamicStructSlice(name string, ds *DynamicStruct) *Builder {
+	return b.AddDynamicStructSliceWithTag(name, ds, "")
 }
 
 // AddDynamicStructSliceWithTag returns a Builder that was added a DynamicStruct slice field with tag named by name parameter.
-func (b *Builder) AddDynamicStructSliceWithTag(name string, ds *DynamicStruct, isPtr bool, tag string) *Builder {
-	p := &addParam{
-		name:    name,
-		intfs:   []interface{}{ds.NewInterface()}, // use ds.NewInterface() for building concrete fields of ds
-		pattern: patternSlice,
-		isPtr:   isPtr,
-		tag:     tag,
-	}
-	b.add(p)
+func (b *Builder) AddDynamicStructSliceWithTag(name string, ds *DynamicStruct, tag string) *Builder {
+	b.AddSliceWithTag(name, ds.NewInterface(), tag)
+
 	return b
 }
 
-func (b *Builder) add(p *addParam) {
-	defer func() {
-		err := util.RecoverToError(recover())
+// NumField returns the number of built struct fields.
+func (b *Builder) NumField() int {
+	return len(b.bfMap)
+}
 
-		// keep 1st recoverd error
-		if err != nil && b.err == nil {
-			b.err = err
-		}
-	}()
+// Exists returns true if the specified name field exists
+func (b *Builder) Exists(name string) bool {
+	_, ok := b.bfMap[name]
+	return ok
+}
 
-	var typeOf reflect.Type
-
-	switch p.pattern {
-	case patternMap:
-		var vt reflect.Type
-		if p.intfs[0] == nil {
-			vt = reflect.TypeOf((*interface{})(nil)).Elem()
-		} else {
-			vt = reflect.TypeOf(p.intfs[0])
-		}
-		typeOf = reflect.MapOf(reflect.TypeOf(p.keyIntfs[0]), vt)
-	case patternFunc:
-		inTypes := make([]reflect.Type, len(p.keyIntfs))
-		for i := 0; i < len(p.keyIntfs); i++ {
-			inTypes[i] = reflect.TypeOf(p.keyIntfs[i])
-		}
-
-		outTypes := make([]reflect.Type, len(p.intfs))
-		for i := 0; i < len(p.intfs); i++ {
-			outTypes[i] = reflect.TypeOf(p.intfs[i])
-		}
-		// TODO: variadic support
-		typeOf = reflect.FuncOf(inTypes, outTypes, false)
-	case patternChanBoth:
-		typeOf = reflect.ChanOf(reflect.BothDir, reflect.TypeOf(p.intfs[0]))
-	case patternChanRecv:
-		typeOf = reflect.ChanOf(reflect.RecvDir, reflect.TypeOf(p.intfs[0]))
-	case patternChanSend:
-		typeOf = reflect.ChanOf(reflect.SendDir, reflect.TypeOf(p.intfs[0]))
-	case patternStruct:
-		iType := reflect.TypeOf(p.intfs[0])
-		if iType.Kind() == reflect.Ptr {
-			iType = iType.Elem()
-		}
-
-		fields := make([]reflect.StructField, iType.NumField())
-		for i := 0; i < iType.NumField(); i++ {
-			fields[i] = iType.Field(i)
-		}
-		typeOf = reflect.StructOf(fields)
-	case patternSlice:
-		typeOf = reflect.SliceOf(reflect.TypeOf(p.intfs[0]))
-	case patternInterface:
-		typeOf = reflect.TypeOf(p.intfs[0]).Elem()
-	default:
-		typeOf = reflect.TypeOf(p.intfs[0])
-	}
-
-	if p.isPtr {
-		typeOf = reflect.PtrTo(typeOf)
-	}
-
-	b.fields[p.name] = typeOf
-	b.SetTag(p.name, p.tag)
+// GetStructName returns the name of this DynamicStruct.
+func (b *Builder) GetStructName() string {
+	return b.name
 }
 
 // SetStructName returns a Builder that was set the name of DynamicStruct.
@@ -487,32 +432,26 @@ func (b *Builder) SetStructName(name string) *Builder {
 	return b
 }
 
-// GetStructName returns the name of this DynamicStruct.
-func (b *Builder) GetStructName() string {
-	return b.name
+// GetTag returns the tag of the specified name field.
+func (b *Builder) GetTag(name string) string {
+	if _, ok := b.bfMap[name]; ok {
+		return string(b.bfMap[name].tag)
+	}
+	return ""
 }
 
 // SetTag returns a Builder that was set the tag for the specific field.
 // Expected tag string is 'TYPE1:"FIELDNAME1" TYPEn:"FIELDNAMEn"' format (e.g. json:"id" etc)
 func (b *Builder) SetTag(name string, tag string) *Builder {
-	b.tags[name] = reflect.StructTag(tag)
+	if _, ok := b.bfMap[name]; ok {
+		b.bfMap[name].tag = reflect.StructTag(tag)
+	}
 	return b
-}
-
-// NumField returns the number of built struct fields.
-func (b *Builder) NumField() int {
-	return len(b.fields)
-}
-
-// Exists returns true if the specified name field exists
-func (b *Builder) Exists(name string) bool {
-	_, ok := b.fields[name]
-	return ok
 }
 
 // Remove returns a Builder that was removed a field named by name parameter.
 func (b *Builder) Remove(name string) *Builder {
-	delete(b.fields, name)
+	delete(b.bfMap, name)
 	return b
 }
 
@@ -537,12 +476,12 @@ func (b *Builder) build(isPtr bool) (ds *DynamicStruct, err error) {
 	}()
 
 	var i int
-	fields := make([]reflect.StructField, len(b.fields))
-	for name, typ := range b.fields {
+	fields := make([]reflect.StructField, len(b.bfMap))
+	for name, bf := range b.bfMap {
 		fields[i] = reflect.StructField{
 			Name: name,
-			Type: typ,
-			Tag:  b.tags[name],
+			Type: bf.typ,
+			Tag:  bf.tag,
 		}
 		i++
 	}
