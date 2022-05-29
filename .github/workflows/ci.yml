@@ -31,7 +31,7 @@ jobs:
     strategy:
       matrix:
         os: [ 'ubuntu-latest' ]
-        go: [ '1.17' ]
+        go: [ '1.18' ]
 
     steps:
       - id: setup-go
