@@ -1,7 +1,9 @@
-FROM golang:1.17-buster
+FROM golang:1.18-alpine
 
 ENV CGO_ENABLED=1
 ENV APP_DIR /go/src/github.com/goldeneggg/structil
+
+RUN apk add make gcc g++ bash
 
 WORKDIR ${APP_DIR}
 
