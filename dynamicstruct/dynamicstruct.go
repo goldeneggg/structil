@@ -160,12 +160,8 @@ func definition(stbp *strings.Builder, flds []reflect.StructField, name string, 
 
 func sortFields(fields []reflect.StructField) []reflect.StructField {
 	sfs := make([]reflect.StructField, len(fields))
-	// TODO: performance optimization (copy is unavailable because of panic)
-	// copy(fields, sfs)
-	//lint:ignore S1001 TODO
-	for i := 0; i < len(fields); i++ {
-		sfs[i] = fields[i]
-	}
+	copy(sfs, fields)
+
 	sort.Slice(sfs, func(i, j int) bool {
 		return sfs[i].Name < sfs[j].Name
 	})
