@@ -17,11 +17,6 @@ type DynamicStruct struct {
 	def string
 }
 
-// TODO: add "sortedFields" slice string argument
-func newDynamicStruct(fields []reflect.StructField, isPtr bool) *DynamicStruct {
-	return newDynamicStructWithName(fields, isPtr, defaultStructName)
-}
-
 // newDynamicStructWithName returns a concrete DynamicStruct
 // Note: Create DynamicStruct via Builder.Build(), instead of calling this method directly.
 func newDynamicStructWithName(fields []reflect.StructField, isPtr bool, name string) *DynamicStruct {
@@ -164,8 +159,10 @@ func definition(stbp *strings.Builder, flds []reflect.StructField, name string, 
 }
 
 func sortFields(fields []reflect.StructField) []reflect.StructField {
-	// TODO: performance optimization
 	sfs := make([]reflect.StructField, len(fields))
+	// TODO: performance optimization (copy is unavailable because of panic)
+	// copy(fields, sfs)
+	//lint:ignore S1001 TODO
 	for i := 0; i < len(fields); i++ {
 		sfs[i] = fields[i]
 	}
