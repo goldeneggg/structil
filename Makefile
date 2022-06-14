@@ -8,6 +8,7 @@ PKG_VIPER := github.com/spf13/viper
 PKG_GOCMP := github.com/google/go-cmp
 
 TESTDIR := ./.test
+BENCH := .
 BENCH_OLD := $(TESTDIR)/bench.old
 BENCH_NEW := $(TESTDIR)/bench.new
 BENCH_LATEST_URL := https://raw.githubusercontent.com/goldeneggg/structil/bench-latest/BENCHMARK_LATEST.txt
@@ -18,6 +19,7 @@ PKGS = $(shell ./scripts/packages.sh)
 TOOL_PKGS = $(shell cat ./tools/tools.go | grep _ | awk -F'"' '{print $$2}')
 
 assert-command = $(if $(shell which $1),,$(error '$1' command is missing))
+assert-var = $(if $($1),,$(error $1 variable is not assigned))
 
 
 .DEFAULT_GOAL := local
@@ -44,7 +46,7 @@ tool-pkgs:
 go-get = $(LOCAL_GO) get $1 ./...
 go-mod = $(LOCAL_GO) mod $1 $2
 go-install = $(LOCAL_GO) install $1
-chk_latest = go list -u -m $1
+chk-latest = go list -u -m $1
 
 .PHONY: get
 get:
@@ -79,15 +81,15 @@ mod-tools-install: tidy
 
 .PHONY: chk-latest-mapstructure
 chk-latest-mapstructure:
-	@$(call chk_latest,$(PKG_MAPSTRUCTURE))
+	@$(call chk-latest,$(PKG_MAPSTRUCTURE))
 
 .PHONY: chk-latest-viper
 chk-latest-viper:
-	@$(call chk_latest,$(PKG_VIPER))
+	@$(call chk-latest,$(PKG_VIPER))
 
 .PHONY: chk-latest-gocmp
 chk-latest-gocmp:
-	@$(call chk_latest,$(PKG_GOCMP))
+	@$(call chk-latest,$(PKG_GOCMP))
 
 .PHONY: update-all-modules
 update-all-modules:
@@ -158,7 +160,7 @@ ci: ci-test vet lint -confirm-shellcheck-version shellcheck
 -mv-bench-result:
 	@[ ! -f $(BENCH_NEW) ] || mv $(BENCH_NEW) $(BENCH_OLD)
 
-benchmark = $(LOCAL_GO) test -run=NONE -bench . -benchmem -cpu 1,2 -benchtime=500ms -count=5 $1 $2 | tee $(BENCH_NEW)
+benchmark = $(LOCAL_GO) test -run=NONE -bench $(BENCH) -benchmem -cpu 1,2 -benchtime=500ms -count=5 $1 $2 | tee $(BENCH_NEW)
 
 .PHONY: bench
 bench: -mk-testdir -mv-bench-result
