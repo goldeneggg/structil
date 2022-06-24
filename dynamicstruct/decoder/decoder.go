@@ -40,8 +40,9 @@ func newDecoder(data []byte, dt dataType) (*Decoder, error) {
 		// YAML
 		dec.strKeyMap = toStringKeyMap(t)
 	case []interface{}:
-		// FIXME: （暫定的に）0番目の要素を取り出してそれを処理するようにしているが、どうすべきか？
 		if len(t) > 0 {
+			// The items in the array must be same for all elements.
+			// So the first element is used to process
 			switch tt := t[0].(type) {
 			case map[string]interface{}:
 				dec.strKeyMap = tt
@@ -150,22 +151,6 @@ func (d *Decoder) toDs(i interface{}, nest bool, useTag bool) (*dynamicstruct.Dy
 	switch t := i.(type) {
 	case map[string]interface{}:
 		return d.toDsFromStringMap(t, nest, useTag)
-		// FIXME: 初期化時にkeyがstringのmapを生成しているので、このブロックはまるごと不要なはず
-		// case []interface{}:
-		// 	if len(t) > 0 {
-		// 		return d.toDs(t[0], nest, useTag)
-		// 		// TODO: seek an element that have max size of t. And call d.toDs with this element
-		// 		// 配列内の構造が可変なケースを考慮して、最も大きい構造の要素を取り出してその要素に対してtoDsを呼ぶようにする
-		// 		// See: https://stackoverflow.com/questions/44257522/how-to-get-memory-size-of-variable-in-go
-		// 		//   should use "unsafe.Sizeof(var)"?
-		// 		// if len(t) == 1 {
-		// 		// 	return d.toDs(t[0], nest, useTag)
-		// 		// }
-		// 		// return d.toDs(t[0], nest, useTag)
-		// 	}
-		// FIXME: 初期化時にkeyがstringのmapを生成しているので、このブロックはまるごと不要なはず
-		// case map[interface{}]interface{}:
-		// 	return d.toDsFromStringMap(toStringKeyMap(t), nest, useTag)
 	}
 
 	return nil, fmt.Errorf("unsupported type [%T] for toDs", i)
@@ -218,13 +203,6 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag 
 					} else {
 						b = b.AddSliceWithTag(name, interface{}(vv), tag)
 					}
-				// FIXME: 初期化時にkeyがstringのmapを生成しているので、このブロックはまるごと不要なはず
-				// case map[interface{}]interface{}:
-				// 	m := toStringKeyMap(vv)
-				// 	b, err = d.addForStringMap(b, m, true, tag, name, nest, useTag)
-				// 	if err != nil {
-				// 		return nil, err
-				// 	}
 				default:
 					// FIXME: 配列要素を全て "interface{}" にキャストしているが、型を明示したい
 					b = b.AddSliceWithTag(name, interface{}(vv), tag)
@@ -253,27 +231,6 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag 
 		case int:
 			b = b.AddIntWithTag(name, tag)
 		// YAML support
-		// FIXME: 初期化時にkeyがstringのmapを生成しているので、このブロックはまるごと不要なはず
-		// case map[interface{}]interface{}:
-		// 	m := toStringKeyMap(value)
-		// 	b, err = d.addForStringMap(b, m, false, tag, name, nest, useTag)
-		// 	if err != nil {
-		// 		return nil, err
-		// 	}
-
-		// 	if nest {
-		// 		nds, err := d.toDsFromStringMap(m, nest, useTag)
-		// 		if err != nil {
-		// 			return nil, err
-		// 		}
-		// 		b = b.AddDynamicStruct(name, nds, false)
-		// 	} else {
-		// 		for kk := range m {
-		// 			b = b.AddMapWithTag(name, kk, nil, tag)
-		// 			// only one addition
-		// 			break
-		// 		}
-		// 	}
 		case nil:
 			b = b.AddInterfaceWithTag(name, false, tag)
 		default:
