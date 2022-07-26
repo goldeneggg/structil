@@ -440,32 +440,44 @@ func TestBuilderAddRemoveExistsNumField(t *testing.T) {
 		builder *Builder
 	}
 	tests := []struct {
-		name               string
-		args               args
-		wantExistsIntField bool
-		wantNumField       int
-		wantStructName     string
+		name                      string
+		args                      args
+		wantExistsIntField        bool
+		wantNumField              int
+		wantStructName            string
+		wantStringFieldWithTagTag string
 	}{
 		{
-			name:               "have fields set by newTestBuilder()",
-			args:               args{builder: newTestBuilder()},
-			wantExistsIntField: true,
-			wantNumField:       32, // See: newTestBuilder()
-			wantStructName:     "DynamicStruct",
+			name:                      "have fields set by newTestBuilder()",
+			args:                      args{builder: newTestBuilder()},
+			wantExistsIntField:        true,
+			wantNumField:              32, // See: newTestBuilder()
+			wantStructName:            "DynamicStruct",
+			wantStringFieldWithTagTag: stringFieldTag,
 		},
 		{
-			name:               "have fields set by newTestBuilder() and Remove(IntField)",
-			args:               args{builder: newTestBuilder().Remove("IntField")},
-			wantExistsIntField: false,
-			wantNumField:       31,
-			wantStructName:     "DynamicStruct",
+			name:                      "have fields set by newTestBuilder() and Remove(IntField)",
+			args:                      args{builder: newTestBuilder().Remove("IntField")},
+			wantExistsIntField:        false,
+			wantNumField:              31,
+			wantStructName:            "DynamicStruct",
+			wantStringFieldWithTagTag: stringFieldTag,
 		},
 		{
-			name:               "have struct name by newTestBuilderWithStructName()",
-			args:               args{builder: newTestBuilderWithStructName("Abc")},
-			wantExistsIntField: true,
-			wantNumField:       32,
-			wantStructName:     "Abc",
+			name:                      "have fields set by newTestBuilder() and SetTag(StringFieldWithTag)",
+			args:                      args{builder: newTestBuilder().SetTag("StringFieldWithTag", "abc")},
+			wantExistsIntField:        true,
+			wantNumField:              32,
+			wantStructName:            "DynamicStruct",
+			wantStringFieldWithTagTag: "abc",
+		},
+		{
+			name:                      "have struct name by newTestBuilderWithStructName()",
+			args:                      args{builder: newTestBuilderWithStructName("Abc")},
+			wantExistsIntField:        true,
+			wantNumField:              32,
+			wantStructName:            "Abc",
+			wantStringFieldWithTagTag: stringFieldTag,
 		},
 	}
 
@@ -481,6 +493,11 @@ func TestBuilderAddRemoveExistsNumField(t *testing.T) {
 
 			if tt.args.builder.NumField() != tt.wantNumField {
 				t.Errorf("result numfield is unexpected. got: %d, want: %d", tt.args.builder.NumField(), tt.wantNumField)
+				return
+			}
+
+			if tt.args.builder.GetTag("StringFieldWithTag") != tt.wantStringFieldWithTagTag {
+				t.Errorf("result GetTag(StringFieldWithTag) is unexpected. got: %s, want: %s", tt.args.builder.GetTag("StringFieldWithTag"), tt.wantStringFieldWithTagTag)
 				return
 			}
 
