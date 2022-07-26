@@ -1076,24 +1076,44 @@ func testBuilderBuildAddDynamicStruct(t *testing.T, ds *DynamicStruct, tt buildT
 	t.Helper()
 
 	builder := newTestBuilder()
-	builder.AddDynamicStructWithTag("AdditionalDynamicStruct", ds, false, "json")
-	builder.AddDynamicStructPtrWithTag("AdditionalDynamicStructPtr", ds, "json")
+	builder.AddDynamicStruct("AdditionalDynamicStruct", ds, false)
+	builder.AddDynamicStructWithTag("AdditionalDynamicStructWithTag", ds, false, "json")
+	builder.AddDynamicStructPtr("AdditionalDynamicStructPtr", ds)
+	builder.AddDynamicStructPtrWithTag("AdditionalDynamicStructPtrWithTag", ds, "json")
+	builder.AddDynamicStructSlice("AdditionalDynamicStructSlice", ds)
+	builder.AddDynamicStructSliceWithTag("AdditionalDynamicStructSliceWithTag", ds, "json")
 	newds, err := builder.Build()
 	if err != nil {
 		t.Fatalf("unexpected error occurred from Build: %v", err)
 	}
 
-	if newds.NumField() != tt.wantNumField+2 {
+	if newds.NumField() != tt.wantNumField+6 {
 		t.Fatalf("result numfield is unexpected. got: %d, want: %d", newds.NumField(), tt.wantNumField+2)
 	}
 
 	_, ok := newds.FieldByName("AdditionalDynamicStruct")
 	if !ok {
-		t.Fatalf("additional DynamicStruct field does not exist")
+		t.Fatalf("additional AdditionalDynamicStruct field does not exist")
+	}
+	_, ok = newds.FieldByName("AdditionalDynamicStructWithTag")
+	if !ok {
+		t.Fatalf("additional AdditionalDynamicStructWithTag field does not exist")
 	}
 	_, ok = newds.FieldByName("AdditionalDynamicStructPtr")
 	if !ok {
-		t.Fatalf("additional DynamicStructPtr field does not exist")
+		t.Fatalf("additional AdditionalDynamicStructWithTag field does not exist")
+	}
+	_, ok = newds.FieldByName("AdditionalDynamicStructPtrWithTag")
+	if !ok {
+		t.Fatalf("additional AdditionalDynamicStructPtrWithTag field does not exist")
+	}
+	_, ok = newds.FieldByName("AdditionalDynamicStructSlice")
+	if !ok {
+		t.Fatalf("additional AdditionalDynamicStructSlice field does not exist")
+	}
+	_, ok = newds.FieldByName("AdditionalDynamicStructSliceWithTag")
+	if !ok {
+		t.Fatalf("additional AdditionalDynamicStructSliceWithTag field does not exist")
 	}
 
 	// TODO:
