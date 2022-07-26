@@ -11,6 +11,15 @@ on:
       - 'Dockerfile'
       - '.dockerignore'
       - '**.sample'
+  # TODO: remove after test (this is temporary setting)
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
+      - '**/.gitignore'
+      - 'Dockerfile'
+      - '.dockerignore'
+      - '**.sample'
 
 env:
   # See: Makefile
