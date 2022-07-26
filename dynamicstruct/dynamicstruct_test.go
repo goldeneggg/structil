@@ -878,7 +878,7 @@ func TestBuilderBuild(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			// FIXME: comment out t.Parallel() because of race condition in Build() method
-			// t.Parallel()
+			t.Parallel()
 
 			if tt.args.isPtr {
 				ds, err = tt.args.builder.Build()

@@ -3,6 +3,7 @@ package dynamicstruct
 import (
 	"errors"
 	"reflect"
+	"sync"
 
 	"github.com/goldeneggg/structil/util"
 )
@@ -31,10 +32,10 @@ var (
 )
 
 // Builder is the interface that builds a dynamic and runtime struct.
-// All methods are NOT goroutine safe yet (TODO:)
 type Builder struct {
 	name  string
 	bfMap builderFieldMap
+	mu    sync.RWMutex
 	err   error
 }
 
@@ -54,35 +55,43 @@ type builderField struct {
 
 type builderFieldMap map[string]*builderField
 
-func (bfm builderFieldMap) get(key string) *builderField {
-	r := bfm[key]
+func (b *Builder) getFieldMap(key string) *builderField {
+	b.mu.RLock()
+	defer b.mu.RUnlock()
+
+	r := b.bfMap[key]
 	return r
 }
 
-func (bfm builderFieldMap) put(key string, bf *builderField) {
-	bfm[key] = bf
+func (b *Builder) putFieldMap(key string, bf *builderField) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	b.bfMap[key] = bf
 }
 
-func (bfm builderFieldMap) delete(key string) {
-	delete(bfm, key)
+func (b *Builder) deleteFieldMap(key string) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	delete(b.bfMap, key)
 }
 
-func (bfm builderFieldMap) each(f func(key string, bf *builderField)) {
-	for k, v := range bfm {
-		f(k, v)
-	}
-}
+func (b *Builder) hasFieldMap(key string) bool {
+	b.mu.RLock()
+	defer b.mu.RUnlock()
 
-func (bfm builderFieldMap) has(key string) bool {
-	_, ok := bfm[key]
+	_, ok := b.bfMap[key]
 	return ok
 }
 
-func (bfm builderFieldMap) len() int {
-	return len(bfm)
+func (b *Builder) lenFieldMap() int {
+	b.mu.RLock()
+	defer b.mu.RUnlock()
+
+	return len(b.bfMap)
 }
 
-// FIXME: race condition対策
 func (b *Builder) addFieldFunc(name string, isPtr bool, tag string, f func() reflect.Type) *Builder {
 	defer func() {
 		err := util.RecoverToError(recover())
@@ -99,7 +108,7 @@ func (b *Builder) addFieldFunc(name string, isPtr bool, tag string, f func() ref
 		typ = reflect.PtrTo(typ)
 	}
 
-	b.bfMap.put(name, &builderField{
+	b.putFieldMap(name, &builderField{
 		name: name,
 		typ:  typ,
 		tag:  reflect.StructTag(tag),
@@ -439,12 +448,12 @@ func (b *Builder) AddDynamicStructSliceWithTag(name string, ds *DynamicStruct, t
 
 // NumField returns the number of built struct fields.
 func (b *Builder) NumField() int {
-	return b.bfMap.len()
+	return b.lenFieldMap()
 }
 
 // Exists returns true if the specified name field exists
 func (b *Builder) Exists(name string) bool {
-	return b.bfMap.has(name)
+	return b.hasFieldMap(name)
 }
 
 // GetStructName returns the name of this DynamicStruct.
@@ -461,8 +470,8 @@ func (b *Builder) SetStructName(name string) *Builder {
 
 // GetTag returns the tag of the specified name field.
 func (b *Builder) GetTag(name string) string {
-	if b.bfMap.has(name) {
-		return string(b.bfMap.get(name).tag)
+	if b.hasFieldMap(name) {
+		return string(b.getFieldMap(name).tag)
 	}
 	return ""
 }
@@ -470,15 +479,15 @@ func (b *Builder) GetTag(name string) string {
 // SetTag returns a Builder that was set the tag for the specific field.
 // Expected tag string is 'TYPE1:"FIELDNAME1" TYPEn:"FIELDNAMEn"' format (e.g. json:"id" etc)
 func (b *Builder) SetTag(name string, tag string) *Builder {
-	if b.bfMap.has(name) {
-		b.bfMap.get(name).tag = reflect.StructTag(tag)
+	if b.hasFieldMap(name) {
+		b.getFieldMap(name).tag = reflect.StructTag(tag)
 	}
 	return b
 }
 
 // Remove returns a Builder that was removed a field named by name parameter.
 func (b *Builder) Remove(name string) *Builder {
-	b.bfMap.delete(name)
+	b.deleteFieldMap(name)
 	return b
 }
 
@@ -498,29 +507,23 @@ func (b *Builder) build(isPtr bool) (ds *DynamicStruct, err error) {
 		return
 	}
 
+	var i int
+	fields := make([]reflect.StructField, b.lenFieldMap())
+
+	b.mu.Lock()
 	defer func() {
+		b.mu.Unlock()
 		err = util.RecoverToError(recover())
 	}()
 
-	var i int
-	fields := make([]reflect.StructField, b.bfMap.len())
-	b.bfMap.each(func(key string, bf *builderField) {
+	for key, bf := range b.bfMap {
 		fields[i] = reflect.StructField{
 			Name: key,
 			Type: bf.typ,
 			Tag:  bf.tag,
 		}
 		i++
-	})
-
-	// for name, bf := range b.bfMap {
-	// 	fields[i] = reflect.StructField{
-	// 		Name: name,
-	// 		Type: bf.typ,
-	// 		Tag:  bf.tag,
-	// 	}
-	// 	i++
-	// }
+	}
 
 	ds = newDynamicStructWithName(fields, isPtr, b.GetStructName())
 
