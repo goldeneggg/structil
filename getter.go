@@ -98,7 +98,6 @@ func (g *Getter) Names() []string {
 
 // goroutine-safely access to a getterField by name
 func (g *Getter) getSafely(name string) (*getterField, bool) {
-	// FIXME: sync.Onceを使ってリファクタ検討
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
