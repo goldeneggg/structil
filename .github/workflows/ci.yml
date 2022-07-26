@@ -111,6 +111,8 @@ jobs:
         name: Check out code into the Go module directory with checkout@v3
         # See: https://github.com/marketplace/actions/gitleaks
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - id: run-gitleaks
         name: Run gitleaks
