@@ -31,17 +31,17 @@ jobs:
     steps:
       - id: setup-go
         name: Set up Go ${{ matrix.go }}
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go }}
 
       - id: checkout
         name: Check out code into the Go module directory
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - id: cache
         name: Cache dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
@@ -93,17 +93,17 @@ jobs:
     steps:
       # - id: setup-go
       #   name: Set up Go ${{ matrix.go }}
-      #   uses: actions/setup-go@v2
+      #   uses: actions/setup-go@v3
       #   with:
       #     go-version: ${{ matrix.go }}
 
       - id: checkout
         name: Check out code into the Go module directory
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # - id: cache
       #   name: Cache dependencies and
-      #   uses: actions/cache@v2
+      #   uses: actions/cache@v3
       #   with:
       #     path: ~/go/pkg/mod
       #     key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
