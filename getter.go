@@ -3,7 +3,6 @@ package structil
 import (
 	"fmt"
 	"reflect"
-	"sync"
 	"unsafe"
 
 	"github.com/goldeneggg/structil/util"
@@ -15,7 +14,6 @@ type Getter struct {
 	numf   int                     // Field nums
 	names  []string                // Field names
 	fields map[string]*getterField // TODO: try sync.Map
-	mu     sync.RWMutex
 }
 
 // NewGetter returns a concrete Getter that uses and obtains from i.
@@ -96,11 +94,7 @@ func (g *Getter) Names() []string {
 	return g.names
 }
 
-// goroutine-safely access to a getterField by name
 func (g *Getter) getSafely(name string) (*getterField, bool) {
-	g.mu.RLock()
-	defer g.mu.RUnlock()
-
 	gf, ok := g.fields[name]
 	return gf, ok
 }
@@ -152,9 +146,6 @@ func (g *Getter) Get(name string) (interface{}, bool) {
 
 // ToMap returns a map converted from this Getter.
 func (g *Getter) ToMap() map[string]interface{} {
-	g.mu.RLock()
-	defer g.mu.RUnlock()
-
 	m := make(map[string]interface{})
 	for name, gf := range g.fields {
 		m[name] = gf.intf
