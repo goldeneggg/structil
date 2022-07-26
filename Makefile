@@ -131,7 +131,6 @@ shellcheck:
 -confirm-shellcheck-version:
 	@shellcheck --version
 
-# @./scripts/ci-test.sh
 .PHONY: ci-test
 ci-test:
 	@$(call run-test,-coverprofile=$(COV) -covermode=atomic)
