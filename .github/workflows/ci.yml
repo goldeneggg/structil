@@ -114,7 +114,9 @@ jobs:
 
       - id: run-gitleaks
         name: Run gitleaks
-        uses: zricethezav/gitleaks-action@master
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - id: dump-contexts-after
         name: Dump contexts After
