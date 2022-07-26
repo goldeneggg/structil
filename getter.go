@@ -28,12 +28,12 @@ func NewGetter(i interface{}) (*Getter, error) {
 		rv:   stVal,
 		numf: stVal.NumField(),
 	}
-	g.names = make([]string, 0, g.numf)
+	g.names = make([]string, g.numf)
 	g.fields = make(map[string]*getterField, g.numf)
 
 	for idx := 0; idx < g.numf; idx++ {
 		gf := g.newGetterField(idx)
-		g.names = append(g.names, gf.name)
+		g.names[idx] = gf.name
 		g.fields[gf.name] = gf
 	}
 
