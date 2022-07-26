@@ -8,6 +8,7 @@ PKG_VIPER := github.com/spf13/viper
 PKG_GOCMP := github.com/google/go-cmp
 
 TESTDIR := ./.test
+COV := coverage.txt
 BENCH := .
 BENCH_OLD := $(TESTDIR)/bench.old
 BENCH_NEW := $(TESTDIR)/bench.new
@@ -130,12 +131,13 @@ shellcheck:
 -confirm-shellcheck-version:
 	@shellcheck --version
 
+# @./scripts/ci-test.sh
 .PHONY: ci-test
 ci-test:
-	@./scripts/ci-test.sh
+	@$(call run-test,-coverprofile=$(COV) -covermode=atomic)
 
 .PHONY: ci
-ci: ci-test vet lint -confirm-shellcheck-version shellcheck
+ci: ci-test lint vet -confirm-shellcheck-version shellcheck
 
 ###
 # run benchmark and profile
