@@ -11,15 +11,6 @@ on:
       - 'Dockerfile'
       - '.dockerignore'
       - '**.sample'
-  # TODO: remove after test (this is temporary setting)
-  pull_request:
-    paths-ignore:
-      - '**.md'
-      - 'LICENSE'
-      - '**/.gitignore'
-      - 'Dockerfile'
-      - '.dockerignore'
-      - '**.sample'
 
 env:
   # See: Makefile
@@ -63,7 +54,6 @@ jobs:
 
       - id: add-gobin-path
         name: Add GITHUB_WORKSPACE/bin into PATH
-        # DEPRECATED: run: echo "::add-path::${GITHUB_WORKSPACE}/bin"
         run: echo "${GITHUB_WORKSPACE}/bin" >> $GITHUB_PATH
 
       - id: bench
@@ -89,46 +79,20 @@ jobs:
           name: benchstat-vs-latest
           path: ${{ env.BENCHSTAT_VS_LATEST }}
 
-  register-latest-result:
-    name: Register latest benchmark result
+  register-benchmark-result-for-release:
+    name: Register latest benchmark result for release process
     if: github.event_name == 'push'
     needs: [ benchmark ]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ 'ubuntu-latest' ]
-        # go: [ '1.18' ]
 
     steps:
-      # - id: setup-go
-      #   name: Set up Go ${{ matrix.go }}
-      #   uses: actions/setup-go@v3
-      #   with:
-      #     go-version: ${{ matrix.go }}
-
       - id: checkout
         name: Check out code into the Go module directory
         uses: actions/checkout@v3
 
-      # - id: cache
-      #   name: Cache dependencies and
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: ~/go/pkg/mod
-      #     key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-go-
-
-      # - id: mod-dl
-      #   name: Download dependency go modules
-      #   run: make dl
-
-      # - id: add-gobin-path
-      #   name: Add GITHUB_WORKSPACE/bin into PATH
-      #   # DEPRECATED: run: echo "::add-path::${GITHUB_WORKSPACE}/bin"
-      #   run: echo "${GITHUB_WORKSPACE}/bin" >> $GITHUB_PATH
-
-      # >>>>> START for release process
       - id: download-benchmark
         name: Download a current benchmark result
         continue-on-error: true
@@ -160,4 +124,3 @@ jobs:
           git add ${{ env.BENCHMARK_LATEST }}
           git commit -m "Automated update latest benchmark report"
           git push origin bench-latest
-      # >>>>> END for release process
