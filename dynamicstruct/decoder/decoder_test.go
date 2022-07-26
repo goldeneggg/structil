@@ -1038,31 +1038,6 @@ string_array_field:
 				"FieldB": nil,
 			},
 		},
-
-		// FIXME: おそらくHasArrayObjectとduplicate
-		// 		{
-		// 			name: "HasObjectInArray",
-		// 			data: []byte(`
-		// string_field: あああ
-		// object_array_field:
-		//  - nest_str: aaa
-		//    nest_num: 23
-		//  - nest_str: bbb
-		//    nest_num: 34
-		// `),
-		// 			dt:       typeYAML,
-		// 			nest:     false,
-		// 			useTag:   false,
-		// 			wantNumF: 2,
-		// 			wantDefinition: `type DynamicStruct struct {
-		// 	ObjectArrayField []map[string]interface {}
-		// 	StringField string
-		// }`,
-		// 			fieldAndNestFields: map[string][]string{
-		// 				"ObjectArrayField": nil,
-		// 				"StringField":      nil,
-		// 			},
-		// 		},
 		{
 			name:         "Empty",
 			data:         []byte(``),
