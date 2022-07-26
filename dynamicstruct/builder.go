@@ -54,6 +54,34 @@ type builderField struct {
 
 type builderFieldMap map[string]*builderField
 
+func (bfm builderFieldMap) get(key string) *builderField {
+	r := bfm[key]
+	return r
+}
+
+func (bfm builderFieldMap) put(key string, bf *builderField) {
+	bfm[key] = bf
+}
+
+func (bfm builderFieldMap) delete(key string) {
+	delete(bfm, key)
+}
+
+func (bfm builderFieldMap) each(f func(key string, bf *builderField)) {
+	for k, v := range bfm {
+		f(k, v)
+	}
+}
+
+func (bfm builderFieldMap) has(key string) bool {
+	_, ok := bfm[key]
+	return ok
+}
+
+func (bfm builderFieldMap) len() int {
+	return len(bfm)
+}
+
 // FIXME: race condition対策
 func (b *Builder) addFieldFunc(name string, isPtr bool, tag string, f func() reflect.Type) *Builder {
 	defer func() {
@@ -71,11 +99,11 @@ func (b *Builder) addFieldFunc(name string, isPtr bool, tag string, f func() ref
 		typ = reflect.PtrTo(typ)
 	}
 
-	b.bfMap[name] = &builderField{
+	b.bfMap.put(name, &builderField{
 		name: name,
 		typ:  typ,
 		tag:  reflect.StructTag(tag),
-	}
+	})
 
 	return b
 }
@@ -411,13 +439,12 @@ func (b *Builder) AddDynamicStructSliceWithTag(name string, ds *DynamicStruct, t
 
 // NumField returns the number of built struct fields.
 func (b *Builder) NumField() int {
-	return len(b.bfMap)
+	return b.bfMap.len()
 }
 
 // Exists returns true if the specified name field exists
 func (b *Builder) Exists(name string) bool {
-	_, ok := b.bfMap[name]
-	return ok
+	return b.bfMap.has(name)
 }
 
 // GetStructName returns the name of this DynamicStruct.
@@ -434,8 +461,8 @@ func (b *Builder) SetStructName(name string) *Builder {
 
 // GetTag returns the tag of the specified name field.
 func (b *Builder) GetTag(name string) string {
-	if _, ok := b.bfMap[name]; ok {
-		return string(b.bfMap[name].tag)
+	if b.bfMap.has(name) {
+		return string(b.bfMap.get(name).tag)
 	}
 	return ""
 }
@@ -443,15 +470,15 @@ func (b *Builder) GetTag(name string) string {
 // SetTag returns a Builder that was set the tag for the specific field.
 // Expected tag string is 'TYPE1:"FIELDNAME1" TYPEn:"FIELDNAMEn"' format (e.g. json:"id" etc)
 func (b *Builder) SetTag(name string, tag string) *Builder {
-	if _, ok := b.bfMap[name]; ok {
-		b.bfMap[name].tag = reflect.StructTag(tag)
+	if b.bfMap.has(name) {
+		b.bfMap.get(name).tag = reflect.StructTag(tag)
 	}
 	return b
 }
 
 // Remove returns a Builder that was removed a field named by name parameter.
 func (b *Builder) Remove(name string) *Builder {
-	delete(b.bfMap, name)
+	b.bfMap.delete(name)
 	return b
 }
 
@@ -476,15 +503,24 @@ func (b *Builder) build(isPtr bool) (ds *DynamicStruct, err error) {
 	}()
 
 	var i int
-	fields := make([]reflect.StructField, len(b.bfMap))
-	for name, bf := range b.bfMap {
+	fields := make([]reflect.StructField, b.bfMap.len())
+	b.bfMap.each(func(key string, bf *builderField) {
 		fields[i] = reflect.StructField{
-			Name: name,
+			Name: key,
 			Type: bf.typ,
 			Tag:  bf.tag,
 		}
 		i++
-	}
+	})
+
+	// for name, bf := range b.bfMap {
+	// 	fields[i] = reflect.StructField{
+	// 		Name: name,
+	// 		Type: bf.typ,
+	// 		Tag:  bf.tag,
+	// 	}
+	// 	i++
+	// }
 
 	ds = newDynamicStructWithName(fields, isPtr, b.GetStructName())
 
