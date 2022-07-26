@@ -377,24 +377,6 @@ func (b *Builder) AddSliceWithTag(name string, i interface{}, tag string) *Build
 	return b
 }
 
-// AddSlicePtr returns a Builder that was added a slice pointer field named by name parameter.
-// Type of slice is elem type of i.
-func (b *Builder) AddSlicePtr(name string, i interface{}) *Builder {
-	b.AddSliceWithTag(name, i, "")
-	return b
-}
-
-// AddSlicePtrWithTag returns a Builder that was added a slice pointer field with tag named by name parameter.
-// Type of slice is elem type of i.
-func (b *Builder) AddSlicePtrWithTag(name string, i interface{}, tag string) *Builder {
-	f := func() reflect.Type {
-		return reflect.SliceOf(reflect.TypeOf(i))
-	}
-	b.addFieldFunc(name, true, tag, f)
-
-	return b
-}
-
 // AddInterface returns a Builder that was added a interface{} field named by name parameter.
 func (b *Builder) AddInterface(name string, isPtr bool) *Builder {
 	b.AddInterfaceWithTag(name, isPtr, "")
