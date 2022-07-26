@@ -11,10 +11,10 @@ import (
 
 // Getter is the struct that wraps the basic Getter method.
 type Getter struct {
-	rv     reflect.Value // Value of input interface (this is struct)
-	numf   int           // Field nums
-	names  []string      // Field names
-	fields map[string]*getterField
+	rv     reflect.Value           // Value of input interface (this is struct)
+	numf   int                     // Field nums
+	names  []string                // Field names
+	fields map[string]*getterField // TODO: try sync.Map
 	mu     sync.RWMutex
 }
 
