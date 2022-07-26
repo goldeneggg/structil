@@ -493,11 +493,17 @@ func (b *Builder) Remove(name string) *Builder {
 
 // Build returns a concrete struct pointer built by Builder.
 func (b *Builder) Build() (*DynamicStruct, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
 	return b.build(true)
 }
 
 // BuildNonPtr returns a concrete struct built by Builder.
 func (b *Builder) BuildNonPtr() (*DynamicStruct, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
 	return b.build(false)
 }
 
@@ -508,7 +514,8 @@ func (b *Builder) build(isPtr bool) (ds *DynamicStruct, err error) {
 	}
 
 	var i int
-	fields := make([]reflect.StructField, b.lenFieldMap())
+	// fields := make([]reflect.StructField, b.lenFieldMap())
+	fields := make([]reflect.StructField, len(b.bfMap))
 
 	for key, bf := range b.bfMap {
 		fields[i] = reflect.StructField{

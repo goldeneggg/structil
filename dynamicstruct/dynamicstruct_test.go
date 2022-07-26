@@ -833,7 +833,6 @@ func TestBuilderAddSliceWithNil(t *testing.T) {
 
 type buildArgs struct {
 	builder *Builder
-	isPtr   bool
 }
 
 type buildTest struct {
@@ -853,7 +852,7 @@ func TestBuilderBuild(t *testing.T) {
 	tests := []buildTest{
 		{
 			name:                "Build() with valid Builder",
-			args:                buildArgs{builder: newTestBuilder(), isPtr: true},
+			args:                buildArgs{builder: newTestBuilder()},
 			wantIsPtr:           true,
 			wantStructName:      "DynamicStruct",
 			wantNumField:        32, // See: newTestBuilder()
@@ -863,7 +862,7 @@ func TestBuilderBuild(t *testing.T) {
 		},
 		{
 			name:                "Build() with valid Builder",
-			args:                buildArgs{builder: newTestBuilder(), isPtr: true},
+			args:                buildArgs{builder: newTestBuilder()},
 			wantIsPtr:           true,
 			wantStructName:      "DynamicStruct",
 			wantNumField:        32, // See: newTestBuilder()
@@ -871,15 +870,8 @@ func TestBuilderBuild(t *testing.T) {
 			tryAddDynamicStruct: true,
 		},
 		{
-			name:           "BuildNonPtr() with valid Builder",
-			args:           buildArgs{builder: newTestBuilder(), isPtr: false},
-			wantIsPtr:      false,
-			wantStructName: "DynamicStruct",
-			wantNumField:   32,
-		},
-		{
 			name:           "Build() with valid Builder with struct name",
-			args:           buildArgs{builder: newTestBuilderWithStructName("HogeHuga"), isPtr: true},
+			args:           buildArgs{builder: newTestBuilderWithStructName("HogeHuga")},
 			wantIsPtr:      true,
 			wantStructName: "HogeHuga",
 			wantNumField:   32, // See: newTestBuilder()
@@ -894,14 +886,75 @@ func TestBuilderBuild(t *testing.T) {
 		tt := tt
 
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition in Build() method
-			// t.Parallel()
+			// for checking if Build method has a race condition problem
+			t.Parallel()
 
-			if tt.args.isPtr {
-				ds, err = tt.args.builder.Build()
-			} else {
-				ds, err = tt.args.builder.BuildNonPtr()
+			ds, err = tt.args.builder.Build()
+			if err != nil {
+				t.Errorf("unexpected error caused by DynamicStruct Build: %v", err)
 			}
+
+			if !testBuilderBuildWant(t, ds, tt) {
+				return
+			}
+
+			if !testBuilderBuildTag(t, ds, tt) {
+				return
+			}
+
+			if tt.tryAddDynamicStruct {
+				if !testBuilderBuildAddDynamicStruct(t, ds, tt) {
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestBuilderBuildNonPtr(t *testing.T) {
+	t.Parallel()
+
+	tests := []buildTest{
+		{
+			name:                "Build() with valid Builder",
+			args:                buildArgs{builder: newTestBuilder()},
+			wantIsPtr:           false,
+			wantStructName:      "DynamicStruct",
+			wantNumField:        32, // See: newTestBuilder()
+			wantDefinition:      expectedDefinition,
+			camelizeKeys:        true,
+			tryAddDynamicStruct: true,
+		},
+		{
+			name:                "Build() with valid Builder",
+			args:                buildArgs{builder: newTestBuilder()},
+			wantIsPtr:           false,
+			wantStructName:      "DynamicStruct",
+			wantNumField:        32, // See: newTestBuilder()
+			wantDefinition:      expectedDefinition,
+			tryAddDynamicStruct: true,
+		},
+		{
+			name:           "Build() with valid Builder with struct name",
+			args:           buildArgs{builder: newTestBuilderWithStructName("HogeHuga")},
+			wantIsPtr:      false,
+			wantStructName: "HogeHuga",
+			wantNumField:   32, // See: newTestBuilder()
+			camelizeKeys:   true,
+		},
+	}
+
+	var ds *DynamicStruct
+	var err error
+
+	for _, tt := range tests {
+		tt := tt
+
+		t.Run(tt.name, func(t *testing.T) {
+			// for checking if BuildNonPtr method has a race condition problem
+			t.Parallel()
+
+			ds, err = tt.args.builder.BuildNonPtr()
 			if err != nil {
 				t.Errorf("unexpected error caused by DynamicStruct Build: %v", err)
 			}
