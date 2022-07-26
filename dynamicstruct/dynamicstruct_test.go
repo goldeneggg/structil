@@ -887,7 +887,8 @@ func TestBuilderBuild(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			// for checking if Build method has a race condition problem
-			t.Parallel()
+			// FIXME:
+			// t.Parallel()
 
 			ds, err = tt.args.builder.Build()
 			if err != nil {
@@ -952,7 +953,8 @@ func TestBuilderBuildNonPtr(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			// for checking if BuildNonPtr method has a race condition problem
-			t.Parallel()
+			// FIXME:
+			// t.Parallel()
 
 			ds, err = tt.args.builder.BuildNonPtr()
 			if err != nil {
