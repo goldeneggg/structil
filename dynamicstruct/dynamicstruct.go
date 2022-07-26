@@ -1,14 +1,12 @@
 package dynamicstruct
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 	"sort"
 	"strings"
 
-	"github.com/iancoleman/strcase"
-	"github.com/mitchellh/mapstructure"
+	"github.com/goldeneggg/structil/util"
 )
 
 // DynamicStruct is the struct that built dynamic struct by Builder.Build().
@@ -21,20 +19,21 @@ type DynamicStruct struct {
 	def string
 }
 
-// TODO: add "sortedFields" slice string argument
-func newDynamicStruct(fields []reflect.StructField, isPtr bool) *DynamicStruct {
-	return newDynamicStructWithName(fields, isPtr, defaultStructName)
-}
-
-// newDynamicStructWithName returns a concrete DynamicStruct
+// newDynamicStruct returns a concrete DynamicStruct
 // Note: Create DynamicStruct via Builder.Build(), instead of calling this method directly.
-func newDynamicStructWithName(fields []reflect.StructField, isPtr bool, name string) *DynamicStruct {
-	return &DynamicStruct{
+func newDynamicStruct(fields []reflect.StructField, isPtr bool, name string) (ds *DynamicStruct, err error) {
+	defer func() {
+		err = util.RecoverToError(recover())
+	}()
+
+	ds = &DynamicStruct{
 		name:   name,
 		fields: fields,
 		rt:     reflect.StructOf(fields),
 		isPtr:  isPtr,
 	}
+
+	return
 }
 
 // Name returns the name of this.
@@ -82,39 +81,6 @@ func (ds *DynamicStruct) NewInterface() interface{} {
 	}
 
 	return reflect.Indirect(rv).Interface()
-}
-
-// DecodeMap returns the interface that was decoded from input map.
-// Deprecated: use decoder.XXXToGetter() (e.g. decoder.JSONToGetter()) instead.
-func (ds *DynamicStruct) DecodeMap(m map[string]interface{}) (interface{}, error) {
-	return ds.decodeMap(m, false)
-}
-
-// DecodeMapWithKeyCamelize returns the interface that was decoded from input map with keys camelization.
-// Deprecated: use decoder.XXXToGetter() (e.g. decoder.JSONToGetter()) instead.
-func (ds *DynamicStruct) DecodeMapWithKeyCamelize(m map[string]interface{}) (interface{}, error) {
-	return ds.decodeMap(m, true)
-}
-
-// Deprecated:
-func (ds *DynamicStruct) decodeMap(m map[string]interface{}, camelizeKey bool) (interface{}, error) {
-	if !ds.IsPtr() {
-		return nil, errors.New("DecodeMap can execute only if dynamic struct is pointer. But this is false")
-	}
-
-	tm := make(map[string]interface{}, len(m))
-	if camelizeKey {
-		for k, v := range m {
-			tm[strcase.ToCamel(k)] = v
-		}
-	} else {
-		tm = m
-	}
-
-	i := ds.NewInterface()
-	// FIXME: nestしたstruct(map)内の項目値がここで欠落している
-	err := mapstructure.Decode(tm, &i)
-	return i, err
 }
 
 // Definition returns the struct definition string with field indention by TAB.
@@ -201,11 +167,9 @@ func definition(stbp *strings.Builder, flds []reflect.StructField, name string, 
 }
 
 func sortFields(fields []reflect.StructField) []reflect.StructField {
-	// TODO: performance optimization
 	sfs := make([]reflect.StructField, len(fields))
-	for i := 0; i < len(fields); i++ {
-		sfs[i] = fields[i]
-	}
+	copy(sfs, fields)
+
 	sort.Slice(sfs, func(i, j int) bool {
 		return sfs[i].Name < sfs[j].Name
 	})

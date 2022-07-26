@@ -8,6 +8,8 @@ PKG_VIPER := github.com/spf13/viper
 PKG_GOCMP := github.com/google/go-cmp
 
 TESTDIR := ./.test
+COV := coverage.txt
+BENCH := .
 BENCH_OLD := $(TESTDIR)/bench.old
 BENCH_NEW := $(TESTDIR)/bench.new
 BENCH_LATEST_URL := https://raw.githubusercontent.com/goldeneggg/structil/bench-latest/BENCHMARK_LATEST.txt
@@ -15,9 +17,9 @@ TRACE := $(TESTDIR)/trace.out
 
 SRCS = $(shell find . -type f -name '*.go' | \grep -v 'vendor')
 PKGS = $(shell ./scripts/packages.sh)
-TOOL_PKGS = $(shell cat ./tools/tools.go | grep _ | awk -F'"' '{print $$2}')
 
 assert-command = $(if $(shell which $1),,$(error '$1' command is missing))
+assert-var = $(if $($1),,$(error $1 variable is not assigned))
 
 
 .DEFAULT_GOAL := local
@@ -34,54 +36,54 @@ version:
 pkgs:
 	@echo $(PKGS)
 
-.PHONY: tool-pkgs
-tool-pkgs:
-	@echo $(TOOL_PKGS)
-
 ###
 # manage modules
 ###
-go-mod = GO111MODULE=on $(LOCAL_GO) mod $1 $2
-go-install = GO111MODULE=on $(LOCAL_GO) install $1
-chk_latest = go list -u -m $1
+go-get = $(LOCAL_GO) get $1 ./...
+go-mod = $(LOCAL_GO) mod $1 $2
+go-install = $(LOCAL_GO) install $1
+chk-latest = $(LOCAL_GO) list -u -m $1
 
-.PHONY: mod-dl
-mod-dl:
+.PHONY: get
+get:
+	@$(call go-get,)
+
+.PHONY: get-u
+get-u:
+	@$(call go-get,-u)
+
+.PHONY: dl
+dl:
 	@$(call go-mod,download,)
 
-.PHONY: mod-tidy
-mod-tidy:
+.PHONY: tidy
+tidy:
 	@$(call go-mod,tidy,)
+
+.PHONY: update
+update: get-u tidy
 
 .PHONY: vendor
 vendor:
 	@$(call go-mod,vendor,)
 
-# Note: tools additional process as follows
-#  1. Add pacakge into tools.go
-#  2. Run "make mod-tidy"
-#  3. Run "make mod-tools-install"
-.PHONY: mod-tools-install
-mod-tools-install: mod-tidy
-	@$(call go-install,$(TOOL_PKGS))
-
 .PHONY: chk-latest-mapstructure
 chk-latest-mapstructure:
-	@$(call chk_latest,$(PKG_MAPSTRUCTURE))
+	@$(call chk-latest,$(PKG_MAPSTRUCTURE))
 
 .PHONY: chk-latest-viper
 chk-latest-viper:
-	@$(call chk_latest,$(PKG_VIPER))
+	@$(call chk-latest,$(PKG_VIPER))
 
 .PHONY: chk-latest-gocmp
 chk-latest-gocmp:
-	@$(call chk_latest,$(PKG_GOCMP))
+	@$(call chk-latest,$(PKG_GOCMP))
 
 .PHONY: update-all-modules
 update-all-modules:
-	@go get -u && make test
+	@$(LOCAL_GO) get -u && make test
 
-upgrade_module = echo module-query="$2"; GO111MODULE=on go get $1@$2
+upgrade_module = echo module-query="$2"; $(LOCAL_GO) get $1@$2
 upgrade_to_latest = $(call upgrade_module,$1,latest)
 
 .PHONY: upgrade-latest-mapstructure
@@ -95,7 +97,6 @@ upgrade-latest-viper:
 .PHONY: upgrade-latest-gocmp
 upgrade-latest-gocmp:
 	@$(call upgrade_to_latest,$(PKG_GOCMP))
-
 
 ###
 # run tests
@@ -111,9 +112,10 @@ test:
 subtest:
 	@$(call run-test,-run $(ST))
 
+#	@golint -set_exit_status $(PKGS)
 .PHONY: lint
-lint: mod-tools-install
-	@golint -set_exit_status $(PKGS)
+lint:
+	@$(LOCAL_GO) run honnef.co/go/tools/cmd/staticcheck@latest $(PKGS)
 
 .PHONY: vet
 vet:
@@ -131,10 +133,10 @@ shellcheck:
 
 .PHONY: ci-test
 ci-test:
-	@./scripts/ci-test.sh
+	@$(call run-test,-coverprofile=$(COV) -covermode=atomic)
 
 .PHONY: ci
-ci: ci-test vet lint -confirm-shellcheck-version shellcheck
+ci: ci-test lint vet -confirm-shellcheck-version shellcheck
 
 ###
 # run benchmark and profile
@@ -147,19 +149,19 @@ ci: ci-test vet lint -confirm-shellcheck-version shellcheck
 -mv-bench-result:
 	@[ ! -f $(BENCH_NEW) ] || mv $(BENCH_NEW) $(BENCH_OLD)
 
-benchmark = $(LOCAL_GO) test -run=NONE -bench . -benchmem -cpu 1,2 -benchtime=500ms -count=5 $1 $2 | tee $(BENCH_NEW)
+benchmark = $(LOCAL_GO) test -run=NONE -bench $(BENCH) -benchmem -cpu 1,2 -benchtime=500ms -count=5 $1 $2 | tee $(BENCH_NEW)
 
 .PHONY: bench
 bench: -mk-testdir -mv-bench-result
 	@$(call benchmark,,$(PKGS))
 
 .PHONY: benchstat
-benchstat: mod-tools-install $(BENCH_OLD) $(BENCH_NEW)
-	@benchstat $(BENCH_OLD) $(BENCH_NEW)
+benchstat: $(BENCH_OLD) $(BENCH_NEW)
+	@$(LOCAL_GO) run golang.org/x/perf/cmd/benchstat@latest $(BENCH_OLD) $(BENCH_NEW)
 
 .PHONY: benchstat-ci
-benchstat-ci: mod-tools-install
-	@bash -c "benchstat <(curl -sSL $(BENCH_LATEST_URL)) $(BENCH_NEW)"
+benchstat-ci:
+	@bash -c "$(LOCAL_GO) run golang.org/x/perf/cmd/benchstat@latest <(curl -sSL $(BENCH_LATEST_URL)) $(BENCH_NEW)"
 
 benchmark-pprof = $(call benchmark,-cpuprofile $(TESTDIR)/$1.cpu.out -memprofile $(TESTDIR)/$1.mem.out -o $(TESTDIR)/$1.test,$2)
 
@@ -224,7 +226,7 @@ show-local-go:
 ###
 .PHONY: clean
 clean:
-	@$(LOCAL_GO) clean -i -x -cache -testcache $(PKGS) $(TOOL_PKGS)
+	@$(LOCAL_GO) clean -i -x -cache -testcache $(PKGS)
 	rm -f $(BENCH_OLD)
 	rm -f $(BENCH_NEW)
 	rm -f $(TESTDIR)/*.test
@@ -233,7 +235,7 @@ clean:
 # CAUTION: this target removes all mod-caches
 .PHONY: clean-mod-cache
 clean-mod-cache:
-	@$(LOCAL_GO) clean -i -x -modcache $(PKGS) $(TOOL_PKGS)
+	@$(LOCAL_GO) clean -i -x -modcache $(PKGS)
 
 ###
 # miscellaneous

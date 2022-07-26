@@ -31,22 +31,22 @@ jobs:
     strategy:
       matrix:
         os: [ 'ubuntu-latest' ]
-        go: [ '1.17' ]
+        go: [ '1.18' ]
 
     steps:
       - id: setup-go
         name: Set up Go ${{ matrix.go }}
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go }}
 
       - id: checkout
         name: Check out code into the Go module directory
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - id: cache
-        name: Cache dependencies and tools
-        uses: actions/cache@v2
+        name: Cache dependencies
+        uses: actions/cache@v3
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
@@ -55,11 +55,7 @@ jobs:
 
       - id: mod-dl
         name: Download dependency go modules
-        run: make mod-dl
-
-      - id: mod-tools-install
-        name: Install go tools on module-aware mode
-        run: GOBIN=${GITHUB_WORKSPACE}/bin make mod-tools-install
+        run: make dl
 
       - id: add-gobin-path
         name: Add GITHUB_WORKSPACE/bin into PATH
@@ -72,7 +68,7 @@ jobs:
 
       - id: codecov
         name: Send a coverage to Codecov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v3
         with:
           file: ./coverage.txt
           flags: unittests
@@ -112,13 +108,17 @@ jobs:
 
     steps:
       - id: checkout
-        name: Check out code into the Go module directory with checkout@v1
+        name: Check out code into the Go module directory with checkout@v3
         # See: https://github.com/marketplace/actions/gitleaks
-        uses: actions/checkout@v1
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - id: run-gitleaks
         name: Run gitleaks
-        uses: zricethezav/gitleaks-action@master
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - id: dump-contexts-after
         name: Dump contexts After
@@ -162,7 +162,7 @@ jobs:
     steps:
       - id: checkout
         name: Check out code into the Go module directory
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - id: confirm-version
         name: Confirm version from version.go

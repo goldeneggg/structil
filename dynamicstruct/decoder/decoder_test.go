@@ -171,6 +171,7 @@ array_struct_field:
       vvvv: vvv9999
 `)
 
+	//lint:ignore U1000 It's ok because this is for the future.
 	singleTOML = []byte(`
 string_field = "かきくけこ,"
 int_field = 45678
@@ -195,6 +196,7 @@ array_string_field = ["array_str_1", "array_str_2"]
   vvvv = "vvv3"
 `)
 
+	//lint:ignore U1000 It's ok because this is for the future.
 	singleXML = []byte(`
 <?xml version="1.0" encoding="UTF-8" ?>
 <root>
@@ -224,6 +226,7 @@ array_string_field = ["array_str_1", "array_str_2"]
 </root>
 `)
 
+	//lint:ignore U1000 It's ok because this is for the future.
 	arrayXML = []byte(`
 <?xml version="1.0" encoding="UTF-8" ?>
 <root>
@@ -280,6 +283,7 @@ array_string_field = ["array_str_1", "array_str_2"]
 </root>
 `)
 
+	//lint:ignore U1000 It's ok because this is for the future.
 	singleHCL = []byte(`
 "null_field" =
 
@@ -1034,31 +1038,6 @@ string_array_field:
 				"FieldB": nil,
 			},
 		},
-
-		// FIXME: おそらくHasArrayObjectとduplicate
-		// 		{
-		// 			name: "HasObjectInArray",
-		// 			data: []byte(`
-		// string_field: あああ
-		// object_array_field:
-		//  - nest_str: aaa
-		//    nest_num: 23
-		//  - nest_str: bbb
-		//    nest_num: 34
-		// `),
-		// 			dt:       typeYAML,
-		// 			nest:     false,
-		// 			useTag:   false,
-		// 			wantNumF: 2,
-		// 			wantDefinition: `type DynamicStruct struct {
-		// 	ObjectArrayField []map[string]interface {}
-		// 	StringField string
-		// }`,
-		// 			fieldAndNestFields: map[string][]string{
-		// 				"ObjectArrayField": nil,
-		// 				"StringField":      nil,
-		// 			},
-		// 		},
 		{
 			name:         "Empty",
 			data:         []byte(``),

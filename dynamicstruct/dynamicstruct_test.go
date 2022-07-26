@@ -7,9 +7,6 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/iancoleman/strcase"
-
-	"github.com/goldeneggg/structil"
 
 	. "github.com/goldeneggg/structil/dynamicstruct"
 )
@@ -443,32 +440,44 @@ func TestBuilderAddRemoveExistsNumField(t *testing.T) {
 		builder *Builder
 	}
 	tests := []struct {
-		name               string
-		args               args
-		wantExistsIntField bool
-		wantNumField       int
-		wantStructName     string
+		name                      string
+		args                      args
+		wantExistsIntField        bool
+		wantNumField              int
+		wantStructName            string
+		wantStringFieldWithTagTag string
 	}{
 		{
-			name:               "have fields set by newTestBuilder()",
-			args:               args{builder: newTestBuilder()},
-			wantExistsIntField: true,
-			wantNumField:       32, // See: newTestBuilder()
-			wantStructName:     "DynamicStruct",
+			name:                      "have fields set by newTestBuilder()",
+			args:                      args{builder: newTestBuilder()},
+			wantExistsIntField:        true,
+			wantNumField:              32, // See: newTestBuilder()
+			wantStructName:            "DynamicStruct",
+			wantStringFieldWithTagTag: stringFieldTag,
 		},
 		{
-			name:               "have fields set by newTestBuilder() and Remove(IntField)",
-			args:               args{builder: newTestBuilder().Remove("IntField")},
-			wantExistsIntField: false,
-			wantNumField:       31,
-			wantStructName:     "DynamicStruct",
+			name:                      "have fields set by newTestBuilder() and Remove(IntField)",
+			args:                      args{builder: newTestBuilder().Remove("IntField")},
+			wantExistsIntField:        false,
+			wantNumField:              31,
+			wantStructName:            "DynamicStruct",
+			wantStringFieldWithTagTag: stringFieldTag,
 		},
 		{
-			name:               "have struct name by newTestBuilderWithStructName()",
-			args:               args{builder: newTestBuilderWithStructName("Abc")},
-			wantExistsIntField: true,
-			wantNumField:       32,
-			wantStructName:     "Abc",
+			name:                      "have fields set by newTestBuilder() and SetTag(StringFieldWithTag)",
+			args:                      args{builder: newTestBuilder().SetTag("StringFieldWithTag", "abc")},
+			wantExistsIntField:        true,
+			wantNumField:              32,
+			wantStructName:            "DynamicStruct",
+			wantStringFieldWithTagTag: "abc",
+		},
+		{
+			name:                      "have struct name by newTestBuilderWithStructName()",
+			args:                      args{builder: newTestBuilderWithStructName("Abc")},
+			wantExistsIntField:        true,
+			wantNumField:              32,
+			wantStructName:            "Abc",
+			wantStringFieldWithTagTag: stringFieldTag,
 		},
 	}
 
@@ -484,6 +493,11 @@ func TestBuilderAddRemoveExistsNumField(t *testing.T) {
 
 			if tt.args.builder.NumField() != tt.wantNumField {
 				t.Errorf("result numfield is unexpected. got: %d, want: %d", tt.args.builder.NumField(), tt.wantNumField)
+				return
+			}
+
+			if tt.args.builder.GetTag("StringFieldWithTag") != tt.wantStringFieldWithTagTag {
+				t.Errorf("result GetTag(StringFieldWithTag) is unexpected. got: %s, want: %s", tt.args.builder.GetTag("StringFieldWithTag"), tt.wantStringFieldWithTagTag)
 				return
 			}
 
@@ -819,7 +833,6 @@ func TestBuilderAddSliceWithNil(t *testing.T) {
 
 type buildArgs struct {
 	builder *Builder
-	isPtr   bool
 }
 
 type buildTest struct {
@@ -829,79 +842,39 @@ type buildTest struct {
 	wantStructName      string
 	wantNumField        int
 	wantDefinition      string
-	decodedMap          map[string]interface{}
 	camelizeKeys        bool
-	wantErrorDecodeMap  bool
 	tryAddDynamicStruct bool
 }
 
 func TestBuilderBuild(t *testing.T) {
 	t.Parallel()
 
-	testMap := map[string]interface{}{
-		"string_field":  "XXXyyy",
-		"int_field":     3456,
-		"byte_field":    byte(2),
-		"float32_field": float32(0.98),
-		"float64_field": float64(9.012),
-		"bool_field":    true,
-		"map_field":     map[string]float32{"map_field_key": float32(1.2)},
-		//"func_field":   func(i1 int, i2 int) (bool, error) { return true, nil },  // FIXME: func support
-		"struct_field": DynamicTestStruct{String: "Xyz"},
-		"slice_field":  []*DynamicTestStruct{{String: "Abc1"}, {String: "Abc2"}},
-	}
-
-	testCamelizedMap := map[string]interface{}{
-		"StringField":  "ABCDEFGH",
-		"IntField":     987,
-		"ByteField":    byte(1),
-		"Float32Field": float32(1.23),
-		"Float64Field": float64(2.3),
-		"BoolField":    true,
-		"MapField":     map[string]float32{"mfkey": float32(4.56)},
-		//"FuncField":   func(i1 int, i2 int) (bool, error) { return true, nil },  // FIXME: func support
-		"StructField": DynamicTestStruct{String: "Hoge"},
-		"SliceField":  []*DynamicTestStruct{{String: "Huga1"}, {String: "Huga2"}},
-	}
-
 	tests := []buildTest{
 		{
 			name:                "Build() with valid Builder",
-			args:                buildArgs{builder: newTestBuilder(), isPtr: true},
+			args:                buildArgs{builder: newTestBuilder()},
 			wantIsPtr:           true,
 			wantStructName:      "DynamicStruct",
 			wantNumField:        32, // See: newTestBuilder()
 			wantDefinition:      expectedDefinition,
-			decodedMap:          testMap,
 			camelizeKeys:        true,
 			tryAddDynamicStruct: true,
 		},
 		{
 			name:                "Build() with valid Builder",
-			args:                buildArgs{builder: newTestBuilder(), isPtr: true},
+			args:                buildArgs{builder: newTestBuilder()},
 			wantIsPtr:           true,
 			wantStructName:      "DynamicStruct",
 			wantNumField:        32, // See: newTestBuilder()
 			wantDefinition:      expectedDefinition,
-			decodedMap:          testCamelizedMap,
 			tryAddDynamicStruct: true,
 		},
 		{
-			name:               "BuildNonPtr() with valid Builder",
-			args:               buildArgs{builder: newTestBuilder(), isPtr: false},
-			wantIsPtr:          false,
-			wantStructName:     "DynamicStruct",
-			wantNumField:       32,
-			decodedMap:         testCamelizedMap,
-			wantErrorDecodeMap: true, // Note: can't execute DecodeMap if dynamic struct is NOT pointer.
-		},
-		{
 			name:           "Build() with valid Builder with struct name",
-			args:           buildArgs{builder: newTestBuilderWithStructName("HogeHuga"), isPtr: true},
+			args:           buildArgs{builder: newTestBuilderWithStructName("HogeHuga")},
 			wantIsPtr:      true,
 			wantStructName: "HogeHuga",
 			wantNumField:   32, // See: newTestBuilder()
-			decodedMap:     testCamelizedMap,
 			camelizeKeys:   true,
 		},
 	}
@@ -913,14 +886,11 @@ func TestBuilderBuild(t *testing.T) {
 		tt := tt
 
 		t.Run(tt.name, func(t *testing.T) {
-			// FIXME: comment out t.Parallel() because of race condition in Build() method
+			// for checking if Build method has a race condition problem
+			// FIXME:
 			// t.Parallel()
 
-			if tt.args.isPtr {
-				ds, err = tt.args.builder.Build()
-			} else {
-				ds, err = tt.args.builder.BuildNonPtr()
-			}
+			ds, err = tt.args.builder.Build()
 			if err != nil {
 				t.Errorf("unexpected error caused by DynamicStruct Build: %v", err)
 			}
@@ -933,10 +903,70 @@ func TestBuilderBuild(t *testing.T) {
 				return
 			}
 
-			if tt.decodedMap != nil {
-				if !testBuilderBuildDecodeMap(t, ds, tt) {
+			if tt.tryAddDynamicStruct {
+				if !testBuilderBuildAddDynamicStruct(t, ds, tt) {
 					return
 				}
+			}
+		})
+	}
+}
+
+func TestBuilderBuildNonPtr(t *testing.T) {
+	t.Parallel()
+
+	tests := []buildTest{
+		{
+			name:                "Build() with valid Builder",
+			args:                buildArgs{builder: newTestBuilder()},
+			wantIsPtr:           false,
+			wantStructName:      "DynamicStruct",
+			wantNumField:        32, // See: newTestBuilder()
+			wantDefinition:      expectedDefinition,
+			camelizeKeys:        true,
+			tryAddDynamicStruct: true,
+		},
+		{
+			name:                "Build() with valid Builder",
+			args:                buildArgs{builder: newTestBuilder()},
+			wantIsPtr:           false,
+			wantStructName:      "DynamicStruct",
+			wantNumField:        32, // See: newTestBuilder()
+			wantDefinition:      expectedDefinition,
+			tryAddDynamicStruct: true,
+		},
+		{
+			name:           "Build() with valid Builder with struct name",
+			args:           buildArgs{builder: newTestBuilderWithStructName("HogeHuga")},
+			wantIsPtr:      false,
+			wantStructName: "HogeHuga",
+			wantNumField:   32, // See: newTestBuilder()
+			camelizeKeys:   true,
+		},
+	}
+
+	var ds *DynamicStruct
+	var err error
+
+	for _, tt := range tests {
+		tt := tt
+
+		t.Run(tt.name, func(t *testing.T) {
+			// for checking if BuildNonPtr method has a race condition problem
+			// FIXME:
+			// t.Parallel()
+
+			ds, err = tt.args.builder.BuildNonPtr()
+			if err != nil {
+				t.Errorf("unexpected error caused by DynamicStruct Build: %v", err)
+			}
+
+			if !testBuilderBuildWant(t, ds, tt) {
+				return
+			}
+
+			if !testBuilderBuildTag(t, ds, tt) {
+				return
 			}
 
 			if tt.tryAddDynamicStruct {
@@ -1042,89 +1072,48 @@ func testBuilderBuildTag(t *testing.T, ds *DynamicStruct, tt buildTest) bool {
 	return true
 }
 
-func testBuilderBuildDecodeMap(t *testing.T, ds *DynamicStruct, tt buildTest) bool {
-	t.Helper()
-
-	var dec interface{}
-	var err error
-	if tt.camelizeKeys {
-		dec, err = ds.DecodeMapWithKeyCamelize(tt.decodedMap)
-	} else {
-		dec, err = ds.DecodeMap(tt.decodedMap)
-	}
-
-	if err != nil {
-		if !tt.wantErrorDecodeMap {
-			t.Fatalf("unexpected error occurred from DecodeMap: %v", err)
-		}
-		return true
-
-	} else if tt.wantErrorDecodeMap {
-		t.Fatalf("expected error did not occur from DecodeMap. dec: %+v", dec)
-	}
-
-	getter, err := structil.NewGetter(dec)
-	if err != nil {
-		t.Fatalf("unexpected error occurred from NewGetter: %v", err)
-	}
-
-	var name string
-	for k, v := range tt.decodedMap {
-		if tt.camelizeKeys {
-			name = strcase.ToCamel(k)
-		} else {
-			name = k
-		}
-
-		gotValue, ok := getter.Get(name)
-		if !ok {
-			t.Fatalf("key does not exist. It's unexpected. name: %s", name)
-		}
-
-		switch name {
-		case "StructField":
-			getter, err := structil.NewGetter(gotValue)
-			if err != nil {
-				t.Fatalf("unexpected error occurred from NewGetter for StructField: %v", err)
-			}
-
-			ds, _ := v.(DynamicTestStruct)
-			gotString, _ := getter.Get("String")
-			if gotString != ds.String {
-				t.Fatalf("unexpected mismatch Struct String field: got: %v, want: %v", gotString, ds.String)
-			}
-		default:
-			if d := cmp.Diff(gotValue, v); d != "" {
-				t.Fatalf("unexpected mismatch: name: %s, (-got +want)\n%s", name, d)
-			}
-		}
-	}
-
-	return true
-}
-
 func testBuilderBuildAddDynamicStruct(t *testing.T, ds *DynamicStruct, tt buildTest) bool {
 	t.Helper()
 
 	builder := newTestBuilder()
-	builder.AddDynamicStructWithTag("AdditionalDynamicStruct", ds, false, "json")
-	builder.AddDynamicStructPtrWithTag("AdditionalDynamicStructPtr", ds, "json")
+	builder.AddDynamicStruct("AdditionalDynamicStruct", ds, false)
+	builder.AddDynamicStructWithTag("AdditionalDynamicStructWithTag", ds, false, "json")
+	builder.AddDynamicStructPtr("AdditionalDynamicStructPtr", ds)
+	builder.AddDynamicStructPtrWithTag("AdditionalDynamicStructPtrWithTag", ds, "json")
+	builder.AddDynamicStructSlice("AdditionalDynamicStructSlice", ds)
+	builder.AddDynamicStructSliceWithTag("AdditionalDynamicStructSliceWithTag", ds, "json")
 	newds, err := builder.Build()
 	if err != nil {
 		t.Fatalf("unexpected error occurred from Build: %v", err)
 	}
 
-	if newds.NumField() != tt.wantNumField+2 {
+	if newds.NumField() != tt.wantNumField+6 {
 		t.Fatalf("result numfield is unexpected. got: %d, want: %d", newds.NumField(), tt.wantNumField+2)
 	}
 
 	_, ok := newds.FieldByName("AdditionalDynamicStruct")
 	if !ok {
-		t.Fatalf("additional DynamicStruct field does not exist")
+		t.Fatalf("additional AdditionalDynamicStruct field does not exist")
+	}
+	_, ok = newds.FieldByName("AdditionalDynamicStructWithTag")
+	if !ok {
+		t.Fatalf("additional AdditionalDynamicStructWithTag field does not exist")
 	}
 	_, ok = newds.FieldByName("AdditionalDynamicStructPtr")
 	if !ok {
-		t.Fatalf("additional DynamicStructPtr field does not exist")
+		t.Fatalf("additional AdditionalDynamicStructWithTag field does not exist")
+	}
+	_, ok = newds.FieldByName("AdditionalDynamicStructPtrWithTag")
+	if !ok {
+		t.Fatalf("additional AdditionalDynamicStructPtrWithTag field does not exist")
+	}
+	_, ok = newds.FieldByName("AdditionalDynamicStructSlice")
+	if !ok {
+		t.Fatalf("additional AdditionalDynamicStructSlice field does not exist")
+	}
+	_, ok = newds.FieldByName("AdditionalDynamicStructSliceWithTag")
+	if !ok {
+		t.Fatalf("additional AdditionalDynamicStructSliceWithTag field does not exist")
 	}
 
 	// TODO:

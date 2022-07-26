@@ -44,3 +44,5 @@ Temporary Items
 vendor/
 
 .test/
+
+.vscode
