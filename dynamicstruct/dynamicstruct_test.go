@@ -879,18 +879,13 @@ func TestBuilderBuild(t *testing.T) {
 		},
 	}
 
-	var ds *DynamicStruct
-	var err error
-
 	for _, tt := range tests {
 		tt := tt
 
 		t.Run(tt.name, func(t *testing.T) {
-			// for checking if Build method has a race condition problem
-			// FIXME:
-			// t.Parallel()
+			t.Parallel()
 
-			ds, err = tt.args.builder.Build()
+			ds, err := tt.args.builder.Build()
 			if err != nil {
 				t.Errorf("unexpected error caused by DynamicStruct Build: %v", err)
 			}
@@ -945,18 +940,13 @@ func TestBuilderBuildNonPtr(t *testing.T) {
 		},
 	}
 
-	var ds *DynamicStruct
-	var err error
-
 	for _, tt := range tests {
 		tt := tt
 
 		t.Run(tt.name, func(t *testing.T) {
-			// for checking if BuildNonPtr method has a race condition problem
-			// FIXME:
-			// t.Parallel()
+			t.Parallel()
 
-			ds, err = tt.args.builder.BuildNonPtr()
+			ds, err := tt.args.builder.BuildNonPtr()
 			if err != nil {
 				t.Errorf("unexpected error caused by DynamicStruct Build: %v", err)
 			}

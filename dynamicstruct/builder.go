@@ -3,7 +3,6 @@ package dynamicstruct
 import (
 	"errors"
 	"reflect"
-	"sync"
 
 	"github.com/goldeneggg/structil/util"
 )
@@ -35,7 +34,6 @@ var (
 type Builder struct {
 	name  string
 	bfMap builderFieldMap
-	mu    sync.RWMutex
 	err   error
 }
 
@@ -56,39 +54,24 @@ type builderField struct {
 type builderFieldMap map[string]*builderField
 
 func (b *Builder) getFieldMap(key string) *builderField {
-	b.mu.RLock()
-	defer b.mu.RUnlock()
-
 	r := b.bfMap[key]
 	return r
 }
 
 func (b *Builder) putFieldMap(key string, bf *builderField) {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
 	b.bfMap[key] = bf
 }
 
 func (b *Builder) deleteFieldMap(key string) {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
 	delete(b.bfMap, key)
 }
 
 func (b *Builder) hasFieldMap(key string) bool {
-	b.mu.RLock()
-	defer b.mu.RUnlock()
-
 	_, ok := b.bfMap[key]
 	return ok
 }
 
 func (b *Builder) lenFieldMap() int {
-	b.mu.RLock()
-	defer b.mu.RUnlock()
-
 	return len(b.bfMap)
 }
 
@@ -484,9 +467,6 @@ func (b *Builder) BuildNonPtr() (*DynamicStruct, error) {
 }
 
 func (b *Builder) build(isPtr bool) (ds *DynamicStruct, err error) {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
 	if b.err != nil {
 		err = b.err
 		return

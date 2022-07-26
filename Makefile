@@ -61,7 +61,7 @@ tidy:
 	@$(call go-mod,tidy,)
 
 .PHONY: update
-update: get-u tidy
+update: get-u tidy test
 
 .PHONY: vendor
 vendor:
@@ -79,24 +79,8 @@ chk-latest-viper:
 chk-latest-gocmp:
 	@$(call chk-latest,$(PKG_GOCMP))
 
-.PHONY: update-all-modules
-update-all-modules:
-	@$(LOCAL_GO) get -u && make test
-
-upgrade_module = echo module-query="$2"; $(LOCAL_GO) get $1@$2
-upgrade_to_latest = $(call upgrade_module,$1,latest)
-
-.PHONY: upgrade-latest-mapstructure
-upgrade-latest-mapstructure:
-	@$(call upgrade_to_latest,$(PKG_MAPSTRUCTURE))
-
-.PHONY: upgrade-latest-viper
-upgrade-latest-viper:
-	@$(call upgrade_to_latest,$(PKG_VIPER))
-
-.PHONY: upgrade-latest-gocmp
-upgrade-latest-gocmp:
-	@$(call upgrade_to_latest,$(PKG_GOCMP))
+upgrade-module = echo module-query="$2"; $(LOCAL_GO) get $1@$2
+upgrade-to-latest = $(call upgrade-module,$1,latest)
 
 ###
 # run tests
