@@ -510,12 +510,6 @@ func (b *Builder) build(isPtr bool) (ds *DynamicStruct, err error) {
 	var i int
 	fields := make([]reflect.StructField, b.lenFieldMap())
 
-	b.mu.Lock()
-	defer func() {
-		b.mu.Unlock()
-		err = util.RecoverToError(recover())
-	}()
-
 	for key, bf := range b.bfMap {
 		fields[i] = reflect.StructField{
 			Name: key,
@@ -525,7 +519,7 @@ func (b *Builder) build(isPtr bool) (ds *DynamicStruct, err error) {
 		i++
 	}
 
-	ds = newDynamicStructWithName(fields, isPtr, b.GetStructName())
+	ds, err = newDynamicStruct(fields, isPtr, b.GetStructName())
 
 	return
 }

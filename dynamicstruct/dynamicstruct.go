@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"sort"
 	"strings"
+
+	"github.com/goldeneggg/structil/util"
 )
 
 // DynamicStruct is the struct that built dynamic struct by Builder.Build().
@@ -17,15 +19,21 @@ type DynamicStruct struct {
 	def string
 }
 
-// newDynamicStructWithName returns a concrete DynamicStruct
+// newDynamicStruct returns a concrete DynamicStruct
 // Note: Create DynamicStruct via Builder.Build(), instead of calling this method directly.
-func newDynamicStructWithName(fields []reflect.StructField, isPtr bool, name string) *DynamicStruct {
-	return &DynamicStruct{
+func newDynamicStruct(fields []reflect.StructField, isPtr bool, name string) (ds *DynamicStruct, err error) {
+	defer func() {
+		err = util.RecoverToError(recover())
+	}()
+
+	ds = &DynamicStruct{
 		name:   name,
 		fields: fields,
 		rt:     reflect.StructOf(fields),
 		isPtr:  isPtr,
 	}
+
+	return
 }
 
 // Name returns the name of this.
