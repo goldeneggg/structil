@@ -12,7 +12,8 @@ import (
 const (
 	typeJSON int = iota
 	typeYAML
-	typeXML
+	typeHCL
+	typeXML // FIXME
 )
 
 var (
@@ -1073,6 +1074,99 @@ string_array_field:
 			}
 
 			// FIXME: エラーケース対応
+			testCorrectCase(t, tt, dec)
+		})
+	}
+}
+
+func TestDynamicStructHCL(t *testing.T) {
+	t.Parallel()
+
+	tests := []decoderTest{
+		{
+			name: "HasOnlyPrimitive",
+			data: []byte(`
+string_field = "かきくけこ"
+int_field = 45678
+float32_field = 9.876
+bool_field = false
+`),
+			dt:       typeHCL,
+			nest:     false,
+			useTag:   false,
+			wantNumF: 4,
+			wantDefinition: `type DynamicStruct struct {
+	BoolField bool
+	Float32Field float64
+	IntField float64
+	StringField string
+}`,
+		},
+		{
+			name:     "BracketOnly",
+			data:     []byte(`{}`),
+			dt:       typeJSON,
+			nest:     false,
+			useTag:   false,
+			wantNumF: 0,
+			wantDefinition: `type DynamicStruct struct {
+}`,
+		},
+		{
+			name:     "ArrayBracketOnly",
+			data:     []byte(`[]`),
+			dt:       typeJSON,
+			nest:     false,
+			useTag:   false,
+			wantNumF: 0,
+			wantDefinition: `type DynamicStruct struct {
+}`,
+		},
+		{
+			name:           "OnlyLiteral",
+			data:           []byte(`aiueo`),
+			dt:             typeJSON,
+			nest:           false,
+			useTag:         false,
+			wantNumF:       0,
+			wantDefinition: ``,
+			wantErrorNew:   true,
+		},
+		{
+			name:           "Empty",
+			data:           []byte(``),
+			dt:             typeJSON,
+			nest:           false,
+			useTag:         false,
+			wantNumF:       0,
+			wantDefinition: ``,
+			wantErrorNew:   true,
+		},
+		{
+			name:         "NullData",
+			data:         nil,
+			dt:           typeJSON,
+			nest:         false,
+			useTag:       false,
+			wantErrorNew: true,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			dec, err := FromHCL(tt.data)
+			if err != nil {
+				if !tt.wantErrorNew {
+					t.Fatalf("unexpected error is returned from FromHCL: %v", err)
+				}
+				return
+			} else if tt.wantErrorNew {
+				t.Fatalf("error is expected but it does not occur from FromHCL. data: %q", string(tt.data))
+			}
+
 			testCorrectCase(t, tt, dec)
 		})
 	}

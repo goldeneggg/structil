@@ -71,6 +71,11 @@ func FromYAML(data []byte) (*Decoder, error) {
 	return newDecoder(data, typeYAML)
 }
 
+// FromHCL returns a concrete Decoder for HCL.
+func FromHCL(data []byte) (*Decoder, error) {
+	return newDecoder(data, typeHCL)
+}
+
 // FromXML returns a concrete Decoder for XML.
 // FIXME: This function is still a future candidate (returned error now)
 func FromXML(data []byte) (*Decoder, error) {

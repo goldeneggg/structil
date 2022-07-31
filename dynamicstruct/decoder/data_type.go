@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/hashicorp/hcl/v2/hclsimple"
 	"gopkg.in/yaml.v3"
 )
 
@@ -12,21 +13,13 @@ import (
 type dataType int
 
 const (
-	// TypeJSON is the type sign of JSON
 	typeJSON dataType = iota
-
-	// TypeYAML is the type sign of YAML
 	typeYAML
+	typeHCL
 
 	// FIXME: futures as follows
-
-	// TypeXML is the type sign of XML
 	// TypeXML
-
-	// TypeTOML is the type sign of TOML
 	// TypeTOML
-
-	// TypeCSV is the type sign of CSV
 	// TypeCSV
 
 	end // end of iota
@@ -35,6 +28,7 @@ const (
 var formats = [...]string{
 	typeJSON: "json",
 	typeYAML: "yaml",
+	typeHCL:  "hcl",
 }
 
 func (dt dataType) string() string {
@@ -55,11 +49,13 @@ func (dt dataType) unmarshalWithIPtr(data []byte, iptr interface{}) error {
 
 	switch dt {
 	case typeJSON:
-		// Note: iptr should be "map[string]interface{}"
 		err = json.Unmarshal(data, iptr)
 	case typeYAML:
-		// Note: iptr should be "map[interface{}]interface{}" using gopkg.in/yaml.v2 package
 		err = yaml.Unmarshal(data, iptr)
+	case typeHCL:
+		var i map[string]interface{}
+		iptr = &i
+		err = hclsimple.Decode("example.hcl", data, nil, iptr)
 	default:
 		err = fmt.Errorf("invalid datatype for Unmarshal: %v", dt)
 	}
@@ -72,10 +68,8 @@ func (dt dataType) unmarshalWithIPtr(data []byte, iptr interface{}) error {
 func (dt dataType) marshal(m map[string]interface{}) (data []byte, err error) {
 	switch dt {
 	case typeJSON:
-		// Note: v is expected to be "map[string]interface{}"
 		data, err = json.Marshal(m)
 	case typeYAML:
-		// Note: v is expected to be converted from "map[interface{}]interface{}" to "map[string]interface{}"
 		data, err = yaml.Marshal(m)
 	default:
 		err = fmt.Errorf("invalid datatype for Marshal: %v", dt)
