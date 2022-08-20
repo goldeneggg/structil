@@ -20,36 +20,32 @@ type Decoder struct {
 }
 
 func newDecoder(data []byte, dt dataType) (*Decoder, error) {
-	unm, err := dt.unmarshal(data)
+	var intf interface{}
+
+	err := dt.unmarshal(data, &intf)
 	if err != nil {
 		return nil, err
 	}
 
-	dec := &Decoder{
-		dt:        dt,
-		orgData:   data,
-		orgIntf:   unm,
-		strKeyMap: make(map[string]interface{}),
-	}
-
-	switch t := dec.orgIntf.(type) {
+	m := make(map[string]interface{})
+	switch t := intf.(type) {
 	case map[string]interface{}:
 		// JSON
-		dec.strKeyMap = t
+		m = t
 	// Note: this is dead case with gopkg.in/yaml.v3 (but alive with v2)
 	// case map[interface{}]interface{}:
 	// 	// YAML
-	// 	dec.strKeyMap = toStringKeyMap(t)
+	// 	m = toStringKeyMap(t)
 	case []interface{}:
 		if len(t) > 0 {
 			// The items in the array must be same for all elements.
 			// So the first element is used to process
 			switch tt := t[0].(type) {
 			case map[string]interface{}:
-				dec.strKeyMap = tt
+				m = tt
 			// Note: this is dead case with gopkg.in/yaml.v3 (but alive with v2)
 			// case map[interface{}]interface{}:
-			// 	dec.strKeyMap = toStringKeyMap(tt)
+			// 	m = toStringKeyMap(tt)
 			default:
 				return nil, fmt.Errorf("unexpected type of t[0] [%v]", tt)
 			}
@@ -58,7 +54,12 @@ func newDecoder(data []byte, dt dataType) (*Decoder, error) {
 		return nil, fmt.Errorf("unexpected type of dec.orgIntf [%v]", t)
 	}
 
-	return dec, nil
+	return &Decoder{
+		dt:        dt,
+		orgData:   data,
+		orgIntf:   intf,
+		strKeyMap: m,
+	}, nil
 }
 
 // FromJSON returns a concrete Decoder for JSON.
@@ -117,22 +118,23 @@ func (d *Decoder) dsToGetter(nest bool) (*structil.Getter, error) {
 }
 
 func (d *Decoder) decodeToDynamicStruct(ds *dynamicstruct.DynamicStruct) (interface{}, error) {
-	// toDsFromStringMap() method uses "Build()" method and this means that ds is build by pointer-mode
-	// So ds.NewInterface() returns a struct *pointer*
-	d.dsi = ds.NewInterface()
-
 	// must use "d.strKeyMap" (not "d.orgIntf"). because key of "d.orgIntf" is not string but interface{}
 	data, err := d.dt.marshal(d.strKeyMap)
 	if err != nil {
 		return nil, fmt.Errorf("fail to d.dt.marshal: %w", err)
 	}
 
-	// must use "d.dsi" (not "&d.dsi"). because "d.dsi" is pointer
-	// if use "&.d.dsi", unmarshal result is not struct but map[interface{}]interface when dt is YAML
-	if err := d.dt.unmarshalWithIPtr(data, d.dsi); err != nil {
+	// toDsFromStringMap() method uses "Build()" method and this means that ds is build by pointer-mode
+	// So ds.NewInterface() returns a struct *pointer*
+	dsi := ds.NewInterface()
+
+	// must use "dsi" (not "&dsi"). because "dsi" is pointer
+	// if use "&.dsi", unmarshal result is not struct but map[interface{}]interface when dt is YAML
+	if err := d.dt.unmarshal(data, dsi); err != nil {
 		return nil, fmt.Errorf("fail to d.dt.unmarshalWithIPtr: %w", err)
 	}
 
+	d.dsi = dsi
 	return d.dsi, nil
 }
 

@@ -38,13 +38,7 @@ func (dt dataType) string() string {
 	return ""
 }
 
-func (dt dataType) unmarshal(data []byte) (interface{}, error) {
-	var intf interface{}
-	err := dt.unmarshalWithIPtr(data, &intf)
-	return intf, err
-}
-
-func (dt dataType) unmarshalWithIPtr(data []byte, iptr interface{}) error {
+func (dt dataType) unmarshal(data []byte, iptr interface{}) error {
 	var err error
 
 	switch dt {
