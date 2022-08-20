@@ -94,27 +94,27 @@ func (g *Getter) Names() []string {
 	return g.names
 }
 
-func (g *Getter) getSafely(name string) (*getterField, bool) {
+func (g *Getter) getField(name string) (*getterField, bool) {
 	gf, ok := g.fields[name]
 	return gf, ok
 }
 
 // goroutine-safely and kind-safely access to a getterField by name
-func (g *Getter) getSafelyKindly(name string, kind reflect.Kind) (*getterField, bool) {
-	gf, ok := g.getSafely(name)
+func (g *Getter) getFieldKindly(name string, kind reflect.Kind) (*getterField, bool) {
+	gf, ok := g.getField(name)
 	return gf, ok && gf.isKind(kind)
 }
 
 // Has tests whether the original struct has a field named "name".
 func (g *Getter) Has(name string) bool {
-	_, ok := g.getSafely(name)
+	_, ok := g.getField(name)
 	return ok
 }
 
 // GetType returns the reflect.Type object of the original struct field named "name".
 // 2nd return value will be false if the original struct does not have a "name" field.
 func (g *Getter) GetType(name string) (reflect.Type, bool) {
-	gf, ok := g.getSafely(name)
+	gf, ok := g.getField(name)
 	if ok {
 		return gf.typ, true
 	}
@@ -125,7 +125,7 @@ func (g *Getter) GetType(name string) (reflect.Type, bool) {
 // GetValue returns the reflect.Value object of the original struct field named "name".
 // 2nd return value will be false if the original struct does not have a "name" field.
 func (g *Getter) GetValue(name string) (reflect.Value, bool) {
-	gf, ok := g.getSafely(name)
+	gf, ok := g.getField(name)
 	if ok {
 		return gf.indirect, true
 	}
@@ -136,7 +136,7 @@ func (g *Getter) GetValue(name string) (reflect.Value, bool) {
 // Get returns the interface of the original struct field named name.
 // 2nd return value will be false if the original struct does not have a "name" field.
 func (g *Getter) Get(name string) (interface{}, bool) {
-	gf, ok := g.getSafely(name)
+	gf, ok := g.getField(name)
 	if ok {
 		return gf.intf, true
 	}
@@ -156,7 +156,7 @@ func (g *Getter) ToMap() map[string]interface{} {
 
 // IsSlice reports whether type of the original struct field named name is slice.
 func (g *Getter) IsSlice(name string) bool {
-	_, ok := g.getSafelyKindly(name, reflect.Slice)
+	_, ok := g.getFieldKindly(name, reflect.Slice)
 	return ok
 }
 
@@ -164,7 +164,7 @@ func (g *Getter) IsSlice(name string) bool {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not slice of interface.
 func (g *Getter) Slice(name string) ([]interface{}, bool) {
-	gf, ok := g.getSafelyKindly(name, reflect.Slice)
+	gf, ok := g.getFieldKindly(name, reflect.Slice)
 	if !ok {
 		return nil, false
 	}
@@ -181,7 +181,7 @@ func (g *Getter) Slice(name string) ([]interface{}, bool) {
 
 // IsBool reports whether type of the original struct field named name is bool.
 func (g *Getter) IsBool(name string) bool {
-	_, ok := g.getSafelyKindly(name, reflect.Bool)
+	_, ok := g.getFieldKindly(name, reflect.Bool)
 	return ok
 }
 
@@ -189,7 +189,7 @@ func (g *Getter) IsBool(name string) bool {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not bool.
 func (g *Getter) Bool(name string) (bool, bool) {
-	gf, ok := g.getSafelyKindly(name, reflect.Bool)
+	gf, ok := g.getFieldKindly(name, reflect.Bool)
 	if !ok {
 		return false, false
 	}
@@ -200,7 +200,7 @@ func (g *Getter) Bool(name string) (bool, bool) {
 
 // IsByte reports whether type of the original struct field named name is byte.
 func (g *Getter) IsByte(name string) bool {
-	_, ok := g.getSafelyKindly(name, reflect.Uint8)
+	_, ok := g.getFieldKindly(name, reflect.Uint8)
 	return ok
 }
 
@@ -208,7 +208,7 @@ func (g *Getter) IsByte(name string) bool {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not byte.
 func (g *Getter) Byte(name string) (byte, bool) {
-	gf, ok := g.getSafelyKindly(name, reflect.Uint8)
+	gf, ok := g.getFieldKindly(name, reflect.Uint8)
 	if !ok {
 		return 0, false
 	}
@@ -219,7 +219,7 @@ func (g *Getter) Byte(name string) (byte, bool) {
 
 // IsBytes reports whether type of the original struct field named name is []byte.
 func (g *Getter) IsBytes(name string) bool {
-	gf, ok := g.getSafelyKindly(name, reflect.Slice)
+	gf, ok := g.getFieldKindly(name, reflect.Slice)
 	if !ok {
 		return false
 	}
@@ -231,7 +231,7 @@ func (g *Getter) IsBytes(name string) bool {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not []byte.
 func (g *Getter) Bytes(name string) ([]byte, bool) {
-	gf, ok := g.getSafelyKindly(name, reflect.Slice)
+	gf, ok := g.getFieldKindly(name, reflect.Slice)
 	if !ok {
 		return nil, false
 	}
@@ -242,7 +242,7 @@ func (g *Getter) Bytes(name string) ([]byte, bool) {
 
 // IsString reports whether type of the original struct field named name is string.
 func (g *Getter) IsString(name string) bool {
-	_, ok := g.getSafelyKindly(name, reflect.String)
+	_, ok := g.getFieldKindly(name, reflect.String)
 	return ok
 }
 
@@ -250,7 +250,7 @@ func (g *Getter) IsString(name string) bool {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not string.
 func (g *Getter) String(name string) (string, bool) {
-	gf, ok := g.getSafelyKindly(name, reflect.String)
+	gf, ok := g.getFieldKindly(name, reflect.String)
 	if !ok {
 		return "", false
 	}
@@ -261,7 +261,7 @@ func (g *Getter) String(name string) (string, bool) {
 
 // IsInt reports whether type of the original struct field named name is int.
 func (g *Getter) IsInt(name string) bool {
-	_, ok := g.getSafelyKindly(name, reflect.Int)
+	_, ok := g.getFieldKindly(name, reflect.Int)
 	return ok
 }
 
@@ -269,7 +269,7 @@ func (g *Getter) IsInt(name string) bool {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not int.
 func (g *Getter) Int(name string) (int, bool) {
-	gf, ok := g.getSafelyKindly(name, reflect.Int)
+	gf, ok := g.getFieldKindly(name, reflect.Int)
 	if !ok {
 		return 0, false
 	}
@@ -280,7 +280,7 @@ func (g *Getter) Int(name string) (int, bool) {
 
 // IsInt8 reports whether type of the original struct field named name is int8.
 func (g *Getter) IsInt8(name string) bool {
-	_, ok := g.getSafelyKindly(name, reflect.Int8)
+	_, ok := g.getFieldKindly(name, reflect.Int8)
 	return ok
 }
 
@@ -288,7 +288,7 @@ func (g *Getter) IsInt8(name string) bool {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not int8.
 func (g *Getter) Int8(name string) (int8, bool) {
-	gf, ok := g.getSafelyKindly(name, reflect.Int8)
+	gf, ok := g.getFieldKindly(name, reflect.Int8)
 	if !ok {
 		return 0, false
 	}
@@ -299,7 +299,7 @@ func (g *Getter) Int8(name string) (int8, bool) {
 
 // IsInt16 reports whether type of the original struct field named name is int16.
 func (g *Getter) IsInt16(name string) bool {
-	_, ok := g.getSafelyKindly(name, reflect.Int16)
+	_, ok := g.getFieldKindly(name, reflect.Int16)
 	return ok
 }
 
@@ -307,7 +307,7 @@ func (g *Getter) IsInt16(name string) bool {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not int16.
 func (g *Getter) Int16(name string) (int16, bool) {
-	gf, ok := g.getSafelyKindly(name, reflect.Int16)
+	gf, ok := g.getFieldKindly(name, reflect.Int16)
 	if !ok {
 		return 0, false
 	}
@@ -318,7 +318,7 @@ func (g *Getter) Int16(name string) (int16, bool) {
 
 // IsInt32 reports whether type of the original struct field named name is int32.
 func (g *Getter) IsInt32(name string) bool {
-	_, ok := g.getSafelyKindly(name, reflect.Int32)
+	_, ok := g.getFieldKindly(name, reflect.Int32)
 	return ok
 }
 
@@ -326,7 +326,7 @@ func (g *Getter) IsInt32(name string) bool {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not int32.
 func (g *Getter) Int32(name string) (int32, bool) {
-	gf, ok := g.getSafelyKindly(name, reflect.Int32)
+	gf, ok := g.getFieldKindly(name, reflect.Int32)
 	if !ok {
 		return 0, false
 	}
@@ -337,7 +337,7 @@ func (g *Getter) Int32(name string) (int32, bool) {
 
 // IsInt64 reports whether type of the original struct field named name is int64.
 func (g *Getter) IsInt64(name string) bool {
-	_, ok := g.getSafelyKindly(name, reflect.Int64)
+	_, ok := g.getFieldKindly(name, reflect.Int64)
 	return ok
 }
 
@@ -345,7 +345,7 @@ func (g *Getter) IsInt64(name string) bool {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not int64.
 func (g *Getter) Int64(name string) (int64, bool) {
-	gf, ok := g.getSafelyKindly(name, reflect.Int64)
+	gf, ok := g.getFieldKindly(name, reflect.Int64)
 	if !ok {
 		return 0, false
 	}
@@ -356,7 +356,7 @@ func (g *Getter) Int64(name string) (int64, bool) {
 
 // IsUint reports whether type of the original struct field named name is uint.
 func (g *Getter) IsUint(name string) bool {
-	_, ok := g.getSafelyKindly(name, reflect.Uint)
+	_, ok := g.getFieldKindly(name, reflect.Uint)
 	return ok
 }
 
@@ -364,7 +364,7 @@ func (g *Getter) IsUint(name string) bool {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not uint.
 func (g *Getter) Uint(name string) (uint, bool) {
-	gf, ok := g.getSafelyKindly(name, reflect.Uint)
+	gf, ok := g.getFieldKindly(name, reflect.Uint)
 	if !ok {
 		return 0, false
 	}
@@ -375,7 +375,7 @@ func (g *Getter) Uint(name string) (uint, bool) {
 
 // IsUint8 reports whether type of the original struct field named name is uint8.
 func (g *Getter) IsUint8(name string) bool {
-	_, ok := g.getSafelyKindly(name, reflect.Uint8)
+	_, ok := g.getFieldKindly(name, reflect.Uint8)
 	return ok
 }
 
@@ -383,7 +383,7 @@ func (g *Getter) IsUint8(name string) bool {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not uint8.
 func (g *Getter) Uint8(name string) (uint8, bool) {
-	gf, ok := g.getSafelyKindly(name, reflect.Uint8)
+	gf, ok := g.getFieldKindly(name, reflect.Uint8)
 	if !ok {
 		return 0, false
 	}
@@ -394,7 +394,7 @@ func (g *Getter) Uint8(name string) (uint8, bool) {
 
 // IsUint16 reports whether type of the original struct field named name is uint16.
 func (g *Getter) IsUint16(name string) bool {
-	_, ok := g.getSafelyKindly(name, reflect.Uint16)
+	_, ok := g.getFieldKindly(name, reflect.Uint16)
 	return ok
 }
 
@@ -402,7 +402,7 @@ func (g *Getter) IsUint16(name string) bool {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not uint16.
 func (g *Getter) Uint16(name string) (uint16, bool) {
-	gf, ok := g.getSafelyKindly(name, reflect.Uint16)
+	gf, ok := g.getFieldKindly(name, reflect.Uint16)
 	if !ok {
 		return 0, false
 	}
@@ -413,7 +413,7 @@ func (g *Getter) Uint16(name string) (uint16, bool) {
 
 // IsUint32 reports whether type of the original struct field named name is uint32.
 func (g *Getter) IsUint32(name string) bool {
-	_, ok := g.getSafelyKindly(name, reflect.Uint32)
+	_, ok := g.getFieldKindly(name, reflect.Uint32)
 	return ok
 }
 
@@ -421,7 +421,7 @@ func (g *Getter) IsUint32(name string) bool {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not uint32.
 func (g *Getter) Uint32(name string) (uint32, bool) {
-	gf, ok := g.getSafelyKindly(name, reflect.Uint32)
+	gf, ok := g.getFieldKindly(name, reflect.Uint32)
 	if !ok {
 		return 0, false
 	}
@@ -432,7 +432,7 @@ func (g *Getter) Uint32(name string) (uint32, bool) {
 
 // IsUint64 reports whether type of the original struct field named name is uint64.
 func (g *Getter) IsUint64(name string) bool {
-	_, ok := g.getSafelyKindly(name, reflect.Uint64)
+	_, ok := g.getFieldKindly(name, reflect.Uint64)
 	return ok
 }
 
@@ -440,7 +440,7 @@ func (g *Getter) IsUint64(name string) bool {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not uint64.
 func (g *Getter) Uint64(name string) (uint64, bool) {
-	gf, ok := g.getSafelyKindly(name, reflect.Uint64)
+	gf, ok := g.getFieldKindly(name, reflect.Uint64)
 	if !ok {
 		return 0, false
 	}
@@ -451,7 +451,7 @@ func (g *Getter) Uint64(name string) (uint64, bool) {
 
 // IsUintptr reports whether type of the original struct field named name is uintptr.
 func (g *Getter) IsUintptr(name string) bool {
-	_, ok := g.getSafelyKindly(name, reflect.Uintptr)
+	_, ok := g.getFieldKindly(name, reflect.Uintptr)
 	return ok
 }
 
@@ -459,7 +459,7 @@ func (g *Getter) IsUintptr(name string) bool {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not uintptr.
 func (g *Getter) Uintptr(name string) (uintptr, bool) {
-	gf, ok := g.getSafelyKindly(name, reflect.Uintptr)
+	gf, ok := g.getFieldKindly(name, reflect.Uintptr)
 	if !ok {
 		return 0, false
 	}
@@ -470,7 +470,7 @@ func (g *Getter) Uintptr(name string) (uintptr, bool) {
 
 // IsFloat32 reports whether type of the original struct field named name is float32.
 func (g *Getter) IsFloat32(name string) bool {
-	_, ok := g.getSafelyKindly(name, reflect.Float32)
+	_, ok := g.getFieldKindly(name, reflect.Float32)
 	return ok
 }
 
@@ -478,7 +478,7 @@ func (g *Getter) IsFloat32(name string) bool {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not float32.
 func (g *Getter) Float32(name string) (float32, bool) {
-	gf, ok := g.getSafelyKindly(name, reflect.Float32)
+	gf, ok := g.getFieldKindly(name, reflect.Float32)
 	if !ok {
 		return 0, false
 	}
@@ -489,7 +489,7 @@ func (g *Getter) Float32(name string) (float32, bool) {
 
 // IsFloat64 reports whether type of the original struct field named name is float64.
 func (g *Getter) IsFloat64(name string) bool {
-	_, ok := g.getSafelyKindly(name, reflect.Float64)
+	_, ok := g.getFieldKindly(name, reflect.Float64)
 	return ok
 }
 
@@ -497,7 +497,7 @@ func (g *Getter) IsFloat64(name string) bool {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not float64.
 func (g *Getter) Float64(name string) (float64, bool) {
-	gf, ok := g.getSafelyKindly(name, reflect.Float64)
+	gf, ok := g.getFieldKindly(name, reflect.Float64)
 	if !ok {
 		return 0, false
 	}
@@ -508,7 +508,7 @@ func (g *Getter) Float64(name string) (float64, bool) {
 
 // IsComplex64 reports whether type of the original struct field named name is []byte.
 func (g *Getter) IsComplex64(name string) bool {
-	_, ok := g.getSafelyKindly(name, reflect.Complex64)
+	_, ok := g.getFieldKindly(name, reflect.Complex64)
 	return ok
 }
 
@@ -516,7 +516,7 @@ func (g *Getter) IsComplex64(name string) bool {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not complex64.
 func (g *Getter) Complex64(name string) (complex64, bool) {
-	gf, ok := g.getSafelyKindly(name, reflect.Complex64)
+	gf, ok := g.getFieldKindly(name, reflect.Complex64)
 	if !ok {
 		return 0, false
 	}
@@ -527,7 +527,7 @@ func (g *Getter) Complex64(name string) (complex64, bool) {
 
 // IsComplex128 reports whether type of the original struct field named name is []byte.
 func (g *Getter) IsComplex128(name string) bool {
-	_, ok := g.getSafelyKindly(name, reflect.Complex128)
+	_, ok := g.getFieldKindly(name, reflect.Complex128)
 	return ok
 }
 
@@ -535,7 +535,7 @@ func (g *Getter) IsComplex128(name string) bool {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not complex128.
 func (g *Getter) Complex128(name string) (complex128, bool) {
-	gf, ok := g.getSafelyKindly(name, reflect.Complex128)
+	gf, ok := g.getFieldKindly(name, reflect.Complex128)
 	if !ok {
 		return 0, false
 	}
@@ -546,7 +546,7 @@ func (g *Getter) Complex128(name string) (complex128, bool) {
 
 // IsUnsafePointer reports whether type of the original struct field named name is []byte.
 func (g *Getter) IsUnsafePointer(name string) bool {
-	_, ok := g.getSafelyKindly(name, reflect.UnsafePointer)
+	_, ok := g.getFieldKindly(name, reflect.UnsafePointer)
 	return ok
 }
 
@@ -554,7 +554,7 @@ func (g *Getter) IsUnsafePointer(name string) bool {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not unsafe.Pointer.
 func (g *Getter) UnsafePointer(name string) (unsafe.Pointer, bool) {
-	gf, ok := g.getSafelyKindly(name, reflect.UnsafePointer)
+	gf, ok := g.getFieldKindly(name, reflect.UnsafePointer)
 	if !ok {
 		return nil, false
 	}
@@ -565,31 +565,31 @@ func (g *Getter) UnsafePointer(name string) (unsafe.Pointer, bool) {
 
 // IsMap reports whether type of the original struct field named name is map.
 func (g *Getter) IsMap(name string) bool {
-	_, ok := g.getSafelyKindly(name, reflect.Map)
+	_, ok := g.getFieldKindly(name, reflect.Map)
 	return ok
 }
 
 // IsFunc reports whether type of the original struct field named name is func.
 func (g *Getter) IsFunc(name string) bool {
-	_, ok := g.getSafelyKindly(name, reflect.Func)
+	_, ok := g.getFieldKindly(name, reflect.Func)
 	return ok
 }
 
 // IsChan reports whether type of the original struct field named name is chan.
 func (g *Getter) IsChan(name string) bool {
-	_, ok := g.getSafelyKindly(name, reflect.Chan)
+	_, ok := g.getFieldKindly(name, reflect.Chan)
 	return ok
 }
 
 // IsStruct reports whether type of the original struct field named name is struct.
 func (g *Getter) IsStruct(name string) bool {
-	_, ok := g.getSafelyKindly(name, reflect.Struct)
+	_, ok := g.getFieldKindly(name, reflect.Struct)
 	return ok
 }
 
 // IsArray reports whether type of the original struct field named name is slice.
 func (g *Getter) IsArray(name string) bool {
-	_, ok := g.getSafelyKindly(name, reflect.Array)
+	_, ok := g.getFieldKindly(name, reflect.Array)
 	return ok
 }
 
@@ -597,7 +597,7 @@ func (g *Getter) IsArray(name string) bool {
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not struct or struct pointer.
 func (g *Getter) GetGetter(name string) (*Getter, bool) {
-	gf, ok := g.getSafelyKindly(name, reflect.Struct)
+	gf, ok := g.getFieldKindly(name, reflect.Struct)
 	if !ok {
 		return nil, false
 	}
@@ -608,7 +608,7 @@ func (g *Getter) GetGetter(name string) (*Getter, bool) {
 
 // MapGet returns the interface slice of mapped values of the original struct field named name.
 func (g *Getter) MapGet(name string, f func(int, *Getter) (interface{}, error)) ([]interface{}, error) {
-	gf, ok := g.getSafelyKindly(name, reflect.Slice)
+	gf, ok := g.getFieldKindly(name, reflect.Slice)
 	if !ok {
 		return nil, fmt.Errorf("field %s does not exist or is not slice type", name)
 	}
