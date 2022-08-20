@@ -2,6 +2,7 @@ package decoder
 
 import (
 	"fmt"
+	"math/big"
 
 	"github.com/iancoleman/strcase"
 
@@ -20,9 +21,7 @@ type Decoder struct {
 }
 
 func newDecoder(data []byte, dt dataType) (*Decoder, error) {
-	var intf interface{}
-
-	err := dt.unmarshal(data, &intf)
+	intf, err := dt.unmarshal(data)
 	if err != nil {
 		return nil, err
 	}
@@ -96,6 +95,16 @@ func YAMLToGetter(data []byte, nest bool) (*structil.Getter, error) {
 	return d.dsToGetter(nest)
 }
 
+// FIXME: HCL decode method supports only struct pointer or map pointer
+// func HCLToGetter(data []byte, nest bool) (*structil.Getter, error) {
+// 	d, err := FromHCL(data)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("fail to HCLToGetter: %w", err)
+// 	}
+
+// 	return d.dsToGetter(nest)
+// }
+
 func (d *Decoder) dsToGetter(nest bool) (*structil.Getter, error) {
 	ds, err := d.DynamicStruct(nest, true)
 	if err != nil {
@@ -117,14 +126,13 @@ func (d *Decoder) decodeToDynamicStruct(ds *dynamicstruct.DynamicStruct) (interf
 		return nil, fmt.Errorf("fail to d.dt.marshal: %w", err)
 	}
 
-	// toDsFromStringMap() method uses "Build()" method and this means that ds is build by pointer-mode
-	// So ds.NewInterface() returns a struct *pointer*
-	dsi := ds.NewInterface()
-
 	// must use "dsi" (not "&dsi"). because "dsi" is pointer
-	// if use "&.dsi", unmarshal result is not struct but map[interface{}]interface when dt is YAML
-	if err := d.dt.unmarshal(data, dsi); err != nil {
-		return nil, fmt.Errorf("fail to d.dt.unmarshalWithIPtr: %w", err)
+	// ds.NewInterface() returns a struct *pointer*
+	// FIXME: HCL decode method supports only struct pointer or map pointer
+	dsi := ds.NewInterface()
+	err = d.dt.unmarshalWithPtr(data, dsi)
+	if err != nil {
+		return nil, fmt.Errorf("fail to d.dt.unmarshalWithPtr: %w", err)
 	}
 
 	d.dsi = dsi
@@ -225,6 +233,9 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag 
 		// YAML support
 		case nil:
 			b = b.AddInterfaceWithTag(name, false, tag)
+		// HCL support
+		case *big.Float:
+			b = b.AddFloat64WithTag(name, tag)
 		default:
 			return nil, fmt.Errorf("unsupported type of map-value. key = [%s] value = %#v", k, value)
 		}
