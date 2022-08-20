@@ -32,10 +32,6 @@ func newDecoder(data []byte, dt dataType) (*Decoder, error) {
 	case map[string]interface{}:
 		// JSON
 		m = t
-	// Note: this is dead case with gopkg.in/yaml.v3 (but alive with v2)
-	// case map[interface{}]interface{}:
-	// 	// YAML
-	// 	m = toStringKeyMap(t)
 	case []interface{}:
 		if len(t) > 0 {
 			// The items in the array must be same for all elements.
@@ -43,9 +39,6 @@ func newDecoder(data []byte, dt dataType) (*Decoder, error) {
 			switch tt := t[0].(type) {
 			case map[string]interface{}:
 				m = tt
-			// Note: this is dead case with gopkg.in/yaml.v3 (but alive with v2)
-			// case map[interface{}]interface{}:
-			// 	m = toStringKeyMap(tt)
 			default:
 				return nil, fmt.Errorf("unexpected type of t[0] [%v]", tt)
 			}
@@ -147,22 +140,12 @@ func (d *Decoder) OrgData() []byte {
 func (d *Decoder) DynamicStruct(nest bool, useTag bool) (*dynamicstruct.DynamicStruct, error) {
 	var err error
 
-	// d.ds, err = d.toDs(d.orgIntf, nest, useTag)
-	d.ds, err = d.toDs(d.strKeyMap, nest, useTag)
+	d.ds, err = d.toDsFromStringMap(d.strKeyMap, nest, useTag)
 	if err != nil {
 		return nil, err
 	}
 
 	return d.ds, err
-}
-
-func (d *Decoder) toDs(i interface{}, nest bool, useTag bool) (*dynamicstruct.DynamicStruct, error) {
-	switch t := i.(type) {
-	case map[string]interface{}:
-		return d.toDsFromStringMap(t, nest, useTag)
-	}
-
-	return nil, fmt.Errorf("unsupported type [%T] for toDs", i)
 }
 
 func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag bool) (*dynamicstruct.DynamicStruct, error) {
@@ -280,43 +263,3 @@ func (d *Decoder) addForStringMap(
 
 	return b, nil
 }
-
-// Note: this is dead case with gopkg.in/yaml.v3 (but alive with v2)
-// convert map[interface{}]interface{} to map[string]interface{}
-// func toStringKeyMap(mapii map[interface{}]interface{}) map[string]interface{} {
-// 	mapsi := make(map[string]interface{})
-// 	for k, v := range mapii {
-// 		switch vt := v.(type) {
-// 		case []interface{}:
-// 			// for nest array
-// 			mapsi[fmt.Sprintf("%v", k)] = fromArrayToMapValue(vt)
-// 		case map[interface{}]interface{}:
-// 			// for nest object
-// 			mapsi[fmt.Sprintf("%v", k)] = toStringKeyMap(vt)
-// 		default:
-// 			mapsi[fmt.Sprintf("%v", k)] = v
-// 		}
-// 	}
-
-// 	return mapsi
-// }
-
-// Note: this is dead case with gopkg.in/yaml.v3 (but alive with v2)
-// func fromArrayToMapValue(ia []interface{}) interface{} {
-// 	resIa := make([]interface{}, 0, len(ia))
-// 	for _, iv := range ia {
-// 		switch ivt := iv.(type) {
-// 		case []interface{}:
-// 			// for nest array
-// 			resIa = append(resIa, fromArrayToMapValue(ivt))
-// 		case map[interface{}]interface{}:
-// 			// for nest object
-// 			// !!! this is important process for map[interface{}]interface{} to map[string]interface{} for JSON unmarshaling
-// 			resIa = append(resIa, toStringKeyMap(ivt))
-// 		default:
-// 			resIa = append(resIa, ivt)
-// 		}
-// 	}
-
-// 	return resIa
-// }
