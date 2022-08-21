@@ -150,5 +150,4 @@ func convCtyToGo(ctyVal cty.Value) (interface{}, error) {
 	} else {
 		return nil, fmt.Errorf("unsupported ctyType: %v", ctyType)
 	}
-
 }
