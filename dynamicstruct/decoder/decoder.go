@@ -12,46 +12,11 @@ import (
 
 // Decoder is the struct that decodes some marshaled data like JSON and YAML.
 type Decoder struct {
-	dt        dataType
-	orgData   []byte                 // original data
-	orgIntf   interface{}            // unmarshaled interface from original data
-	strKeyMap map[string]interface{} // string key map for decoding to DymanicStruct
-	ds        *dynamicstruct.DynamicStruct
-	dsi       interface{} // unmarshaled result from data to DynamicStruct
-}
-
-func newDecoder(data []byte, dt dataType) (*Decoder, error) {
-	intf, err := dt.unmarshal(data)
-	if err != nil {
-		return nil, err
-	}
-
-	m := make(map[string]interface{})
-	switch t := intf.(type) {
-	case map[string]interface{}:
-		// JSON
-		m = t
-	case []interface{}:
-		if len(t) > 0 {
-			// The items in the array must be same for all elements.
-			// So the first element is used to process
-			switch tt := t[0].(type) {
-			case map[string]interface{}:
-				m = tt
-			default:
-				return nil, fmt.Errorf("unexpected type of t[0] [%v]", tt)
-			}
-		}
-	default:
-		return nil, fmt.Errorf("unexpected type of dec.orgIntf [%v]", t)
-	}
-
-	return &Decoder{
-		dt:        dt,
-		orgData:   data,
-		orgIntf:   intf,
-		strKeyMap: m,
-	}, nil
+	typ  dataType
+	data []byte
+	intf interface{}
+	m    map[string]interface{}
+	ds   *dynamicstruct.DynamicStruct
 }
 
 // FromJSON returns a concrete Decoder for JSON.
@@ -73,6 +38,40 @@ func FromHCL(data []byte) (*Decoder, error) {
 // FIXME: This function is still a future candidate (returned error now)
 func FromXML(data []byte) (*Decoder, error) {
 	return newDecoder(data, end) // FIXME: "end" is provisional type
+}
+
+func newDecoder(data []byte, typ dataType) (*Decoder, error) {
+	intf, err := typ.unmarshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	m := make(map[string]interface{})
+	switch t := intf.(type) {
+	case map[string]interface{}:
+		// JSON
+		m = t
+	case []interface{}:
+		if len(t) > 0 {
+			// The items in the array must be same for all elements.
+			// So the first element is used to process
+			switch tt := t[0].(type) {
+			case map[string]interface{}:
+				m = tt
+			default:
+				return nil, fmt.Errorf("unexpected type of t[0] [%v]", tt)
+			}
+		}
+	default:
+		return nil, fmt.Errorf("unexpected type of unmashalled interface [%v]", t)
+	}
+
+	return &Decoder{
+		typ:  typ,
+		data: data,
+		intf: intf,
+		m:    m,
+	}, nil
 }
 
 // JSONToGetter returns a structil.Getter with a decoded JSON via DynamicStruct.
@@ -105,6 +104,18 @@ func YAMLToGetter(data []byte, nest bool) (*structil.Getter, error) {
 // 	return d.dsToGetter(nest)
 // }
 
+// DynamicStruct returns a decoded DynamicStruct with unmarshaling data to DynamicStruct interface.
+func (d *Decoder) DynamicStruct(nest bool, useTag bool) (*dynamicstruct.DynamicStruct, error) {
+	var err error
+
+	d.ds, err = d.toDsFromStringMap(d.m, nest, useTag)
+	if err != nil {
+		return nil, err
+	}
+
+	return d.ds, err
+}
+
 func (d *Decoder) dsToGetter(nest bool) (*structil.Getter, error) {
 	ds, err := d.DynamicStruct(nest, true)
 	if err != nil {
@@ -120,40 +131,20 @@ func (d *Decoder) dsToGetter(nest bool) (*structil.Getter, error) {
 }
 
 func (d *Decoder) decodeToDynamicStruct(ds *dynamicstruct.DynamicStruct) (interface{}, error) {
-	// must use "d.strKeyMap" (not "d.orgIntf"). because key of "d.orgIntf" is not string but interface{}
-	data, err := d.dt.marshal(d.strKeyMap)
+	data, err := d.typ.marshal(d.m)
 	if err != nil {
-		return nil, fmt.Errorf("fail to d.dt.marshal: %w", err)
+		return nil, fmt.Errorf("fail to d.typ.marshal: %w", err)
 	}
 
-	// must use "dsi" (not "&dsi"). because "dsi" is pointer
 	// ds.NewInterface() returns a struct *pointer*
-	// FIXME: HCL decode method supports only struct pointer or map pointer
 	dsi := ds.NewInterface()
-	err = d.dt.unmarshalWithPtr(data, dsi)
+	// must use "dsi" (not "&dsi"). because "dsi" is pointer
+	err = d.typ.unmarshalWithPtr(data, dsi)
 	if err != nil {
-		return nil, fmt.Errorf("fail to d.dt.unmarshalWithPtr: %w", err)
+		return nil, fmt.Errorf("fail to d.typ.unmarshalWithPtr: %w", err)
 	}
 
-	d.dsi = dsi
-	return d.dsi, nil
-}
-
-// OrgData returns an original data as []byte.
-func (d *Decoder) OrgData() []byte {
-	return d.orgData
-}
-
-// DynamicStruct returns a decoded DynamicStruct with unmarshaling data to DynamicStruct interface.
-func (d *Decoder) DynamicStruct(nest bool, useTag bool) (*dynamicstruct.DynamicStruct, error) {
-	var err error
-
-	d.ds, err = d.toDsFromStringMap(d.strKeyMap, nest, useTag)
-	if err != nil {
-		return nil, err
-	}
-
-	return d.ds, err
+	return dsi, nil
 }
 
 func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag bool) (*dynamicstruct.DynamicStruct, error) {
@@ -170,7 +161,7 @@ func (d *Decoder) toDsFromStringMap(m map[string]interface{}, nest bool, useTag 
 		// See: https://golang.org/pkg/encoding/json/#Marshal
 		// See: https://m-zajac.github.io/json2go/
 		if useTag {
-			tag = fmt.Sprintf(`%s:"%s"`, d.dt.string(), k)
+			tag = fmt.Sprintf(`%s:"%s"`, d.typ.string(), k)
 		}
 
 		// FIXME: the first character of k should be only alpha-numeric

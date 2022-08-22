@@ -74,21 +74,6 @@ func (dt dataType) unmarshalWithPtr(data []byte, iptr interface{}) (err error) {
 	return
 }
 
-// TODO: add tests and examples
-// func (dt dataType) marshal(v interface{}) (data []byte, err error) {
-func (dt dataType) marshal(m map[string]interface{}) (data []byte, err error) {
-	switch dt {
-	case typeJSON:
-		data, err = json.Marshal(m)
-	case typeYAML:
-		data, err = yaml.Marshal(m)
-	default:
-		err = fmt.Errorf("invalid datatype for Marshal: %v", dt)
-	}
-
-	return
-}
-
 func decodeHCL(data []byte) (map[string]interface{}, error) {
 	// Note: hclsimple.Decode supports only pointer of map or struct.
 	var m map[string]interface{}
@@ -150,4 +135,19 @@ func convCtyToGo(ctyVal cty.Value) (interface{}, error) {
 	} else {
 		return nil, fmt.Errorf("unsupported ctyType: %v", ctyType)
 	}
+}
+
+// TODO: add tests and examples
+// func (dt dataType) marshal(v interface{}) (data []byte, err error) {
+func (dt dataType) marshal(m map[string]interface{}) (data []byte, err error) {
+	switch dt {
+	case typeJSON:
+		data, err = json.Marshal(m)
+	case typeYAML:
+		data, err = yaml.Marshal(m)
+	default:
+		err = fmt.Errorf("invalid datatype for Marshal: %v", dt)
+	}
+
+	return
 }
