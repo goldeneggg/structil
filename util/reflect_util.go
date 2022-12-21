@@ -8,7 +8,7 @@ import (
 )
 
 // ToI returns a converted interface from rv.
-func ToI(rv reflect.Value) interface{} {
+func ToI(rv reflect.Value) any {
 	if rv.IsValid() && rv.CanInterface() {
 		return rv.Interface()
 	}
@@ -18,7 +18,7 @@ func ToI(rv reflect.Value) interface{} {
 // ElemTypeOf returns a element Type from i.
 // If the i's type's Kind is Array, Chan, Map, Ptr, or Slice then this returns the element Type.
 // Otherwise this returns i's original Type.
-func ElemTypeOf(i interface{}) reflect.Type {
+func ElemTypeOf(i any) reflect.Type {
 	if i == nil {
 		return nil
 	}
@@ -35,7 +35,7 @@ func ElemTypeOf(i interface{}) reflect.Type {
 }
 
 // RecoverToError returns an error converted from recoverd panic information.
-func RecoverToError(r interface{}) (err error) {
+func RecoverToError(r any) (err error) {
 	if r != nil {
 		msg := fmt.Sprintf("\n%v\n", r) + stackTrace()
 		err = fmt.Errorf("unexpected panic occurred: %s", msg)
@@ -60,7 +60,7 @@ func stackTrace() string {
 
 /*
 // Note: Publicize candidate
-func elemOf(i interface{}) reflect.Value {
+func elemOf(i any) reflect.Value {
 	v := reflect.Indirect(reflect.ValueOf(i))
 	k := v.Kind()
 
@@ -76,13 +76,13 @@ func elemOf(i interface{}) reflect.Value {
 }
 
 // Note: Publicize candidate
-func settableOf(i interface{}) reflect.Value {
+func settableOf(i any) reflect.Value {
 	// i's Kind must be Interface or Ptr(if else, occur panic)
 	return reflect.ValueOf(i).Elem()
 }
 
 // Note: Publicize candidate
-func clone(i interface{}) interface{} {
+func clone(i any) any {
 	return reflect.Indirect(reflect.ValueOf(i)).Interface()
 }
 
@@ -92,25 +92,25 @@ func newSettable(typ reflect.Type) reflect.Value {
 }
 
 // Note: Publicize candidate
-func isImplements(i interface{}, t interface{}) bool {
+func isImplements(i any, t any) bool {
 	typ := reflect.TypeOf(t).Elem()
 	return isImplementsType(i, typ)
 }
 
-func isImplementsType(i interface{}, typ reflect.Type) bool {
+func isImplementsType(i any, typ reflect.Type) bool {
 	v := reflect.ValueOf(i)
 	return typ.Implements(v.Type())
 }
 
 func genericsTypeOf() reflect.Type {
-	return reflect.TypeOf((*interface{})(nil)).Elem()
+	return reflect.TypeOf((*any)(nil)).Elem()
 }
 
 func newGenericsSettable() reflect.Value {
 	return newSettable(genericsTypeOf())
 }
 
-func privateFieldValueOf(i interface{}, name string) reflect.Value {
+func privateFieldValueOf(i any, name string) reflect.Value {
 	sv := settableOf(i)
 	f := sv.FieldByName(name)
 	return reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem()

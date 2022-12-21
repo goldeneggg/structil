@@ -25,8 +25,8 @@ type (
 		Stringptr   *string
 		Stringslice []string
 		Bool        bool
-		Map         map[string]interface{}
-		Func        func(string) interface{}
+		Map         map[string]any
+		Func        func(string) any
 		// ChInt       chan int  // Note: type chan is not supported by mapstructure
 		DynamicTestStruct2
 		DynamicTestStruct2Ptr      *DynamicTestStruct2
@@ -327,7 +327,7 @@ const expectedDefinition = `type DynamicStruct struct {
 
 var (
 	dynamicTestString2 = "test name2"
-	dynamicTestFunc    = func(s string) interface{} { return s + "-func" }
+	dynamicTestFunc    = func(s string) any { return s + "-func" }
 	//dynamicTestChan    = make(chan int)
 )
 
@@ -345,7 +345,7 @@ func newTestDynamicStruct() DynamicTestStruct {
 		Stringptr:   &dynamicTestString2,
 		Stringslice: []string{"strslice1", "strslice2"},
 		Bool:        true,
-		Map:         map[string]interface{}{"k1": "v1", "k2": 2},
+		Map:         map[string]any{"k1": "v1", "k2": 2},
 		Func:        dynamicTestFunc,
 		// ChInt:       dynamicTestChan, // Note: type chan is not supported by mapstructure
 		DynamicTestStruct2: DynamicTestStruct2{
@@ -407,8 +407,8 @@ func newTestBuilder() *Builder {
 		AddBoolWithTag("BoolFieldWithTag", boolFieldTag).
 		AddMap("MapField", SampleString, SampleFloat32).
 		AddMapWithTag("MapFieldWithTag", SampleString, SampleFloat32, mapFieldTag).
-		AddFunc("FuncField", []interface{}{SampleInt, SampleInt}, []interface{}{SampleBool, ErrSample}).
-		AddFuncWithTag("FuncFieldWithTag", []interface{}{SampleInt, SampleInt}, []interface{}{SampleBool, ErrSample}, funcFieldTag).
+		AddFunc("FuncField", []any{SampleInt, SampleInt}, []any{SampleBool, ErrSample}).
+		AddFuncWithTag("FuncFieldWithTag", []any{SampleInt, SampleInt}, []any{SampleBool, ErrSample}, funcFieldTag).
 		AddChanBoth("ChanBothField", SampleInt).
 		AddChanBothWithTag("ChanBothFieldWithTag", SampleInt, chanBothFieldTag).
 		AddChanRecv("ChanRecvField", SampleInt).
@@ -618,7 +618,7 @@ func TestBuilderAddFuncWithNilArgs(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			_, err := tt.args.builder.AddFunc("FuncFieldWithNilArgs", nil, []interface{}{SampleBool}).Build()
+			_, err := tt.args.builder.AddFunc("FuncFieldWithNilArgs", nil, []any{SampleBool}).Build()
 			if err != nil {
 				t.Errorf("unexpected error occurred: args: %+v, %v", tt.args, err)
 			}
@@ -647,7 +647,7 @@ func TestBuilderAddFuncWithNilReturns(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			_, err := tt.args.builder.AddFunc("FuncFieldWithNilReturns", []interface{}{SampleInt}, nil).Build()
+			_, err := tt.args.builder.AddFunc("FuncFieldWithNilReturns", []any{SampleInt}, nil).Build()
 			if err != nil {
 				t.Errorf("unexpected error occurred: args: %+v, %v", tt.args, err)
 			}

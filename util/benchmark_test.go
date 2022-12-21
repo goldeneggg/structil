@@ -37,7 +37,7 @@ func BenchmarkToI_Nil(b *testing.B) {
 }
 
 func benchmarkToI(v reflect.Value, b *testing.B) {
-	var intf interface{}
+	var intf any
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -78,7 +78,7 @@ func BenchmarkElemTypeOf_Nil(b *testing.B) {
 	benchmarkElemTypeOf(nil, b)
 }
 
-func benchmarkElemTypeOf(i interface{}, b *testing.B) {
+func benchmarkElemTypeOf(i any, b *testing.B) {
 	var typ reflect.Type
 
 	b.ResetTimer()

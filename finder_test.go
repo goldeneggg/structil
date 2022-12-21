@@ -24,8 +24,8 @@ type (
 		Stringptr     *string
 		Stringslice   []string
 		Bool          bool
-		Map           map[string]interface{}
-		Func          func(string) interface{}
+		Map           map[string]any
+		Func          func(string) any
 		ChInt         chan int
 		privateString string
 		FinderTestStruct2
@@ -52,7 +52,7 @@ type (
 
 var (
 	finderTestString2 = "test name2"
-	finderTestFunc    = func(s string) interface{} { return s + "-func" }
+	finderTestFunc    = func(s string) any { return s + "-func" }
 	finderTestChan    = make(chan int)
 )
 
@@ -70,7 +70,7 @@ func newFinderTestStruct() FinderTestStruct {
 		Stringptr:     &finderTestString2,
 		Stringslice:   []string{"strslice1", "strslice2"},
 		Bool:          true,
-		Map:           map[string]interface{}{"k1": "v1", "k2": 2},
+		Map:           map[string]any{"k1": "v1", "k2": 2},
 		Func:          finderTestFunc,
 		ChInt:         finderTestChan,
 		privateString: "unexported string",
@@ -120,7 +120,7 @@ func TestNewFinder(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
-		i interface{}
+		i any
 	}
 	tests := []struct {
 		name      string
@@ -245,8 +245,8 @@ func TestFinderToMap(t *testing.T) {
 		args            args
 		wantError       bool
 		wantErrorString string
-		wantMap         map[string]interface{}
-		wantNestedMap   map[string]interface{} // FIXME: not implemented ToNestedMap method yet
+		wantMap         map[string]any
+		wantNestedMap   map[string]any // FIXME: not implemented ToNestedMap method yet
 		cmpopts         []cmp.Option
 	}{
 		{
@@ -270,14 +270,14 @@ func TestFinderToMap(t *testing.T) {
 						"FinderTestStruct4PtrSlice",
 					),
 			},
-			wantMap: map[string]interface{}{
+			wantMap: map[string]any{
 				"Int64":       int64(-1),
 				"Float64":     float64(-3.45),
 				"String":      "test name",
 				"Stringptr":   finderTestString2,
 				"Stringslice": []string{"strslice1", "strslice2"},
 				"Bool":        true,
-				"Map":         map[string]interface{}{"k1": "v1", "k2": 2},
+				"Map":         map[string]any{"k1": "v1", "k2": 2},
 				//"Func":        finderTestFunc,  // TODO: func is fail
 				"ChInt":         finderTestChan,
 				"privateString": nil, // unexported field is nil
@@ -305,11 +305,11 @@ func TestFinderToMap(t *testing.T) {
 				chain: fs[1].
 					Into("FinderTestStruct2").Find("String"),
 			},
-			wantMap: map[string]interface{}{
+			wantMap: map[string]any{
 				"FinderTestStruct2.String": "struct2 string",
 			},
-			wantNestedMap: map[string]interface{}{
-				"FinderTestStruct2": map[string]interface{}{
+			wantNestedMap: map[string]any{
+				"FinderTestStruct2": map[string]any{
 					"String": "struct2 string",
 				},
 			},
@@ -320,13 +320,13 @@ func TestFinderToMap(t *testing.T) {
 				chain: fs[2].
 					Into("FinderTestStruct2Ptr", "FinderTestStruct3").Find("String", "Int"),
 			},
-			wantMap: map[string]interface{}{
+			wantMap: map[string]any{
 				"FinderTestStruct2Ptr.FinderTestStruct3.String": "struct3 string ptr",
 				"FinderTestStruct2Ptr.FinderTestStruct3.Int":    int(-456),
 			},
-			wantNestedMap: map[string]interface{}{
-				"FinderTestStruct2Ptr": map[string]interface{}{
-					"FinderTestStruFinderTestStruct3ct2Ptr": map[string]interface{}{
+			wantNestedMap: map[string]any{
+				"FinderTestStruct2Ptr": map[string]any{
+					"FinderTestStruFinderTestStruct3ct2Ptr": map[string]any{
 						"String": "struct3 string ptr",
 						"Int":    int(-456),
 					},
@@ -341,18 +341,18 @@ func TestFinderToMap(t *testing.T) {
 					Into("FinderTestStruct2Ptr").Find("String").
 					Into("FinderTestStruct2Ptr", "FinderTestStruct3").Find("String", "Int"),
 			},
-			wantMap: map[string]interface{}{
+			wantMap: map[string]any{
 				"FinderTestStruct2.String":                      "struct2 string",
 				"FinderTestStruct2Ptr.String":                   "struct2 string ptr",
 				"FinderTestStruct2Ptr.FinderTestStruct3.String": "struct3 string ptr",
 				"FinderTestStruct2Ptr.FinderTestStruct3.Int":    int(-456),
 			},
-			wantNestedMap: map[string]interface{}{
-				"FinderTestStruct2": map[string]interface{}{
+			wantNestedMap: map[string]any{
+				"FinderTestStruct2": map[string]any{
 					"String": "struct2 string",
-					"FinderTestStruct2Ptr": map[string]interface{}{
+					"FinderTestStruct2Ptr": map[string]any{
 						"String": "struct2 string ptr",
-						"FinderTestStruct3": map[string]interface{}{
+						"FinderTestStruct3": map[string]any{
 							"String": "struct3 string ptr",
 							"Int":    int(-456),
 						},
@@ -410,7 +410,7 @@ func TestFinderToMap(t *testing.T) {
 					Into("FinderTestStruct2Ptr").Find("String").
 					Into("FinderTestStruct2Ptr", "FinderTestStruct3").Find("String", "Int"),
 			},
-			wantMap: map[string]interface{}{
+			wantMap: map[string]any{
 				"FinderTestStruct2:String":                      "struct2 string",
 				"FinderTestStruct2Ptr:String":                   "struct2 string ptr",
 				"FinderTestStruct2Ptr:FinderTestStruct3:String": "struct3 string ptr",
@@ -440,14 +440,14 @@ func TestFinderToMap(t *testing.T) {
 					Into("FinderTestStruct2Ptr").Find("String").
 					Into("FinderTestStruct2Ptr", "FinderTestStruct3").Find("String", "Int"),
 			},
-			wantMap: map[string]interface{}{
+			wantMap: map[string]any{
 				"Int64":       int64(-1),
 				"Float64":     float64(-3.45),
 				"String":      "test name",
 				"Stringptr":   finderTestString2,
 				"Stringslice": []string{"strslice1", "strslice2"},
 				"Bool":        true,
-				"Map":         map[string]interface{}{"k1": "v1", "k2": 2},
+				"Map":         map[string]any{"k1": "v1", "k2": 2},
 				//"Func":        finderTestFunc,  // TODO: func is fail
 				"ChInt":         finderTestChan,
 				"privateString": nil, // unexported field is nil
@@ -558,7 +558,7 @@ func TestFromKeys(t *testing.T) {
 		args            args
 		wantError       bool
 		wantErrorString string
-		wantMap         map[string]interface{}
+		wantMap         map[string]any
 		cmpopts         []cmp.Option
 	}{
 		{
@@ -566,14 +566,14 @@ func TestFromKeys(t *testing.T) {
 			args: args{
 				chain: fs[0].FromKeys(fks[0]),
 			},
-			wantMap: map[string]interface{}{
+			wantMap: map[string]any{
 				"Int64":         int64(-1),
 				"Float64":       float64(-3.45),
 				"String":        "test name",
 				"Stringptr":     finderTestString2,
 				"Stringslice":   []string{"strslice1", "strslice2"},
 				"Bool":          true,
-				"Map":           map[string]interface{}{"k1": "v1", "k2": 2},
+				"Map":           map[string]any{"k1": "v1", "k2": 2},
 				"ChInt":         finderTestChan,
 				"privateString": nil, // unexported field is nil
 				"FinderTestStruct2": FinderTestStruct2{

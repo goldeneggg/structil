@@ -199,7 +199,7 @@ func (b *Builder) AddBoolWithTag(name string, tag string) *Builder {
 // AddMap returns a Builder that was added a map field named by name parameter.
 // Type of map key is type of ki.
 // Type of map value is type of vi.
-func (b *Builder) AddMap(name string, ki interface{}, vi interface{}) *Builder {
+func (b *Builder) AddMap(name string, ki any, vi any) *Builder {
 	b.AddMapWithTag(name, ki, vi, "")
 	return b
 }
@@ -207,11 +207,11 @@ func (b *Builder) AddMap(name string, ki interface{}, vi interface{}) *Builder {
 // AddMapWithTag returns a Builder that was added a map field with tag named by name parameter.
 // Type of map key is type of ki.
 // Type of map value is type of vi.
-func (b *Builder) AddMapWithTag(name string, ki interface{}, vi interface{}, tag string) *Builder {
+func (b *Builder) AddMapWithTag(name string, ki any, vi any, tag string) *Builder {
 	f := func() reflect.Type {
 		var vt reflect.Type
 		if vi == nil {
-			vt = reflect.TypeOf((*interface{})(nil)).Elem()
+			vt = reflect.TypeOf((*any)(nil)).Elem()
 		} else {
 			vt = reflect.TypeOf(vi)
 		}
@@ -225,7 +225,7 @@ func (b *Builder) AddMapWithTag(name string, ki interface{}, vi interface{}, tag
 // AddFunc returns a Builder that was added a func field named by name parameter.
 // Types of func args are types of in.
 // Types of func returns are types of out.
-func (b *Builder) AddFunc(name string, in []interface{}, out []interface{}) *Builder {
+func (b *Builder) AddFunc(name string, in []any, out []any) *Builder {
 	b.AddFuncWithTag(name, in, out, "")
 	return b
 }
@@ -233,7 +233,7 @@ func (b *Builder) AddFunc(name string, in []interface{}, out []interface{}) *Bui
 // AddFuncWithTag returns a Builder that was added a func field with tag named by name parameter.
 // Types of func args are types of in.
 // Types of func returns are types of out.
-func (b *Builder) AddFuncWithTag(name string, in []interface{}, out []interface{}, tag string) *Builder {
+func (b *Builder) AddFuncWithTag(name string, in []any, out []any, tag string) *Builder {
 	f := func() reflect.Type {
 		it := make([]reflect.Type, len(in))
 		for i := 0; i < len(in); i++ {
@@ -252,14 +252,14 @@ func (b *Builder) AddFuncWithTag(name string, in []interface{}, out []interface{
 
 // AddChanBoth returns a Builder that was added a BothDir chan field named by name parameter.
 // Type of chan is type of i.
-func (b *Builder) AddChanBoth(name string, i interface{}) *Builder {
+func (b *Builder) AddChanBoth(name string, i any) *Builder {
 	b.AddChanBothWithTag(name, i, "")
 	return b
 }
 
 // AddChanBothWithTag returns a Builder that was added a BothDir chan field with tag named by name parameter.
 // Type of chan is type of i.
-func (b *Builder) AddChanBothWithTag(name string, i interface{}, tag string) *Builder {
+func (b *Builder) AddChanBothWithTag(name string, i any, tag string) *Builder {
 	f := func() reflect.Type {
 		return reflect.ChanOf(reflect.BothDir, reflect.TypeOf(i))
 	}
@@ -270,14 +270,14 @@ func (b *Builder) AddChanBothWithTag(name string, i interface{}, tag string) *Bu
 
 // AddChanRecv returns a Builder that was added a RecvDir chan field named by name parameter.
 // Type of chan is type of i.
-func (b *Builder) AddChanRecv(name string, i interface{}) *Builder {
+func (b *Builder) AddChanRecv(name string, i any) *Builder {
 	b.AddChanRecvWithTag(name, i, "")
 	return b
 }
 
 // AddChanRecvWithTag returns a Builder that was added a RecvDir chan field with tag named by name parameter.
 // Type of chan is type of i.
-func (b *Builder) AddChanRecvWithTag(name string, i interface{}, tag string) *Builder {
+func (b *Builder) AddChanRecvWithTag(name string, i any, tag string) *Builder {
 	f := func() reflect.Type {
 		return reflect.ChanOf(reflect.RecvDir, reflect.TypeOf(i))
 	}
@@ -288,14 +288,14 @@ func (b *Builder) AddChanRecvWithTag(name string, i interface{}, tag string) *Bu
 
 // AddChanSend returns a Builder that was added a SendDir chan field named by name parameter.
 // Type of chan is type of i.
-func (b *Builder) AddChanSend(name string, i interface{}) *Builder {
+func (b *Builder) AddChanSend(name string, i any) *Builder {
 	b.AddChanSendWithTag(name, i, "")
 	return b
 }
 
 // AddChanSendWithTag returns a Builder that was added a SendDir chan field with tag named by name parameter.
 // Type of chan is type of i.
-func (b *Builder) AddChanSendWithTag(name string, i interface{}, tag string) *Builder {
+func (b *Builder) AddChanSendWithTag(name string, i any, tag string) *Builder {
 	f := func() reflect.Type {
 		return reflect.ChanOf(reflect.SendDir, reflect.TypeOf(i))
 	}
@@ -306,14 +306,14 @@ func (b *Builder) AddChanSendWithTag(name string, i interface{}, tag string) *Bu
 
 // AddStruct returns a Builder that was added a struct field named by name parameter.
 // Type of struct is type of i.
-func (b *Builder) AddStruct(name string, i interface{}, isPtr bool) *Builder {
+func (b *Builder) AddStruct(name string, i any, isPtr bool) *Builder {
 	b.AddStructWithTag(name, i, isPtr, "")
 	return b
 }
 
 // AddStructWithTag returns a Builder that was added a struct field with tag named by name parameter.
 // Type of struct is type of i.
-func (b *Builder) AddStructWithTag(name string, i interface{}, isPtr bool, tag string) *Builder {
+func (b *Builder) AddStructWithTag(name string, i any, isPtr bool, tag string) *Builder {
 	f := func() reflect.Type {
 		iType := reflect.TypeOf(i)
 		if iType.Kind() == reflect.Ptr {
@@ -332,26 +332,26 @@ func (b *Builder) AddStructWithTag(name string, i interface{}, isPtr bool, tag s
 
 // AddStructPtr returns a Builder that was added a struct pointer field named by name parameter.
 // Type of struct is type of i.
-func (b *Builder) AddStructPtr(name string, i interface{}) *Builder {
+func (b *Builder) AddStructPtr(name string, i any) *Builder {
 	return b.AddStruct(name, i, true)
 }
 
 // AddStructPtrWithTag returns a Builder that was added a struct pointer field with tag named by name parameter.
 // Type of struct is type of i.
-func (b *Builder) AddStructPtrWithTag(name string, i interface{}, tag string) *Builder {
+func (b *Builder) AddStructPtrWithTag(name string, i any, tag string) *Builder {
 	return b.AddStructWithTag(name, i, true, tag)
 }
 
 // AddSlice returns a Builder that was added a slice field named by name parameter.
 // Type of slice is type of i.
-func (b *Builder) AddSlice(name string, i interface{}) *Builder {
+func (b *Builder) AddSlice(name string, i any) *Builder {
 	b.AddSliceWithTag(name, i, "")
 	return b
 }
 
 // AddSliceWithTag returns a Builder that was added a slice field with tag named by name parameter.
 // Type of slice is type of i.
-func (b *Builder) AddSliceWithTag(name string, i interface{}, tag string) *Builder {
+func (b *Builder) AddSliceWithTag(name string, i any, tag string) *Builder {
 	f := func() reflect.Type {
 		return reflect.SliceOf(reflect.TypeOf(i))
 	}
@@ -360,16 +360,16 @@ func (b *Builder) AddSliceWithTag(name string, i interface{}, tag string) *Build
 	return b
 }
 
-// AddInterface returns a Builder that was added a interface{} field named by name parameter.
+// AddInterface returns a Builder that was added a any field named by name parameter.
 func (b *Builder) AddInterface(name string, isPtr bool) *Builder {
 	b.AddInterfaceWithTag(name, isPtr, "")
 	return b
 }
 
-// AddInterfaceWithTag returns a Builder that was added a interface{} field with tag named by name parameter.
+// AddInterfaceWithTag returns a Builder that was added a any field with tag named by name parameter.
 func (b *Builder) AddInterfaceWithTag(name string, isPtr bool, tag string) *Builder {
 	f := func() reflect.Type {
-		return reflect.TypeOf((*interface{})(nil)).Elem()
+		return reflect.TypeOf((*any)(nil)).Elem()
 	}
 	b.addFieldFunc(name, isPtr, tag, f)
 

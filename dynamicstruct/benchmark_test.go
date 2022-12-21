@@ -59,7 +59,7 @@ func BenchmarkAddMap(b *testing.B) {
 func BenchmarkAddFunc(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = NewBuilder().AddFunc("FuncField", []interface{}{SampleInt, SampleInt}, []interface{}{SampleBool, ErrSample})
+		_ = NewBuilder().AddFunc("FuncField", []any{SampleInt, SampleInt}, []any{SampleBool, ErrSample})
 	}
 }
 

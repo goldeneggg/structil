@@ -90,7 +90,7 @@ func BenchmarkGetterHas_String(b *testing.B) {
 }
 
 func BenchmarkGetterGet_String(b *testing.B) {
-	var it interface{}
+	var it any
 
 	g, err := newTestGetter() // See: getter_test.go
 	if err != nil {
@@ -170,7 +170,7 @@ func BenchmarkGetterUnsafePointer(b *testing.B) {
 }
 
 func BenchmarkGetterSlice_StructPtrSlice(b *testing.B) {
-	var sl []interface{}
+	var sl []any
 
 	g, err := newTestGetter() // See: getter_test.go
 	if err != nil {
@@ -202,7 +202,7 @@ func BenchmarkGetterGetGetter(b *testing.B) {
 }
 
 func BenchmarkGetterToMap(b *testing.B) {
-	var m map[string]interface{}
+	var m map[string]any
 
 	g, err := newTestGetter() // See: getter_test.go
 	if err != nil {
@@ -282,14 +282,14 @@ func BenchmarkGetterIsSlice_StructPtrSlice(b *testing.B) {
 }
 
 func BenchmarkGetterMapGet(b *testing.B) {
-	var ia []interface{}
+	var ia []any
 
 	g, err := newTestGetter() // See: getter_test.go
 	if err != nil {
 		b.Fatalf("NewGetter() occurs unexpected error: %v", err)
 		return
 	}
-	fn := func(i int, g *Getter) (interface{}, error) {
+	fn := func(i int, g *Getter) (any, error) {
 		str, _ := g.String("String")
 		str2, _ := g.String("String")
 		return fmt.Sprintf("%s:%s", str, str2), nil
@@ -339,7 +339,7 @@ func BenchmarkNewFinder_Ptr(b *testing.B) {
 }
 
 func BenchmarkToMap_1FindOnly(b *testing.B) {
-	var m map[string]interface{}
+	var m map[string]any
 
 	f, err := NewFinder(newFinderTestStructPtr()) // See: finder_test.go
 	if err != nil {
@@ -359,7 +359,7 @@ func BenchmarkToMap_1FindOnly(b *testing.B) {
 }
 
 func BenchmarkToMap_2FindOnly(b *testing.B) {
-	var m map[string]interface{}
+	var m map[string]any
 
 	f, err := NewFinder(newFinderTestStructPtr()) // See: finder_test.go
 	if err != nil {
@@ -379,7 +379,7 @@ func BenchmarkToMap_2FindOnly(b *testing.B) {
 }
 
 func BenchmarkToMap_1Struct_1Find(b *testing.B) {
-	var m map[string]interface{}
+	var m map[string]any
 
 	f, err := NewFinder(newFinderTestStructPtr()) // See: finder_test.go
 	if err != nil {
@@ -399,7 +399,7 @@ func BenchmarkToMap_1Struct_1Find(b *testing.B) {
 }
 
 func BenchmarkToMap_1Struct_1Find_2Pair(b *testing.B) {
-	var m map[string]interface{}
+	var m map[string]any
 
 	f, err := NewFinder(newFinderTestStructPtr()) // See: finder_test.go
 	if err != nil {
@@ -419,7 +419,7 @@ func BenchmarkToMap_1Struct_1Find_2Pair(b *testing.B) {
 }
 
 func BenchmarkToMap_2Struct_1Find(b *testing.B) {
-	var m map[string]interface{}
+	var m map[string]any
 
 	f, err := NewFinder(newFinderTestStructPtr()) // See: finder_test.go
 	if err != nil {
@@ -439,7 +439,7 @@ func BenchmarkToMap_2Struct_1Find(b *testing.B) {
 }
 
 func BenchmarkToMap_2Struct_2Find(b *testing.B) {
-	var m map[string]interface{}
+	var m map[string]any
 
 	f, err := NewFinder(newFinderTestStructPtr()) // See: finder_test.go
 	if err != nil {

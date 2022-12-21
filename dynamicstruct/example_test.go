@@ -10,7 +10,7 @@ import (
 func Example() {
 	type Hoge struct {
 		Key   string
-		Value interface{}
+		Value any
 	}
 
 	hogePtr := &Hoge{
@@ -63,8 +63,8 @@ func Example() {
 
 func Example_unmarshalJSON() {
 	type Hoge struct {
-		Key   string      `json:"key"`
-		Value interface{} `json:"value"`
+		Key   string `json:"key"`
+		Value any    `json:"value"`
 	}
 
 	var hogePtr *Hoge
