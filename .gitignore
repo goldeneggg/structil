@@ -46,3 +46,4 @@ vendor/
 .test/
 
 .vscode
+coverage.txt
