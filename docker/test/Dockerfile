@@ -1,4 +1,4 @@
-FROM golang:1.18-alpine
+FROM golang:1.19-alpine
 
 ENV CGO_ENABLED=1
 ENV APP_DIR /go/src/github.com/goldeneggg/structil
