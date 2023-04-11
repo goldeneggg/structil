@@ -25,13 +25,13 @@ type Finder struct {
 
 // NewFinder returns a concrete Finder that uses and obtains from i.
 // i must be a struct or struct pointer.
-func NewFinder(i interface{}) (*Finder, error) {
+func NewFinder(i any) (*Finder, error) {
 	return NewFinderWithSep(i, defaultSep)
 }
 
 // NewFinderWithSep returns a concrete Finder that uses and obtains from i using the separator string.
 // i must be a struct or struct pointer.
-func NewFinderWithSep(i interface{}, sep string) (*Finder, error) {
+func NewFinderWithSep(i any, sep string) (*Finder, error) {
 	g, err := NewGetter(i)
 	if err != nil {
 		return nil, err
@@ -119,7 +119,7 @@ func (f *Finder) Into(names ...string) *Finder {
 	var nextGetter *Getter
 	var ok bool
 	var err error
-	var intf interface{}
+	var intf any
 	nextKey := ""
 
 	for _, name := range names {
@@ -199,12 +199,12 @@ func (f *Finder) FromKeys(fks *FinderKeys) *Finder {
 // ToMap returns a map converted from struct.
 // Map keys are lookup field names by "Into" method and "Find".
 // Map values are lookup field values by "Into" method and "Find".
-func (f *Finder) ToMap() (map[string]interface{}, error) {
+func (f *Finder) ToMap() (map[string]any, error) {
 	if f.HasError() {
 		return nil, f
 	}
 
-	res := map[string]interface{}{}
+	res := map[string]any{}
 	var key string
 
 	// kg is separated by f.sep step-by-step
@@ -235,15 +235,15 @@ func (f *Finder) ToMap() (map[string]interface{}, error) {
 // ToNestedMap preturns a map converted from struct with nested keys.
 // FIXME: EXPERIMENTAL (this method has a bug)
 /*
-func (f *Finder) ToNestedMap() (map[string]interface{}, error) {
+func (f *Finder) ToNestedMap() (map[string]any, error) {
 	if f.HasError() {
 		return nil, f
 	}
 
-	res := map[string]interface{}{}
+	res := map[string]any{}
 
 	for kg, getter := range f.getterMap {
-		m := map[string]interface{}{}
+		m := map[string]any{}
 
 		for _, name := range f.namesMap[kg] {
 			i, ok := getter.Get(name)
@@ -309,7 +309,7 @@ type FinderKeys struct {
 }
 
 type confKeys struct {
-	Keys []interface{}
+	Keys []any
 }
 
 // NewFinderKeys returns a FinderKeys object
@@ -348,7 +348,7 @@ func newFinderKeysFromConf(ck confKeys) (*FinderKeys, error) {
 	return fks, nil
 }
 
-func (fks *FinderKeys) addRecursive(key interface{}, prefix string) error {
+func (fks *FinderKeys) addRecursive(key any, prefix string) error {
 	var res string
 
 	switch t := key.(type) {
@@ -358,9 +358,9 @@ func (fks *FinderKeys) addRecursive(key interface{}, prefix string) error {
 			res = prefix + defaultSep + res
 		}
 		fks.keys = append(fks.keys, res) // set here
-	case map[string]interface{}:
+	case map[string]any:
 		var nk string
-		var nd interface{}
+		var nd any
 		for key, value := range t {
 			nk = key
 			if prefix != "" {
@@ -373,9 +373,9 @@ func (fks *FinderKeys) addRecursive(key interface{}, prefix string) error {
 		if err != nil {
 			return err
 		}
-	case map[interface{}]interface{}:
+	case map[any]any:
 		var nk string
-		var nd interface{}
+		var nd any
 		for key, value := range t {
 			// FIXME: Should this code be changed to 'nk = fmt.Sprintf("%v", key)' ?
 			nk = key.(string)
@@ -389,7 +389,7 @@ func (fks *FinderKeys) addRecursive(key interface{}, prefix string) error {
 		if err != nil {
 			return err
 		}
-	case []interface{}:
+	case []any:
 		var err error
 		for _, value := range t {
 			err = fks.addRecursive(value, prefix)

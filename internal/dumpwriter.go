@@ -70,9 +70,9 @@ func (dw *dwImpl) Flush() error {
 
 // Dump writes reflection values to a dump target with automation Flush.
 func (dw *dwImpl) Dump(rvs ...reflect.Value) error {
-	var t interface{}
+	var t any
 
-	ds := make([][]interface{}, len(rvs))
+	ds := make([][]any, len(rvs))
 
 	for i, rv := range rvs {
 		if rv.IsValid() {
@@ -80,7 +80,7 @@ func (dw *dwImpl) Dump(rvs ...reflect.Value) error {
 		} else {
 			t = rv.Kind()
 		}
-		ds[i] = []interface{}{
+		ds[i] = []any{
 			t,  // Type
 			rv, // Value
 		}

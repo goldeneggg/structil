@@ -35,7 +35,7 @@ func ExampleGetter() {
 
 	name, _ := getter.String("Name")    // get as string
 	age, _ := getter.Int("Age")         // get as int
-	company, _ := getter.Get("Company") // get as interface{}
+	company, _ := getter.Get("Company") // get as any
 
 	fmt.Printf(
 		"num of fields=%d\nfield names=%v\n'Name'=%s\n'Age'=%d\n'Company'=%+v",
@@ -90,7 +90,7 @@ func ExampleGetter_MapGet() {
 	}
 
 	// Each of "Companies" field are applied map function as follows.
-	fn := func(i int, g *Getter) (interface{}, error) {
+	fn := func(i int, g *Getter) (any, error) {
 		period, _ := g.Int("Period")
 		name, _ := g.String("Name")
 

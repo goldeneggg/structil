@@ -36,8 +36,8 @@ type (
 		Unsafeptr     unsafe.Pointer
 		Stringslice   []string
 		Stringarray   [2]string
-		Map           map[string]interface{}
-		Func          func(string) interface{}
+		Map           map[string]any
+		Func          func(string) any
 		ChInt         chan int
 		privateString string
 		GetterTestStruct2
@@ -64,7 +64,7 @@ type (
 
 var (
 	getterTestString2 = "test name2"
-	getterTestFunc    = func(s string) interface{} { return s + "-func" }
+	getterTestFunc    = func(s string) any { return s + "-func" }
 	getterTestChan    = make(chan int)
 )
 
@@ -94,7 +94,7 @@ func newGetterTestStruct() GetterTestStruct {
 		Unsafeptr:     unsafe.Pointer(new(int)),
 		Stringslice:   []string{"strslice1", "strslice2"},
 		Stringarray:   [2]string{"strarray1", "strarray2"},
-		Map:           map[string]interface{}{"k1": "v1", "k2": 2},
+		Map:           map[string]any{"k1": "v1", "k2": 2},
 		Func:          getterTestFunc,
 		ChInt:         getterTestChan,
 		privateString: "unexported string",
@@ -146,14 +146,14 @@ func newTestGetter() (*Getter, error) {
 
 type getterTestArgs struct {
 	name  string
-	mapfn func(int, *Getter) (interface{}, error)
+	mapfn func(int, *Getter) (any, error)
 }
 
 type getterTest struct {
 	name      string
 	args      *getterTestArgs
 	wantBool  bool
-	wantIntf  interface{}
+	wantIntf  any
 	wantType  reflect.Type
 	wantValue reflect.Value
 	wantError bool
@@ -292,7 +292,7 @@ func TestNewGetter(t *testing.T) {
 	testStructPtr := newGetterTestStructPtr()
 
 	type args struct {
-		i interface{}
+		i any
 	}
 	tests := []struct {
 		name    string
@@ -349,7 +349,7 @@ func TestNumField(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
-		i interface{}
+		i any
 	}
 	tests := []struct {
 		name string
@@ -420,7 +420,7 @@ func TestNames(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
-		i interface{}
+		i any
 	}
 	tests := []struct {
 		name                string
@@ -1501,11 +1501,11 @@ func TestSlice(t *testing.T) {
 
 			switch tt.name {
 			case "Bytes":
-				tt.wantIntf = []interface{}{uint8(0), testStructPtr.Byte}
+				tt.wantIntf = []any{uint8(0), testStructPtr.Byte}
 			case "GetterTestStruct4Slice":
-				tt.wantIntf = []interface{}{testStructPtr.GetterTestStruct4Slice[0], testStructPtr.GetterTestStruct4Slice[1]}
+				tt.wantIntf = []any{testStructPtr.GetterTestStruct4Slice[0], testStructPtr.GetterTestStruct4Slice[1]}
 			case "GetterTestStruct4PtrSlice":
-				tt.wantIntf = []interface{}{testStructPtr.GetterTestStruct4PtrSlice[0], testStructPtr.GetterTestStruct4PtrSlice[1]}
+				tt.wantIntf = []any{testStructPtr.GetterTestStruct4PtrSlice[0], testStructPtr.GetterTestStruct4PtrSlice[1]}
 			default:
 				tt.wantNotOK = true
 			}
@@ -2291,19 +2291,19 @@ func TestMapGet(t *testing.T) {
 
 			switch tt.name {
 			case "GetterTestStruct4Slice":
-				tt.args.mapfn = func(i int, g *Getter) (interface{}, error) {
+				tt.args.mapfn = func(i int, g *Getter) (any, error) {
 					str, _ := g.String("String")
 					str2, _ := g.String("String2")
 					return fmt.Sprintf("%s=%s", str, str2), nil
 				}
-				tt.wantIntf = []interface{}{string("key100=value100"), string("key200=value200")}
+				tt.wantIntf = []any{string("key100=value100"), string("key200=value200")}
 			case "GetterTestStruct4PtrSlice":
-				tt.args.mapfn = func(i int, g *Getter) (interface{}, error) {
+				tt.args.mapfn = func(i int, g *Getter) (any, error) {
 					str, _ := g.String("String")
 					str2, _ := g.String("String2")
 					return fmt.Sprintf("%s:%s", str, str2), nil
 				}
-				tt.wantIntf = []interface{}{string("key991:value991"), string("key992:value992")}
+				tt.wantIntf = []any{string("key991:value991"), string("key992:value992")}
 			default:
 				tt.wantError = true
 			}

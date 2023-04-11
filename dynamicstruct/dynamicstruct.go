@@ -74,7 +74,7 @@ func (ds *DynamicStruct) IsPtr() bool {
 }
 
 // NewInterface returns the new interface value of built struct.
-func (ds *DynamicStruct) NewInterface() interface{} {
+func (ds *DynamicStruct) NewInterface() any {
 	rv := reflect.New(ds.rt)
 	if ds.isPtr {
 		return rv.Interface()

@@ -44,21 +44,21 @@ func (dt dataType) string() string {
 	return ""
 }
 
-func (dt dataType) unmarshal(data []byte) (interface{}, error) {
-	var intf interface{}
+func (dt dataType) unmarshal(data []byte) (any, error) {
+	var intf any
 	err := dt.unmarshalWithIPtr(data, &intf)
 	return intf, err
 }
 
-func (dt dataType) unmarshalWithIPtr(data []byte, iptr interface{}) error {
+func (dt dataType) unmarshalWithIPtr(data []byte, iptr any) error {
 	var err error
 
 	switch dt {
 	case typeJSON:
-		// Note: iptr should be "map[string]interface{}"
+		// Note: iptr should be "map[string]any"
 		err = json.Unmarshal(data, iptr)
 	case typeYAML:
-		// Note: iptr should be "map[interface{}]interface{}" using gopkg.in/yaml.v2 package
+		// Note: iptr should be "map[any]any" using gopkg.in/yaml.v2 package
 		err = yaml.Unmarshal(data, iptr)
 	default:
 		err = fmt.Errorf("invalid datatype for Unmarshal: %v", dt)
@@ -68,14 +68,14 @@ func (dt dataType) unmarshalWithIPtr(data []byte, iptr interface{}) error {
 }
 
 // TODO: add tests and examples
-// func (dt dataType) marshal(v interface{}) (data []byte, err error) {
-func (dt dataType) marshal(m map[string]interface{}) (data []byte, err error) {
+// func (dt dataType) marshal(v any) (data []byte, err error) {
+func (dt dataType) marshal(m map[string]any) (data []byte, err error) {
 	switch dt {
 	case typeJSON:
-		// Note: v is expected to be "map[string]interface{}"
+		// Note: v is expected to be "map[string]any"
 		data, err = json.Marshal(m)
 	case typeYAML:
-		// Note: v is expected to be converted from "map[interface{}]interface{}" to "map[string]interface{}"
+		// Note: v is expected to be converted from "map[any]any" to "map[string]any"
 		data, err = yaml.Marshal(m)
 	default:
 		err = fmt.Errorf("invalid datatype for Marshal: %v", dt)

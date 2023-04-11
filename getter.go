@@ -18,7 +18,7 @@ type Getter struct {
 
 // NewGetter returns a concrete Getter that uses and obtains from i.
 // i must be a struct or struct pointer.
-func NewGetter(i interface{}) (*Getter, error) {
+func NewGetter(i any) (*Getter, error) {
 	stVal, err := toStructValue(i)
 	if err != nil {
 		return nil, err
@@ -42,7 +42,7 @@ func NewGetter(i interface{}) (*Getter, error) {
 
 // toStructValue returns a reflect.Value that can generate to Getter.
 // i must be a struct or struct pointer.
-func toStructValue(i interface{}) (reflect.Value, error) {
+func toStructValue(i any) (reflect.Value, error) {
 	rv := reflect.ValueOf(i)
 	kind := rv.Kind()
 	if kind != reflect.Ptr && kind != reflect.Struct {
@@ -63,7 +63,7 @@ type getterField struct {
 	sFld     reflect.StructField
 	typ      reflect.Type
 	indirect reflect.Value // is Value via reflect.Indirect(v)
-	intf     interface{}
+	intf     any
 }
 
 func (gf *getterField) isKind(kind reflect.Kind) bool {
@@ -135,7 +135,7 @@ func (g *Getter) GetValue(name string) (reflect.Value, bool) {
 
 // Get returns the interface of the original struct field named name.
 // 2nd return value will be false if the original struct does not have a "name" field.
-func (g *Getter) Get(name string) (interface{}, bool) {
+func (g *Getter) Get(name string) (any, bool) {
 	gf, ok := g.getSafely(name)
 	if ok {
 		return gf.intf, true
@@ -145,8 +145,8 @@ func (g *Getter) Get(name string) (interface{}, bool) {
 }
 
 // ToMap returns a map converted from this Getter.
-func (g *Getter) ToMap() map[string]interface{} {
-	m := make(map[string]interface{})
+func (g *Getter) ToMap() map[string]any {
+	m := make(map[string]any)
 	for name, gf := range g.fields {
 		m[name] = gf.intf
 	}
@@ -163,7 +163,7 @@ func (g *Getter) IsSlice(name string) bool {
 // Slice returns the slice of interface of the original struct field named name.
 // 2nd return value will be false if the original struct does not have a "name" field.
 // 2nd return value will be false if type of the original struct "name" field is not slice of interface.
-func (g *Getter) Slice(name string) ([]interface{}, bool) {
+func (g *Getter) Slice(name string) ([]any, bool) {
 	gf, ok := g.getSafelyKindly(name, reflect.Slice)
 	if !ok {
 		return nil, false
@@ -172,7 +172,7 @@ func (g *Getter) Slice(name string) ([]interface{}, bool) {
 	len := gf.indirect.Len()
 
 	// See: https://golang.org/doc/faq#convert_slice_of_interface
-	iSlice := make([]interface{}, len)
+	iSlice := make([]any, len)
 	for i := 0; i < len; i++ {
 		iSlice[i] = gf.indirect.Index(i).Interface()
 	}
@@ -607,7 +607,7 @@ func (g *Getter) GetGetter(name string) (*Getter, bool) {
 }
 
 // MapGet returns the interface slice of mapped values of the original struct field named name.
-func (g *Getter) MapGet(name string, f func(int, *Getter) (interface{}, error)) ([]interface{}, error) {
+func (g *Getter) MapGet(name string, f func(int, *Getter) (any, error)) ([]any, error) {
 	gf, ok := g.getSafelyKindly(name, reflect.Slice)
 	if !ok {
 		return nil, fmt.Errorf("field %s does not exist or is not slice type", name)
@@ -616,9 +616,9 @@ func (g *Getter) MapGet(name string, f func(int, *Getter) (interface{}, error)) 
 	var vi reflect.Value
 	var eg *Getter
 	var err error
-	var r interface{}
+	var r any
 
-	res := make([]interface{}, gf.indirect.Len())
+	res := make([]any, gf.indirect.Len())
 
 	for i := 0; i < gf.indirect.Len(); i++ {
 		vi = gf.indirect.Index(i)

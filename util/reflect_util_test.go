@@ -17,8 +17,8 @@ type tStruct struct {
 
 var (
 	testTstrPtr = &tStruct{10, "Name10"}
-	testMap     = map[string]interface{}{"key1": "value1", "key2": 2}
-	testFunc    = func(s string) interface{} { return s + "-func" }
+	testMap     = map[string]any{"key1": "value1", "key2": 2}
+	testFunc    = func(s string) any { return s + "-func" }
 	testChan    = make(chan int)
 )
 
@@ -31,7 +31,7 @@ func TestToI(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want interface{}
+		want any
 	}{
 		{
 			name: "string",
@@ -110,7 +110,7 @@ func TestElemTypeOf(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
-		i interface{}
+		i any
 	}
 	tests := []struct {
 		name string
