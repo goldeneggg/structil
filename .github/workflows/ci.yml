@@ -54,9 +54,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
-      - id: mod-dl
-        name: Download dependency go modules
-        run: make dl
+      - id: mod-tidy
+        name: Tidy dependency go modules
+        run: make tidy
 
       - id: add-gobin-path
         name: Add GITHUB_WORKSPACE/bin into PATH
