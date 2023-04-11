@@ -19,6 +19,7 @@ on:
       - 'Dockerfile'
       - '.dockerignore'
       - '**.sample'
+  workflow_dispatch:
 
 # env:
 #   BENCHMARK_DIR: .test
