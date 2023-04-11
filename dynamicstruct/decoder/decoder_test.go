@@ -12,315 +12,8 @@ import (
 const (
 	typeJSON int = iota
 	typeYAML
-	typeXML
-)
-
-var (
-	singleJSON = []byte(`
-{
-  "null_field":null,
-  "string_field":"かきくけこ",
-  "int_field":45678,
-  "float32_field":9.876,
-  "bool_field":false,
-  "struct_ptr_field":{
-    "key":"hugakey",
-    "value":"hugavalue"
-  },
-  "array_string_field":[
-    "array_str_1",
-    "array_str_2"
-  ],
-  "array_struct_field":[
-    {
-      "kkk":"kkk1",
-      "vvvv":"vvv1"
-    },
-    {
-      "kkk":"kkk2",
-      "vvvv":"vvv2"
-    },
-    {
-      "kkk":"kkk3",
-      "vvvv":"vvv3"
-    }
-  ]
-}
-`)
-
-	arrayJSON = []byte(`
-[
-  {
-    "null_field":null,
-    "string_field":"かきくけこ",
-    "int_field":45678,
-    "float32_field":9.876,
-    "bool_field":false,
-    "struct_ptr_field":{
-      "key":"hugakey",
-      "value":"hugavalue"
-    },
-    "array_string_field":[
-      "array_str_1",
-      "array_str_2"
-    ],
-    "array_struct_field":[
-      {
-        "kkk":"kkk1",
-        "vvvv":"vvv1"
-      },
-      {
-        "kkk":"kkk2",
-        "vvvv":"vvv2"
-      },
-      {
-        "kkk":"kkk3",
-        "vvvv":"vvv3"
-      }
-    ]
-  },
-  {
-    "null_field":null,
-    "string_field":"さしすせそ",
-    "int_field":7890,
-    "float32_field":4.99,
-    "bool_field":true,
-    "struct_ptr_field":{
-      "key":"hugakeyXXX",
-      "value":"hugavalueXXX"
-    },
-    "array_string_field":[
-      "array_str_111",
-      "array_str_222"
-    ],
-    "array_struct_field":[
-      {
-        "kkk":"kkk99",
-        "vvvv":"vvv99"
-      },
-      {
-        "kkk":"kkk999",
-        "vvvv":"vvv999"
-      },
-      {
-        "kkk":"kkk9999",
-        "vvvv":"vvv9999"
-      }
-    ]
-  }
-]
-`)
-
-	singleYAML = []byte(`
-null_field: null
-string_field: かきくけこ
-int_field: 45678
-float32_field: 9.876
-bool_field: false
-struct_ptr_field:
-  key: hugakey
-  value: hugavalue
-array_string_field:
-  - array_str_1
-  - array_str_2
-array_struct_field:
-  - kkk: kkk1
-    vvvv: vvv1
-  - kkk: kkk2
-    vvvv: vvv2
-  - kkk: kkk3
-    vvvv: vvv3
-`)
-
-	arrayYAML = []byte(`
-- null_field: null
-  string_field: かきくけこ
-  int_field: 45678
-  float32_field: 9.876
-  bool_field: false
-  struct_ptr_field:
-    key: hugakey
-    value: hugavalue
-  array_string_field:
-    - array_str_1
-    - array_str_2
-  array_struct_field:
-    - kkk: kkk1
-      vvvv: vvv1
-    - kkk: kkk2
-      vvvv: vvv2
-    - kkk: kkk3
-      vvvv: vvv3
-- null_field: null
-  string_field: さしすせそ
-  int_field: 7890
-  float32_field: 4.99
-  bool_field: true
-  struct_ptr_field:
-    key: hugakeyXXX
-    value: hugavalueXXX
-  array_string_field:
-    - array_str_111
-    - array_str_222
-  array_struct_field:
-    - kkk: kkk99
-      vvvv: vvv99
-    - kkk: kkk999
-      vvvv: vvv999
-    - kkk: kkk9999
-      vvvv: vvv9999
-`)
-
-	//lint:ignore U1000 It's ok because this is for the future.
-	singleTOML = []byte(`
-string_field = "かきくけこ,"
-int_field = 45678
-float32_field = "9.876,"
-bool_field = false
-array_string_field = ["array_str_1", "array_str_2"]
-
-[struct_ptr_field]
-  key = "hugakey"
-  value = "hugavalue"
-
-[[array_struct_field]]
-  kkk = "kkk1"
-  vvvv = "vvv1"
-
-[[array_struct_field]]
-  kkk = "kkk2"
-  vvvv = "vvv2"
-
-[[array_struct_field]]
-  kkk = "kkk3"
-  vvvv = "vvv3"
-`)
-
-	//lint:ignore U1000 It's ok because this is for the future.
-	singleXML = []byte(`
-<?xml version="1.0" encoding="UTF-8" ?>
-<root>
-    <null_field/>
-    <string_field>かきくけこ</string_field>
-    <int_field>45678</int_field>
-    <float32_field>9.876</float32_field>
-    <bool_field>false</bool_field>
-    <struct_ptr_field>
-        <key>hugakey</key>
-        <value>hugavalue</value>
-    </struct_ptr_field>
-    <array_string_field>array_str_1</array_string_field>
-    <array_string_field>array_str_2</array_string_field>
-    <array_struct_field>
-        <kkk>kkk1</kkk>
-        <vvvv>vvv1</vvvv>
-    </array_struct_field>
-    <array_struct_field>
-        <kkk>kkk2</kkk>
-        <vvvv>vvv2</vvvv>
-    </array_struct_field>
-    <array_struct_field>
-        <kkk>kkk3</kkk>
-        <vvvv>vvv3</vvvv>
-    </array_struct_field>
-</root>
-`)
-
-	//lint:ignore U1000 It's ok because this is for the future.
-	arrayXML = []byte(`
-<?xml version="1.0" encoding="UTF-8" ?>
-<root>
-    <0>
-        <null_field/>
-        <string_field>かきくけこ</string_field>
-        <int_field>45678</int_field>
-        <float32_field>9.876</float32_field>
-        <bool_field>false</bool_field>
-        <struct_ptr_field>
-            <key>hugakey</key>
-            <value>hugavalue</value>
-        </struct_ptr_field>
-        <array_string_field>array_str_1</array_string_field>
-        <array_string_field>array_str_2</array_string_field>
-        <array_struct_field>
-            <kkk>kkk1</kkk>
-            <vvvv>vvv1</vvvv>
-        </array_struct_field>
-        <array_struct_field>
-            <kkk>kkk2</kkk>
-            <vvvv>vvv2</vvvv>
-        </array_struct_field>
-        <array_struct_field>
-            <kkk>kkk3</kkk>
-            <vvvv>vvv3</vvvv>
-        </array_struct_field>
-    </0>
-    <1>
-        <null_field/>
-        <string_field>さしすせそ</string_field>
-        <int_field>7890</int_field>
-        <float32_field>4.99</float32_field>
-        <bool_field>true</bool_field>
-        <struct_ptr_field>
-            <key>hugakeyXXX</key>
-            <value>hugavalueXXX</value>
-        </struct_ptr_field>
-        <array_string_field>array_str_111</array_string_field>
-        <array_string_field>array_str_222</array_string_field>
-        <array_struct_field>
-            <kkk>kkk99</kkk>
-            <vvvv>vvv99</vvvv>
-        </array_struct_field>
-        <array_struct_field>
-            <kkk>kkk999</kkk>
-            <vvvv>vvv999</vvvv>
-        </array_struct_field>
-        <array_struct_field>
-            <kkk>kkk9999</kkk>
-            <vvvv>vvv9999</vvvv>
-        </array_struct_field>
-    </1>
-</root>
-`)
-
-	//lint:ignore U1000 It's ok because this is for the future.
-	singleHCL = []byte(`
-"null_field" =
-
-"string_field" = "かきくけこ,"
-
-"int_field" = 45678
-
-"float32_field" = "9.876,"
-
-"bool_field" = false
-
-"struct_ptr_field" = {
-    "key" = "hugakey"
-
-    "value" = "hugavalue"
-}
-
-"array_string_field" = ["array_str_1", "array_str_2"]
-
-"array_struct_field" = {
-    "kkk" = "kkk1"
-
-    "vvvv" = "vvv1"
-}
-
-"array_struct_field" = {
-    "kkk" = "kkk2"
-
-    "vvvv" = "vvv2"
-}
-
-"array_struct_field" = {
-    "kkk" = "kkk3"
-
-    "vvvv" = "vvv3"
-}
-`)
+	typeHCL
+	typeXML // FIXME
 )
 
 type decoderTest struct {
@@ -347,7 +40,7 @@ func TestDynamicStructJSON(t *testing.T) {
 	"null_field":null,
 	"string_field":"かきくけこ",
 	"int_field":45678,
-	"float32_field":9.876,
+	"float64_field":9.876,
 	"bool_field":false
 }
 `),
@@ -357,14 +50,14 @@ func TestDynamicStructJSON(t *testing.T) {
 			wantNumF: 5,
 			wantDefinition: `type DynamicStruct struct {
 	BoolField bool
-	Float32Field float64
+	Float64Field float64
 	IntField float64
 	NullField interface {}
 	StringField string
 }`,
 			fieldAndNestFields: map[string][]string{
 				"BoolField":    nil,
-				"Float32Field": nil,
+				"Float64Field": nil,
 				"IntField":     nil,
 				"NullField":    nil,
 				"StringField":  nil,
@@ -784,7 +477,7 @@ func TestDynamicStructYAML(t *testing.T) {
 null_field: null
 string_field: かきくけこ
 int_field: 45678
-float32_field: 9.876
+float64_field: 9.876
 bool_field: false
 `),
 			dt:       typeYAML,
@@ -793,14 +486,14 @@ bool_field: false
 			wantNumF: 5,
 			wantDefinition: `type DynamicStruct struct {
 	BoolField bool
-	Float32Field float64
+	Float64Field float64
 	IntField int
 	NullField interface {}
 	StringField string
 }`,
 			fieldAndNestFields: map[string][]string{
 				"BoolField":    nil,
-				"Float32Field": nil,
+				"Float64Field": nil,
 				"IntField":     nil,
 				"NullField":    nil,
 				"StringField":  nil,
@@ -1078,6 +771,204 @@ string_array_field:
 	}
 }
 
+func TestDynamicStructHCL(t *testing.T) {
+	t.Parallel()
+
+	tests := []decoderTest{
+		{
+			name: "NoNestWithoutTag",
+			data: []byte(`
+string_field = "かきくけこ"
+int_field = 45678
+float64_field = 9.876
+bool_field = false
+null_field = null
+tuple_str_field = ["str1", "str2", "str3"]
+tuple_mix_field = ["str1", 123, true]
+object_str_field = {
+	key_a = "valA"
+	key_b = "valB"
+}
+object_mix_field = {
+	key_str = "strA"
+	key_num = 876.543
+	key_bool = true
+}
+`),
+			dt:       typeHCL,
+			nest:     false,
+			useTag:   false,
+			wantNumF: 9,
+			wantDefinition: `type DynamicStruct struct {
+	BoolField bool
+	Float64Field float64
+	IntField float64
+	NullField interface {}
+	ObjectMixField map[string]interface {}
+	ObjectStrField map[string]interface {}
+	StringField string
+	TupleMixField []string
+	TupleStrField []string
+}`,
+		},
+		{
+			name: "IsNestWithoutTag",
+			data: []byte(`
+string_field = "かきくけこ"
+int_field = 45678
+float64_field = 9.876
+bool_field = false
+null_field = null
+tuple_str_field = ["str1", "str2", "str3"]
+tuple_mix_field = ["str1", 123, true]
+object_str_field = {
+	key_a = "valA"
+	key_b = "valB"
+}
+object_mix_field = {
+	key_str = "strA"
+	key_num = 876.543
+	key_bool = true
+}
+`),
+			dt:       typeHCL,
+			nest:     true,
+			useTag:   false,
+			wantNumF: 9,
+			wantDefinition: `type DynamicStruct struct {
+	BoolField bool
+	Float64Field float64
+	IntField float64
+	NullField interface {}
+	ObjectMixField struct {
+		KeyBool bool
+		KeyNum float64
+		KeyStr string
+	}
+	ObjectStrField struct {
+		KeyA string
+		KeyB string
+	}
+	StringField string
+	TupleMixField []string
+	TupleStrField []string
+}`,
+		},
+		{
+			name: "IsNestWithTag",
+			data: []byte(`
+string_field = "かきくけこ"
+int_field = 45678
+float64_field = 9.876
+bool_field = false
+null_field = null
+tuple_str_field = ["str1", "str2", "str3"]
+tuple_mix_field = ["str1", 123, true]
+object_str_field = {
+	key_a = "valA"
+	key_b = "valB"
+}
+object_mix_field = {
+	key_str = "strA"
+	key_num = 876.543
+	key_bool = true
+}
+`),
+			dt:       typeHCL,
+			nest:     true,
+			useTag:   true,
+			wantNumF: 9,
+			wantDefinition: `type DynamicStruct struct {
+	BoolField bool ` + "`hcl:\"bool_field\"`" + `
+	Float64Field float64 ` + "`hcl:\"float64_field\"`" + `
+	IntField float64 ` + "`hcl:\"int_field\"`" + `
+	NullField interface {} ` + "`hcl:\"null_field\"`" + `
+	ObjectMixField struct {
+		KeyBool bool ` + "`hcl:\"key_bool\"`" + `
+		KeyNum float64 ` + "`hcl:\"key_num\"`" + `
+		KeyStr string ` + "`hcl:\"key_str\"`" + `
+	} ` + "`hcl:\"object_mix_field\"`" + `
+	ObjectStrField struct {
+		KeyA string ` + "`hcl:\"key_a\"`" + `
+		KeyB string ` + "`hcl:\"key_b\"`" + `
+	} ` + "`hcl:\"object_str_field\"`" + `
+	StringField string ` + "`hcl:\"string_field\"`" + `
+	TupleMixField []string ` + "`hcl:\"tuple_mix_field\"`" + `
+	TupleStrField []string ` + "`hcl:\"tuple_str_field\"`" + `
+}`,
+		},
+		{
+			name:           "BracketOnly",
+			data:           []byte(`{}`),
+			dt:             typeHCL,
+			nest:           false,
+			useTag:         false,
+			wantNumF:       0,
+			wantDefinition: ``,
+			wantErrorNew:   true,
+		},
+		{
+			name:           "ArrayBracketOnly",
+			data:           []byte(`[]`),
+			dt:             typeHCL,
+			nest:           false,
+			useTag:         false,
+			wantNumF:       0,
+			wantDefinition: ``,
+			wantErrorNew:   true,
+		},
+		{
+			name:           "OnlyLiteral",
+			data:           []byte(`aiueo`),
+			dt:             typeHCL,
+			nest:           false,
+			useTag:         false,
+			wantNumF:       0,
+			wantDefinition: ``,
+			wantErrorNew:   true,
+		},
+		{
+			name:     "Empty",
+			data:     []byte(``),
+			dt:       typeHCL,
+			nest:     false,
+			useTag:   false,
+			wantNumF: 0,
+			wantDefinition: `type DynamicStruct struct {
+}`,
+		},
+		{
+			name:     "NullData",
+			data:     nil,
+			dt:       typeHCL,
+			nest:     false,
+			useTag:   false,
+			wantNumF: 0,
+			wantDefinition: `type DynamicStruct struct {
+}`,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			dec, err := FromHCL(tt.data)
+			if err != nil {
+				if !tt.wantErrorNew {
+					t.Fatalf("unexpected error is returned from FromHCL: %v", err)
+				}
+				return
+			} else if tt.wantErrorNew {
+				t.Fatalf("error is expected but it does not occur from FromHCL. data: %q", string(tt.data))
+			}
+
+			testCorrectCase(t, tt, dec)
+		})
+	}
+}
+
 func TestDynamicStructFixmeXml(t *testing.T) {
 	t.Parallel()
 
@@ -1088,7 +979,7 @@ func TestDynamicStructFixmeXml(t *testing.T) {
 null_field: null
 string_field: かきくけこ
 int_field: 45678
-float32_field: 9.876
+float64_field: 9.876
 bool_field: false
 `),
 			dt:           typeXML,
@@ -1136,10 +1027,6 @@ bool_field: false
 
 func testCorrectCase(t *testing.T, tt decoderTest, dec *Decoder) {
 	t.Helper()
-
-	if d := cmp.Diff(dec.OrgData(), tt.data); d != "" {
-		t.Fatalf("mismatch OrgData: (-got +want)\n%s", d)
-	}
 
 	ds, err := dec.DynamicStruct(tt.nest, tt.useTag)
 	if err != nil {
