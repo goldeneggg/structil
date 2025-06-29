@@ -1,7 +1,7 @@
 package structil_test
 
 import (
-	"fmt"
+	"errors"
 	"math"
 	"reflect"
 	"testing"
@@ -2292,18 +2292,22 @@ func TestMapGet(t *testing.T) {
 			switch tt.name {
 			case "GetterTestStruct4Slice":
 				tt.args.mapfn = func(i int, g *Getter) (interface{}, error) {
-					str, _ := g.String("String")
-					str2, _ := g.String("String2")
-					return fmt.Sprintf("%s=%s", str, str2), nil
+					v, ok := g.Get("String")
+					if !ok {
+						return nil, errors.New("failed to get String")
+					}
+					return v, nil
 				}
-				tt.wantIntf = []interface{}{string("key100=value100"), string("key200=value200")}
+				tt.wantIntf = []interface{}{"key100", "key200"}
 			case "GetterTestStruct4PtrSlice":
 				tt.args.mapfn = func(i int, g *Getter) (interface{}, error) {
-					str, _ := g.String("String")
-					str2, _ := g.String("String2")
-					return fmt.Sprintf("%s:%s", str, str2), nil
+					v, ok := g.Get("String2")
+					if !ok {
+						return nil, errors.New("failed to get String2")
+					}
+					return v, nil
 				}
-				tt.wantIntf = []interface{}{string("key991:value991"), string("key992:value992")}
+				tt.wantIntf = []interface{}{"value991", "value992"}
 			default:
 				tt.wantError = true
 			}
@@ -2324,3 +2328,148 @@ func TestMapGet(t *testing.T) {
 		})
 	}
 }
+
+func TestGetAs(t *testing.T) {
+	t.Parallel()
+
+	testStructPtr := newGetterTestStructPtr()
+	g, err := NewGetter(testStructPtr)
+	if err != nil {
+		t.Fatalf("NewGetter() unexpected error [%v] occurred.", err)
+	}
+
+	tests := newGetterTests()
+	for _, tt := range tests {
+		tt := tt // See: https://gist.github.com/posener/92a55c4cd441fc5e5e85f27bca008721
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			switch tt.name {
+			case "Byte":
+				got, ok := GetAs[byte](g, tt.args.name)
+				assertGetAs(t, tt, got, ok, testStructPtr.Byte)
+			case "Bytes":
+				got, ok := GetAs[[]byte](g, tt.args.name)
+				assertGetAs(t, tt, got, ok, testStructPtr.Bytes)
+			case "String":
+				got, ok := GetAs[string](g, tt.args.name)
+				assertGetAs(t, tt, got, ok, testStructPtr.String)
+			case "Int":
+				got, ok := GetAs[int](g, tt.args.name)
+				assertGetAs(t, tt, got, ok, testStructPtr.Int)
+			case "Int8":
+				got, ok := GetAs[int8](g, tt.args.name)
+				assertGetAs(t, tt, got, ok, testStructPtr.Int8)
+			case "Int16":
+				got, ok := GetAs[int16](g, tt.args.name)
+				assertGetAs(t, tt, got, ok, testStructPtr.Int16)
+			case "Int32":
+				got, ok := GetAs[int32](g, tt.args.name)
+				assertGetAs(t, tt, got, ok, testStructPtr.Int32)
+			case "Int64":
+				got, ok := GetAs[int64](g, tt.args.name)
+				assertGetAs(t, tt, got, ok, testStructPtr.Int64)
+			case "Uint":
+				got, ok := GetAs[uint](g, tt.args.name)
+				assertGetAs(t, tt, got, ok, testStructPtr.Uint)
+			case "Uint8":
+				got, ok := GetAs[uint8](g, tt.args.name)
+				assertGetAs(t, tt, got, ok, testStructPtr.Uint8)
+			case "Uint16":
+				got, ok := GetAs[uint16](g, tt.args.name)
+				assertGetAs(t, tt, got, ok, testStructPtr.Uint16)
+			case "Uint32":
+				got, ok := GetAs[uint32](g, tt.args.name)
+				assertGetAs(t, tt, got, ok, testStructPtr.Uint32)
+			case "Uint64":
+				got, ok := GetAs[uint64](g, tt.args.name)
+				assertGetAs(t, tt, got, ok, testStructPtr.Uint64)
+			case "Uintptr":
+				got, ok := GetAs[uintptr](g, tt.args.name)
+				assertGetAs(t, tt, got, ok, testStructPtr.Uintptr)
+			case "Float32":
+				got, ok := GetAs[float32](g, tt.args.name)
+				assertGetAs(t, tt, got, ok, testStructPtr.Float32)
+			case "Float64":
+				got, ok := GetAs[float64](g, tt.args.name)
+				assertGetAs(t, tt, got, ok, testStructPtr.Float64)
+			case "Bool":
+				got, ok := GetAs[bool](g, tt.args.name)
+				assertGetAs(t, tt, got, ok, testStructPtr.Bool)
+			case "Complex64":
+				got, ok := GetAs[complex64](g, tt.args.name)
+				assertGetAs(t, tt, got, ok, testStructPtr.Complex64)
+			case "Complex128":
+				got, ok := GetAs[complex128](g, tt.args.name)
+				assertGetAs(t, tt, got, ok, testStructPtr.Complex128)
+			case "Unsafeptr":
+				got, ok := GetAs[unsafe.Pointer](g, tt.args.name)
+				assertGetAs(t, tt, got, ok, testStructPtr.Unsafeptr)
+			case "Map":
+				got, ok := GetAs[map[string]interface{}](g, tt.args.name)
+				assertGetAs(t, tt, got, ok, testStructPtr.Map)
+			case "Func":
+				got, ok := GetAs[func(string) interface{}](g, tt.args.name)
+				if !ok {
+					t.Fatalf("expected ok is true but false. args: %+v", tt.args)
+				}
+				gp := reflect.ValueOf(got).Pointer()
+				wp := reflect.ValueOf(testStructPtr.Func).Pointer()
+				if gp != wp {
+					t.Fatalf("unexpected mismatch func type: gp: %v, wp: %v", gp, wp)
+				}
+			case "ChInt":
+				got, ok := GetAs[chan int](g, tt.args.name)
+				assertGetAs(t, tt, got, ok, testStructPtr.ChInt)
+			case "GetterTestStruct2":
+				got, ok := GetAs[GetterTestStruct2](g, tt.args.name)
+				assertGetAs(t, tt, got, ok, testStructPtr.GetterTestStruct2)
+			case "GetterTestStruct2Ptr":
+				// Note: GetAs can not handle pointer of struct field
+				// because `Get` returns value of `reflect.Indirect`.
+				// So, `GetAs[*GetterTestStruct2]` will fail.
+				// This is a limitation of the current implementation.
+				// To get a pointer, you should use `Get` and cast it.
+				// Or, we can change `Get` to return `v.Interface()` instead of `util.ToI(indirect)`.
+				// But it will break backward compatibility.
+				// So, I will not change it now.
+				_, ok := GetAs[*GetterTestStruct2](g, tt.args.name)
+				if ok {
+					t.Fatalf("expected ok is false but true. args: %+v", tt.args)
+				}
+			case "GetterTestStruct4Slice":
+				got, ok := GetAs[[]GetterTestStruct4](g, tt.args.name)
+				assertGetAs(t, tt, got, ok, testStructPtr.GetterTestStruct4Slice)
+			case "GetterTestStruct4PtrSlice":
+				got, ok := GetAs[[]*GetterTestStruct4](g, tt.args.name)
+				assertGetAs(t, tt, got, ok, testStructPtr.GetterTestStruct4PtrSlice)
+			case "Stringarray":
+				got, ok := GetAs[[2]string](g, tt.args.name)
+				assertGetAs(t, tt, got, ok, testStructPtr.Stringarray)
+			case "privateString":
+				_, ok := GetAs[string](g, tt.args.name)
+				if ok {
+					t.Fatalf("expected ok is false but true. args: %+v", tt.args)
+				}
+			case "NotExist":
+				_, ok := GetAs[interface{}](g, tt.args.name)
+				if ok {
+					t.Fatalf("expected ok is false but true. args: %+v", tt.args)
+				}
+			}
+		})
+	}
+}
+
+func assertGetAs[T any](t *testing.T, tt *getterTest, got T, ok bool, want T) {
+	t.Helper()
+
+	if !ok {
+		t.Fatalf("expected ok is true but false. args: %+v", tt.args)
+	}
+
+	if d := cmp.Diff(got, want); d != "" {
+		t.Fatalf("unexpected mismatch: args: %+v, (-got +want)\n%s", tt.args, d)
+	}
+}
+
