@@ -697,7 +697,132 @@ func TestGetterToMap(t *testing.T) {
 		}
 	}
 
-	testGetSeries(t, true, false, assertionFunc)
+ 	testGetSeries(t, true, false, assertionFunc)
+}
+
+// TestGetAs tests the generic GetAs free function for various field types.
+func TestGetAs(t *testing.T) {
+	t.Parallel()
+
+	testStructPtr := newGetterTestStructPtr()
+	g, err := NewGetter(testStructPtr)
+	if err != nil {
+		t.Fatalf("NewGetter() unexpected error: %v", err)
+	}
+
+	// Byte
+	if got, ok := GetAs[byte](g, "Byte"); !ok || got != testStructPtr.Byte {
+		t.Errorf("GetAs[byte](g, \"Byte\") = %v, %v; want %v, true", got, ok, testStructPtr.Byte)
+	}
+	// Bytes
+	if got, ok := GetAs[[]byte](g, "Bytes"); !ok || !cmp.Equal(got, testStructPtr.Bytes) {
+		t.Errorf("GetAs[[]byte](g, \"Bytes\") = %v, %v; want %v, true", got, ok, testStructPtr.Bytes)
+	}
+	// String and Stringptr
+	if got, ok := GetAs[string](g, "String"); !ok || got != testStructPtr.String {
+		t.Errorf("GetAs[string](g, \"String\") = %v, %v; want %v, true", got, ok, testStructPtr.String)
+	}
+	if got, ok := GetAs[string](g, "Stringptr"); !ok || got != *testStructPtr.Stringptr {
+		t.Errorf("GetAs[string](g, \"Stringptr\") = %v, %v; want %v, true", got, ok, *testStructPtr.Stringptr)
+	}
+	// Ints
+	if got, ok := GetAs[int](g, "Int"); !ok || got != testStructPtr.Int {
+		t.Errorf("GetAs[int](g, \"Int\") = %v, %v; want %v, true", got, ok, testStructPtr.Int)
+	}
+	if got, ok := GetAs[int8](g, "Int8"); !ok || got != testStructPtr.Int8 {
+		t.Errorf("GetAs[int8](g, \"Int8\") = %v, %v; want %v, true", got, ok, testStructPtr.Int8)
+	}
+	if got, ok := GetAs[int16](g, "Int16"); !ok || got != testStructPtr.Int16 {
+		t.Errorf("GetAs[int16](g, \"Int16\") = %v, %v; want %v, true", got, ok, testStructPtr.Int16)
+	}
+	if got, ok := GetAs[int32](g, "Int32"); !ok || got != testStructPtr.Int32 {
+		t.Errorf("GetAs[int32](g, \"Int32\") = %v, %v; want %v, true", got, ok, testStructPtr.Int32)
+	}
+	if got, ok := GetAs[int64](g, "Int64"); !ok || got != testStructPtr.Int64 {
+		t.Errorf("GetAs[int64](g, \"Int64\") = %v, %v; want %v, true", got, ok, testStructPtr.Int64)
+	}
+	// Uints
+	if got, ok := GetAs[uint](g, "Uint"); !ok || got != testStructPtr.Uint {
+		t.Errorf("GetAs[uint](g, \"Uint\") = %v, %v; want %v, true", got, ok, testStructPtr.Uint)
+	}
+	if got, ok := GetAs[uint8](g, "Uint8"); !ok || got != testStructPtr.Uint8 {
+		t.Errorf("GetAs[uint8](g, \"Uint8\") = %v, %v; want %v, true", got, ok, testStructPtr.Uint8)
+	}
+	if got, ok := GetAs[uint16](g, "Uint16"); !ok || got != testStructPtr.Uint16 {
+		t.Errorf("GetAs[uint16](g, \"Uint16\") = %v, %v; want %v, true", got, ok, testStructPtr.Uint16)
+	}
+	if got, ok := GetAs[uint32](g, "Uint32"); !ok || got != testStructPtr.Uint32 {
+		t.Errorf("GetAs[uint32](g, \"Uint32\") = %v, %v; want %v, true", got, ok, testStructPtr.Uint32)
+	}
+	if got, ok := GetAs[uint64](g, "Uint64"); !ok || got != testStructPtr.Uint64 {
+		t.Errorf("GetAs[uint64](g, \"Uint64\") = %v, %v; want %v, true", got, ok, testStructPtr.Uint64)
+	}
+	if got, ok := GetAs[uintptr](g, "Uintptr"); !ok || got != testStructPtr.Uintptr {
+		t.Errorf("GetAs[uintptr](g, \"Uintptr\") = %v, %v; want %v, true", got, ok, testStructPtr.Uintptr)
+	}
+	// Floats
+	if got, ok := GetAs[float32](g, "Float32"); !ok || got != testStructPtr.Float32 {
+		t.Errorf("GetAs[float32](g, \"Float32\") = %v, %v; want %v, true", got, ok, testStructPtr.Float32)
+	}
+	if got, ok := GetAs[float64](g, "Float64"); !ok || got != testStructPtr.Float64 {
+		t.Errorf("GetAs[float64](g, \"Float64\") = %v, %v; want %v, true", got, ok, testStructPtr.Float64)
+	}
+	// Bool
+	if got, ok := GetAs[bool](g, "Bool"); !ok || got != testStructPtr.Bool {
+		t.Errorf("GetAs[bool](g, \"Bool\") = %v, %v; want %v, true", got, ok, testStructPtr.Bool)
+	}
+	// Complex
+	if got, ok := GetAs[complex64](g, "Complex64"); !ok || got != testStructPtr.Complex64 {
+		t.Errorf("GetAs[complex64](g, \"Complex64\") = %v, %v; want %v, true", got, ok, testStructPtr.Complex64)
+	}
+	if got, ok := GetAs[complex128](g, "Complex128"); !ok || got != testStructPtr.Complex128 {
+		t.Errorf("GetAs[complex128](g, \"Complex128\") = %v, %v; want %v, true", got, ok, testStructPtr.Complex128)
+	}
+	// UnsafePointer
+	if got, ok := GetAs[unsafe.Pointer](g, "Unsafeptr"); !ok || got != testStructPtr.Unsafeptr {
+		t.Errorf("GetAs[unsafe.Pointer](g, \"Unsafeptr\") = %v, %v; want %v, true", got, ok, testStructPtr.Unsafeptr)
+	}
+	// String slice and array
+	if got, ok := GetAs[[]string](g, "Stringslice"); !ok || !cmp.Equal(got, testStructPtr.Stringslice) {
+		t.Errorf("GetAs[[]string](g, \"Stringslice\") = %v, %v; want %v, true", got, ok, testStructPtr.Stringslice)
+	}
+	if got, ok := GetAs[[2]string](g, "Stringarray"); !ok || got != testStructPtr.Stringarray {
+		t.Errorf("GetAs[[2]string](g, \"Stringarray\") = %v, %v; want %v, true", got, ok, testStructPtr.Stringarray)
+	}
+	// Map
+	if got, ok := GetAs[map[string]interface{}](g, "Map"); !ok || !cmp.Equal(got, testStructPtr.Map) {
+		t.Errorf("GetAs[map[string]interface{}](g, \"Map\") = %v, %v; want %v, true", got, ok, testStructPtr.Map)
+	}
+	// Func
+	if got, ok := GetAs[func(string) interface{}](g, "Func"); !ok || reflect.ValueOf(got).Pointer() != reflect.ValueOf(testStructPtr.Func).Pointer() {
+		gp := reflect.ValueOf(got).Pointer()
+		wp := reflect.ValueOf(testStructPtr.Func).Pointer()
+		t.Errorf("GetAs[func(string) interface{}](g, \"Func\") gp=%#x, ok=%v; want wp=%#x, true", gp, ok, wp)
+	}
+	// Chan
+	if got, ok := GetAs[chan int](g, "ChInt"); !ok || !cmp.Equal(got, testStructPtr.ChInt) {
+		t.Errorf("GetAs[chan int](g, \"ChInt\") = %v, %v; want %v, true", got, ok, testStructPtr.ChInt)
+	}
+	// Nested struct and slices
+	if got, ok := GetAs[GetterTestStruct2](g, "GetterTestStruct2"); !ok || !cmp.Equal(got, testStructPtr.GetterTestStruct2) {
+		t.Errorf("GetAs[GetterTestStruct2](g, \"GetterTestStruct2\") = %v, %v; want %v, true", got, ok, testStructPtr.GetterTestStruct2)
+	}
+	if got, ok := GetAs[GetterTestStruct2](g, "GetterTestStruct2Ptr"); !ok || !cmp.Equal(got, *testStructPtr.GetterTestStruct2Ptr) {
+		t.Errorf("GetAs[GetterTestStruct2](g, \"GetterTestStruct2Ptr\") = %v, %v; want %v, true", got, ok, *testStructPtr.GetterTestStruct2Ptr)
+	}
+	if got, ok := GetAs[[]GetterTestStruct4](g, "GetterTestStruct4Slice"); !ok || !cmp.Equal(got, testStructPtr.GetterTestStruct4Slice) {
+		t.Errorf("GetAs[[]GetterTestStruct4](g, \"GetterTestStruct4Slice\") = %v, %v; want %v, true", got, ok, testStructPtr.GetterTestStruct4Slice)
+	}
+	if got, ok := GetAs[[]*GetterTestStruct4](g, "GetterTestStruct4PtrSlice"); !ok || !cmp.Equal(got, testStructPtr.GetterTestStruct4PtrSlice) {
+		t.Errorf("GetAs[[]*GetterTestStruct4](g, \"GetterTestStruct4PtrSlice\") = %v, %v; want %v, true", got, ok, testStructPtr.GetterTestStruct4PtrSlice)
+	}
+	// Private or not exist
+	if _, ok := GetAs[string](g, "privateString"); ok {
+		t.Errorf("GetAs[string](g, \"privateString\") ok = %v; want false", ok)
+	}
+	if _, ok := GetAs[string](g, "NotExist"); ok {
+		t.Errorf("GetAs[string](g, \"NotExist\") ok = %v; want false", ok)
+	}
 }
 
 func TestByte(t *testing.T) {
