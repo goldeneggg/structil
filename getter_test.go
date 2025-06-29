@@ -2324,3 +2324,346 @@ func TestMapGet(t *testing.T) {
 		})
 	}
 }
+
+func TestGetAs(t *testing.T) {
+	t.Parallel()
+
+	testStructPtr := newGetterTestStructPtr()
+	g, err := NewGetter(testStructPtr)
+	if err != nil {
+		t.Errorf("NewGetter() occurs unexpected error: %v", err)
+		return
+	}
+
+	t.Run("Byte", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[byte](g, "Byte")
+		if !ok {
+			t.Errorf("GetAs[byte](\"Byte\") failed")
+		} else if got != testStructPtr.Byte {
+			t.Errorf("GetAs[byte](\"Byte\") = %v, want %v", got, testStructPtr.Byte)
+		}
+	})
+
+	t.Run("Uint8", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[uint8](g, "Uint8")
+		if !ok {
+			t.Errorf("GetAs[uint8](\"Uint8\") failed")
+		} else if got != testStructPtr.Uint8 {
+			t.Errorf("GetAs[uint8](\"Uint8\") = %v, want %v", got, testStructPtr.Uint8)
+		}
+	})
+
+	t.Run("Bytes", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[[]byte](g, "Bytes")
+		if !ok {
+			t.Errorf("GetAs[[]byte](\"Bytes\") failed")
+		} else if d := cmp.Diff(got, testStructPtr.Bytes); d != "" {
+			t.Errorf("GetAs[[]byte](\"Bytes\") mismatch (-got +want)\n%s", d)
+		}
+	})
+
+	t.Run("String", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[string](g, "String")
+		if !ok {
+			t.Errorf("GetAs[string](\"String\") failed")
+		} else if got != testStructPtr.String {
+			t.Errorf("GetAs[string](\"String\") = %v, want %v", got, testStructPtr.String)
+		}
+	})
+
+	t.Run("Int", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[int](g, "Int")
+		if !ok {
+			t.Errorf("GetAs[int](\"Int\") failed")
+		} else if got != testStructPtr.Int {
+			t.Errorf("GetAs[int](\"Int\") = %v, want %v", got, testStructPtr.Int)
+		}
+	})
+
+	t.Run("Int8", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[int8](g, "Int8")
+		if !ok {
+			t.Errorf("GetAs[int8](\"Int8\") failed")
+		} else if got != testStructPtr.Int8 {
+			t.Errorf("GetAs[int8](\"Int8\") = %v, want %v", got, testStructPtr.Int8)
+		}
+	})
+
+	t.Run("Int16", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[int16](g, "Int16")
+		if !ok {
+			t.Errorf("GetAs[int16](\"Int16\") failed")
+		} else if got != testStructPtr.Int16 {
+			t.Errorf("GetAs[int16](\"Int16\") = %v, want %v", got, testStructPtr.Int16)
+		}
+	})
+
+	t.Run("Int32", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[int32](g, "Int32")
+		if !ok {
+			t.Errorf("GetAs[int32](\"Int32\") failed")
+		} else if got != testStructPtr.Int32 {
+			t.Errorf("GetAs[int32](\"Int32\") = %v, want %v", got, testStructPtr.Int32)
+		}
+	})
+
+	t.Run("Int64", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[int64](g, "Int64")
+		if !ok {
+			t.Errorf("GetAs[int64](\"Int64\") failed")
+		} else if got != testStructPtr.Int64 {
+			t.Errorf("GetAs[int64](\"Int64\") = %v, want %v", got, testStructPtr.Int64)
+		}
+	})
+
+	t.Run("Uint", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[uint](g, "Uint")
+		if !ok {
+			t.Errorf("GetAs[uint](\"Uint\") failed")
+		} else if got != testStructPtr.Uint {
+			t.Errorf("GetAs[uint](\"Uint\") = %v, want %v", got, testStructPtr.Uint)
+		}
+	})
+
+	t.Run("Uint16", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[uint16](g, "Uint16")
+		if !ok {
+			t.Errorf("GetAs[uint16](\"Uint16\") failed")
+		} else if got != testStructPtr.Uint16 {
+			t.Errorf("GetAs[uint16](\"Uint16\") = %v, want %v", got, testStructPtr.Uint16)
+		}
+	})
+
+	t.Run("Uint32", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[uint32](g, "Uint32")
+		if !ok {
+			t.Errorf("GetAs[uint32](\"Uint32\") failed")
+		} else if got != testStructPtr.Uint32 {
+			t.Errorf("GetAs[uint32](\"Uint32\") = %v, want %v", got, testStructPtr.Uint32)
+		}
+	})
+
+	t.Run("Uint64", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[uint64](g, "Uint64")
+		if !ok {
+			t.Errorf("GetAs[uint64](\"Uint64\") failed")
+		} else if got != testStructPtr.Uint64 {
+			t.Errorf("GetAs[uint64](\"Uint64\") = %v, want %v", got, testStructPtr.Uint64)
+		}
+	})
+
+	t.Run("Uintptr", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[uintptr](g, "Uintptr")
+		if !ok {
+			t.Errorf("GetAs[uintptr](\"Uintptr\") failed")
+		} else if got != testStructPtr.Uintptr {
+			t.Errorf("GetAs[uintptr](\"Uintptr\") = %v, want %v", got, testStructPtr.Uintptr)
+		}
+	})
+
+	t.Run("Float32", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[float32](g, "Float32")
+		if !ok {
+			t.Errorf("GetAs[float32](\"Float32\") failed")
+		} else if got != testStructPtr.Float32 {
+			t.Errorf("GetAs[float32](\"Float32\") = %v, want %v", got, testStructPtr.Float32)
+		}
+	})
+
+	t.Run("Float64", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[float64](g, "Float64")
+		if !ok {
+			t.Errorf("GetAs[float64](\"Float64\") failed")
+		} else if got != testStructPtr.Float64 {
+			t.Errorf("GetAs[float64](\"Float64\") = %v, want %v", got, testStructPtr.Float64)
+		}
+	})
+
+	t.Run("Bool", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[bool](g, "Bool")
+		if !ok {
+			t.Errorf("GetAs[bool](\"Bool\") failed")
+		} else if got != testStructPtr.Bool {
+			t.Errorf("GetAs[bool](\"Bool\") = %v, want %v", got, testStructPtr.Bool)
+		}
+	})
+
+	t.Run("Complex64", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[complex64](g, "Complex64")
+		if !ok {
+			t.Errorf("GetAs[complex64](\"Complex64\") failed")
+		} else if got != testStructPtr.Complex64 {
+			t.Errorf("GetAs[complex64](\"Complex64\") = %v, want %v", got, testStructPtr.Complex64)
+		}
+	})
+
+	t.Run("Complex128", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[complex128](g, "Complex128")
+		if !ok {
+			t.Errorf("GetAs[complex128](\"Complex128\") failed")
+		} else if got != testStructPtr.Complex128 {
+			t.Errorf("GetAs[complex128](\"Complex128\") = %v, want %v", got, testStructPtr.Complex128)
+		}
+	})
+
+	t.Run("UnsafePointer", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[unsafe.Pointer](g, "Unsafeptr")
+		if !ok {
+			t.Errorf("GetAs[unsafe.Pointer](\"Unsafeptr\") failed")
+		} else if got != testStructPtr.Unsafeptr {
+			t.Errorf("GetAs[unsafe.Pointer](\"Unsafeptr\") = %v, want %v", got, testStructPtr.Unsafeptr)
+		}
+	})
+
+	t.Run("StringSlice", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[[]string](g, "Stringslice")
+		if !ok {
+			t.Errorf("GetAs[[]string](\"Stringslice\") failed")
+		} else if d := cmp.Diff(got, testStructPtr.Stringslice); d != "" {
+			t.Errorf("GetAs[[]string](\"Stringslice\") mismatch (-got +want)\n%s", d)
+		}
+	})
+
+	t.Run("StringArray", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[[2]string](g, "Stringarray")
+		if !ok {
+			t.Errorf("GetAs[[2]string](\"Stringarray\") failed")
+		} else if d := cmp.Diff(got, testStructPtr.Stringarray); d != "" {
+			t.Errorf("GetAs[[2]string](\"Stringarray\") mismatch (-got +want)\n%s", d)
+		}
+	})
+
+	t.Run("Map", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[map[string]interface{}](g, "Map")
+		if !ok {
+			t.Errorf("GetAs[map[string]interface{}](\"Map\") failed")
+		} else if d := cmp.Diff(got, testStructPtr.Map); d != "" {
+			t.Errorf("GetAs[map[string]interface{}](\"Map\") mismatch (-got +want)\n%s", d)
+		}
+	})
+
+	t.Run("Func", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[func(string) interface{}](g, "Func")
+		if !ok {
+			t.Errorf("GetAs[func(string) interface{}](\"Func\") failed")
+		} else {
+			gp := reflect.ValueOf(got).Pointer()
+			wp := reflect.ValueOf(testStructPtr.Func).Pointer()
+			if gp != wp {
+				t.Errorf("GetAs[func(string) interface{}](\"Func\") pointer mismatch")
+			}
+		}
+	})
+
+	t.Run("Chan", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[chan int](g, "ChInt")
+		if !ok {
+			t.Errorf("GetAs[chan int](\"ChInt\") failed")
+		} else if got != testStructPtr.ChInt {
+			t.Errorf("GetAs[chan int](\"ChInt\") = %v, want %v", got, testStructPtr.ChInt)
+		}
+	})
+
+	t.Run("Struct", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[GetterTestStruct2](g, "GetterTestStruct2")
+		if !ok {
+			t.Errorf("GetAs[GetterTestStruct2](\"GetterTestStruct2\") failed")
+		} else if d := cmp.Diff(got, testStructPtr.GetterTestStruct2); d != "" {
+			t.Errorf("GetAs[GetterTestStruct2](\"GetterTestStruct2\") mismatch (-got +want)\n%s", d)
+		}
+	})
+
+	t.Run("StructPtr", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[GetterTestStruct2](g, "GetterTestStruct2Ptr")
+		if !ok {
+			t.Errorf("GetAs[GetterTestStruct2](\"GetterTestStruct2Ptr\") failed")
+		} else if d := cmp.Diff(got, *testStructPtr.GetterTestStruct2Ptr); d != "" {
+			t.Errorf("GetAs[GetterTestStruct2](\"GetterTestStruct2Ptr\") mismatch (-got +want)\n%s", d)
+		}
+	})
+
+	t.Run("StructSlice", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[[]GetterTestStruct4](g, "GetterTestStruct4Slice")
+		if !ok {
+			t.Errorf("GetAs[[]GetterTestStruct4](\"GetterTestStruct4Slice\") failed")
+		} else if d := cmp.Diff(got, testStructPtr.GetterTestStruct4Slice); d != "" {
+			t.Errorf("GetAs[[]GetterTestStruct4](\"GetterTestStruct4Slice\") mismatch (-got +want)\n%s", d)
+		}
+	})
+
+	t.Run("Interface", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[interface{}](g, "String")
+		if !ok {
+			t.Errorf("GetAs[interface{}](\"String\") failed")
+		} else if got != testStructPtr.String {
+			t.Errorf("GetAs[interface{}](\"String\") = %v, want %v", got, testStructPtr.String)
+		}
+	})
+
+	t.Run("SliceInterface", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[[]interface{}](g, "Bytes")
+		if !ok {
+			t.Errorf("GetAs[[]interface{}](\"Bytes\") failed")
+		} else {
+			expected := []interface{}{uint8(0), testStructPtr.Byte}
+			if d := cmp.Diff(got, expected); d != "" {
+				t.Errorf("GetAs[[]interface{}](\"Bytes\") mismatch (-got +want)\n%s", d)
+			}
+		}
+	})
+
+	t.Run("NonExistentField", func(t *testing.T) {
+		t.Parallel()
+		_, ok := GetAs[string](g, "NonExistent")
+		if ok {
+			t.Errorf("GetAs[string](\"NonExistent\") should have failed")
+		}
+	})
+
+	t.Run("WrongType", func(t *testing.T) {
+		t.Parallel()
+		_, ok := GetAs[int](g, "String")
+		if ok {
+			t.Errorf("GetAs[int](\"String\") should have failed")
+		}
+	})
+
+	t.Run("PrivateField", func(t *testing.T) {
+		t.Parallel()
+		got, ok := GetAs[string](g, "privateString")
+		// For private fields, util.ToI() returns nil, so type assertion will fail
+		if ok {
+			t.Errorf("GetAs[string](\"privateString\") unexpectedly succeeded with value: %v", got)
+		}
+	})
+}

@@ -47,3 +47,5 @@ vendor/
 
 .vscode
 coverage.txt
+
+.claude
