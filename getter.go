@@ -144,6 +144,18 @@ func (g *Getter) Get(name string) (interface{}, bool) {
 	return nil, false
 }
 
+// GetAs returns the original struct field named "name" cast to type T.
+// The second return value reports whether the field exists and its value is of type T.
+func GetAs[T any](g *Getter, name string) (T, bool) {
+	var zero T
+	gf, ok := g.getSafely(name)
+	if !ok {
+		return zero, false
+	}
+	res, ok := gf.intf.(T)
+	return res, ok
+}
+
 // ToMap returns a map converted from this Getter.
 func (g *Getter) ToMap() map[string]interface{} {
 	m := make(map[string]interface{})
