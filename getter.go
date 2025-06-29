@@ -637,3 +637,63 @@ func (g *Getter) MapGet(name string, f func(int, *Getter) (interface{}, error)) 
 
 	return res, nil
 }
+
+// GetAs returns the value of the original struct field named name, typed as T.
+// 2nd return value will be false if the original struct does not have a "name" field.
+// 2nd return value will be false if type of the original struct "name" field cannot be converted to T.
+func GetAs[T any](g *Getter, name string) (T, bool) {
+	var zero T
+	gf, ok := g.getSafely(name)
+	if !ok {
+		return zero, false
+	}
+
+	// Try direct type assertion first
+	if val, ok := gf.intf.(T); ok {
+		return val, true
+	}
+
+	// Handle special cases based on reflect.Value for more complex conversions
+	v := gf.indirect
+	if !v.IsValid() {
+		return zero, false
+	}
+
+	// If T is an interface{}, return the interface directly
+	var interfaceType interface{} = (*interface{})(nil)
+	if reflect.TypeOf(zero) == reflect.TypeOf(interfaceType).Elem() {
+		return any(gf.intf).(T), true
+	}
+
+	// For slice types, handle special conversion cases
+	targetType := reflect.TypeOf(zero)
+	if targetType.Kind() == reflect.Slice {
+		if v.Kind() == reflect.Slice {
+			// Handle []interface{} conversion for slices
+			if targetType.Elem().Kind() == reflect.Interface && targetType.Elem().Name() == "" {
+				// Target is []interface{}
+				len := v.Len()
+				result := make([]interface{}, len)
+				for i := 0; i < len; i++ {
+					result[i] = v.Index(i).Interface()
+				}
+				if sliceVal, ok := any(result).(T); ok {
+					return sliceVal, true
+				}
+			}
+		}
+	}
+
+	// Try to convert via reflection if types are convertible
+	if v.Type().ConvertibleTo(targetType) {
+		converted := v.Convert(targetType)
+		// Check if we can safely call Interface() - avoid panic on unexported fields
+		if converted.CanInterface() {
+			if val, ok := converted.Interface().(T); ok {
+				return val, true
+			}
+		}
+	}
+
+	return zero, false
+}
